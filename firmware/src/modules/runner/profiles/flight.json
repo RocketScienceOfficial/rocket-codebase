@@ -1,0 +1,35 @@
+[
+    {
+        "name": "fast",
+        "rate": 500,
+        "priority": "high",
+        "modules": [
+            "sensors",
+            "ekf",
+            "state_machine",
+            "ign"
+        ]
+    },
+    {
+        "name": "com",
+        "rate": 200,
+        "priority": "normal",
+        "modules": [
+            "com_serial",
+            "com_radio"
+        ]
+    },
+    {
+        "name": "slow",
+        "rate": 100,
+        "priority": "low",
+        "modules": [
+            "buzzer",
+            "commander",
+            "database",
+            "led",
+            "telemetry",
+            "voltage"
+        ]
+    }
+]

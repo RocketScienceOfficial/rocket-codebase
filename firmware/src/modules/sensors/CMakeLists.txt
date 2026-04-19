@@ -1,0 +1,18 @@
+obc_add_module(sensors
+    SOURCES
+    SensorsModule.cpp
+    Driver_adc_ign.cpp
+    Driver_battery.cpp
+    Driver_bmi088.cpp
+    Driver_gps.cpp
+    Driver_mmc5983ma.cpp
+    Driver_ms5611.cpp
+    DEPENDS
+    maths
+    battery
+    drivers_adc
+    drivers_imu
+    drivers_gps
+    drivers_mag
+    drivers_baro
+)

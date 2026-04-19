@@ -1,0 +1,58 @@
+<protocol>
+    <enums>
+        <enum name="sitl_read_flags" type="flags">
+            <value name="SITL_READ_IMU_1"/>
+            <value name="SITL_READ_MAG_1"/>
+            <value name="SITL_READ_BARO_1"/>
+            <value name="SITL_READ_GPS_1"/>
+        </enum>
+    </enums>
+
+    <messages>
+        <message name="ign_request_test" id="30">
+            <field name="ignNum" type="uint8"/>
+        </message>
+
+        <message name="ign_response_test" id="31">
+        </message>
+
+        <message name="sitl_request_data" id="32">
+            <field name="readFlags" type="uint8">Based on sitl_read_flags</field>
+            <field name="imu1dt" type="float"/>
+            <field name="imu1AccX" type="float"/>
+            <field name="imu1AccY" type="float"/>
+            <field name="imu1AccZ" type="float"/>
+            <field name="imu1GyroX" type="float"/>
+            <field name="imu1GyroY" type="float"/>
+            <field name="imu1GyroZ" type="float"/>
+            <field name="mag1X" type="float"/>
+            <field name="mag1Y" type="float"/>
+            <field name="mag1Z" type="float"/>
+            <field name="baro1Pressure" type="int32"/>
+            <field name="baro1Temperature" type="float"/>
+            <field name="baro1Height" type="float"/>
+            <field name="gps1Lat" type="double"/>
+            <field name="gps1Lon" type="double"/>
+            <field name="gps1Alt" type="double"/>
+            <field name="gps1Sats" type="uint8"/>
+        </message>
+
+        <message name="sitl_response_data" id="33">
+            <field name="accN" type="float"/>
+            <field name="accE" type="float"/>
+            <field name="accD" type="float"/>
+            <field name="velN" type="float"/>
+            <field name="velE" type="float"/>
+            <field name="velD" type="float"/>
+            <field name="posN" type="float"/>
+            <field name="posE" type="float"/>
+            <field name="posD" type="float"/>
+            <field name="qw" type="float"/>
+            <field name="qx" type="float"/>
+            <field name="qy" type="float"/>
+            <field name="qz" type="float"/>
+            <field name="smState" type="uint8">Based on state_machine_state</field>
+            <field name="ignFiredFlags" type="uint8"> Each bit represents whether a specific igniter is fired (1) or not (0)</field>
+        </message>
+    </messages>
+</protocol>

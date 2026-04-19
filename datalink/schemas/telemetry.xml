@@ -1,0 +1,100 @@
+<protocol>
+    <enums>
+        <enum name="telemetry_data_state_flags" type="flags">
+            <value name="TELEMETRY_DATA_CONTROL_3V3_ENABLED"/>
+            <value name="TELEMETRY_DATA_CONTROL_5V_ENABLED"/>
+            <value name="TELEMETRY_DATA_CONTROL_VBAT_ENABLED"/>
+            <value name="TELEMETRY_DATA_CONTROL_IGN_1_CONT"/>
+            <value name="TELEMETRY_DATA_CONTROL_IGN_2_CONT"/>
+            <value name="TELEMETRY_DATA_CONTROL_IGN_3_CONT"/>
+            <value name="TELEMETRY_DATA_CONTROL_IGN_4_CONT"/>
+        </enum>
+
+        <enum name="telemetry_cmd">
+            <value name="TELEMETRY_CMD_NONE"/>
+            <value name="TELEMETRY_CMD_ARM"/>
+            <value name="TELEMETRY_CMD_DISARM"/>
+            <value name="TELEMETRY_CMD_3V3_ENABLED"/>
+            <value name="TELEMETRY_CMD_3V3_DISABLED"/>
+            <value name="TELEMETRY_CMD_5V_ENABLED"/>
+            <value name="TELEMETRY_CMD_5V_DISABLED"/>
+            <value name="TELEMETRY_CMD_VBAT_ENABLED"/>
+            <value name="TELEMETRY_CMD_VBAT_DISABLED"/>
+            <value name="TELEMETRY_CMD_IGN_1_REQ_FIRE"/>
+            <value name="TELEMETRY_CMD_IGN_2_REQ_FIRE"/>
+            <value name="TELEMETRY_CMD_IGN_3_REQ_FIRE"/>
+            <value name="TELEMETRY_CMD_IGN_4_REQ_FIRE"/>
+        </enum>
+
+        <enum name="telemetry_cmd_status">
+            <value name="TELEMETRY_CMD_STATUS_PENDING"/>
+            <value name="TELEMETRY_CMD_STATUS_SUCCESS"/>
+            <value name="TELEMETRY_CMD_STATUS_FAILURE"/>
+        </enum>
+    </enums>
+
+    <messages>
+        <message name="telemetry_data_obc" id="0">
+            <field name="qw" type="int16"/>
+            <field name="qx" type="int16"/>
+            <field name="qy" type="int16"/>
+            <field name="qz" type="int16"/>
+            <field name="velocity_kmh" type="uint16"/>
+            <field name="batteryVoltage100" type="uint16"/>
+            <field name="batteryPercentage" type="uint8"/>
+            <field name="lat" type="int32"/>
+            <field name="lon" type="int32"/>
+            <field name="alt" type="uint16"/>
+            <field name="gpsData" type="uint8">First bit - GPS fix, rest - sats number</field>
+            <field name="state" type="uint8"/>
+            <field name="sendResponse" type="uint8"/>
+            <field name="stateFlags" type="uint8">Based on telemetry_data_state_flags</field>
+            <field name="cmd_seq" type="uint8"/>
+            <field name="cmd_last_status" type="uint8">Based on telemetry_cmd_status</field>
+        </message>
+
+        <message name="telemetry_data_gcs" id="1">
+            <field name="qw" type="int16"/>
+            <field name="qx" type="int16"/>
+            <field name="qy" type="int16"/>
+            <field name="qz" type="int16"/>
+            <field name="velocity_kmh" type="uint16"/>
+            <field name="batteryVoltage100" type="uint16"/>
+            <field name="batteryPercentage" type="uint8"/>
+            <field name="lat" type="int32"/>
+            <field name="lon" type="int32"/>
+            <field name="alt" type="uint16"/>
+            <field name="gcsLat" type="int32"/>
+            <field name="gcsLon" type="int32"/>
+            <field name="gpsData" type="uint8">First bit - GPS fix, rest - sats number</field>
+            <field name="state" type="uint8"/>
+            <field name="stateFlags" type="uint8">Based on telemetry_data_state_flags</field>
+            <field name="signalStrengthNeg" type="uint8"/>
+            <field name="packetLossPercentage" type="uint8"/>
+            <field name="packetsReceived" type="uint16"/>
+            <field name="packetsTransmitted" type="uint16"/>
+        </message>
+
+        <message name="telemetry_response" id="2">
+            <field name="cmd" type="uint8">Based on telemetry_cmd</field>
+            <field name="cmd_seq" type="uint8"></field>
+        </message>
+
+
+        <message name="telemetry_gcs_cmd" id="3">
+            <field name="cmd" type="uint8">Based on telemetry_cmd</field>
+        </message>
+
+
+        <message name="gcs_ack" id="4">
+            <field name="success" type="uint8"/>
+        </message>
+
+        <message name="gcs_nack" id="5">
+        </message>
+
+
+        <message name="radio_module_tx_done" id="6">
+        </message>
+    </messages>
+</protocol>

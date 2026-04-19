@@ -1,0 +1,9 @@
+[submodule "firmware/platform/common/freertos/FreeRTOS-Kernel"]
+	path = firmware/platform/common/freertos/FreeRTOS-Kernel
+	url = https://github.com/FreeRTOS/FreeRTOS-Kernel.git
+[submodule "firmware/platform/pico/pico-sdk"]
+	path = firmware/platform/pico/pico-sdk
+	url = https://github.com/raspberrypi/pico-sdk.git
+[submodule "firmware/src/radio/lib/RadioLib"]
+	path = firmware/src/radio/lib/RadioLib
+	url = https://github.com/jgromes/RadioLib.git

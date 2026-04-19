@@ -1,0 +1,33 @@
+name: DataLink C Tests
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  c-tests:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./datalink
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generate C code for tests
+        run: python gen.py --lang c --outdir tests/c
+
+      - name: Build C tests
+        run: gcc -std=c11 tests/c/datalink.c tests/c/test_runtime.c -o tests/c/test_runtime
+
+      - name: Run C tests
+        run: ./tests/c/test_runtime

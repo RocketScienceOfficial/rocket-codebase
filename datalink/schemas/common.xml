@@ -1,0 +1,12 @@
+<protocol>
+    <enums>
+        <enum name="state_machine_state">
+            <value name="SM_STATE_STANDING"/>
+            <value name="SM_STATE_ARMED"/>
+            <value name="SM_STATE_ACCELERATING"/>
+            <value name="SM_STATE_FREE_FLIGHT"/>
+            <value name="SM_STATE_FREE_FALL"/>
+            <value name="SM_STATE_LANDED"/>
+        </enum>
+    </enums>
+</protocol>

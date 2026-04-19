@@ -1,0 +1,46 @@
+[
+    {
+        "name": "sitl",
+        "priority": "high",
+        "modules": [
+            "sim_bridge"
+        ]
+    },
+    {
+        "name": "sitl_radio",
+        "priority": "high",
+        "modules": [
+            "sim_radio"
+        ]
+    },
+    {
+        "name": "sitl_serial",
+        "priority": "high",
+        "modules": [
+            "sim_serial"
+        ]
+    },
+    {
+        "name": "fast",
+        "rate": 500,
+        "priority": "high",
+        "modules": [
+            "ekf",
+            "state_machine",
+            "ign"
+        ]
+    },
+    {
+        "name": "slow",
+        "rate": 100,
+        "priority": "low",
+        "modules": [
+            "buzzer",
+            "commander",
+            "database",
+            "led",
+            "telemetry",
+            "voltage"
+        ]
+    }
+]

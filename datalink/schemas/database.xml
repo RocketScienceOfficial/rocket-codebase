@@ -1,0 +1,115 @@
+<protocol>
+    <enums>
+        <enum name="data_chunk_ign_flags" type="flags">
+            <value name="IGN_1_CONT"/>
+            <value name="IGN_2_CONT"/>
+            <value name="IGN_3_CONT"/>
+            <value name="IGN_4_CONT"/>
+            <value name="IGN_1_FIRED"/>
+            <value name="IGN_2_FIRED"/>
+            <value name="IGN_3_FIRED"/>
+            <value name="IGN_4_FIRED"/>
+        </enum>
+    </enums>
+
+    <messages>
+        <message name="saved_data_chunk_obc" id="10">
+            <field name="dt" type="uint16"/>
+            <field name="accRawX" type="float"/>
+            <field name="accRawY" type="float"/>
+            <field name="accRawZ" type="float"/>
+            <field name="gyroRawX" type="float"/>
+            <field name="gyroRawY" type="float"/>
+            <field name="gyroRawZ" type="float"/>
+            <field name="magRawX" type="float"/>
+            <field name="magRawY" type="float"/>
+            <field name="magRawZ" type="float"/>
+            <field name="lat" type="double"/>
+            <field name="lon" type="double"/>
+            <field name="alt" type="double"/>
+            <field name="gpsData" type="uint8">First bit - GPS fix, rest - sats number</field>
+            <field name="pressure" type="int32"/>
+            <field name="accN" type="float"/>
+            <field name="accE" type="float"/>
+            <field name="accD" type="float"/>
+            <field name="velN" type="float"/>
+            <field name="velE" type="float"/>
+            <field name="velD" type="float"/>
+            <field name="posN" type="float"/>
+            <field name="posE" type="float"/>
+            <field name="posD" type="float"/>
+            <field name="qw" type="float"/>
+            <field name="qx" type="float"/>
+            <field name="qy" type="float"/>
+            <field name="qz" type="float"/>
+            <field name="smState" type="uint8">Based on state_machine_state</field>
+            <field name="batteryVoltage100" type="uint16"/>
+            <field name="ignFlags" type="uint8">Flags from data_chunk_ign_flags</field>
+        </message>
+
+        <message name="saved_data_chunk_acs" id="11">
+            <field name="dt" type="uint16"/>
+            <field name="accRawX" type="float"/>
+            <field name="accRawY" type="float"/>
+            <field name="accRawZ" type="float"/>
+            <field name="gyroRawX" type="float"/>
+            <field name="gyroRawY" type="float"/>
+            <field name="gyroRawZ" type="float"/>
+            <field name="magRawX" type="float"/>
+            <field name="magRawY" type="float"/>
+            <field name="magRawZ" type="float"/>
+            <field name="lat" type="double"/>
+            <field name="lon" type="double"/>
+            <field name="alt" type="double"/>
+            <field name="gpsData" type="uint8">First bit - GPS fix, rest - sats number</field>
+            <field name="pressure" type="int32"/>
+            <field name="accN" type="float"/>
+            <field name="accE" type="float"/>
+            <field name="accD" type="float"/>
+            <field name="velN" type="float"/>
+            <field name="velE" type="float"/>
+            <field name="velD" type="float"/>
+            <field name="posN" type="float"/>
+            <field name="posE" type="float"/>
+            <field name="posD" type="float"/>
+            <field name="qw" type="float"/>
+            <field name="qx" type="float"/>
+            <field name="qy" type="float"/>
+            <field name="qz" type="float"/>
+            <field name="smState" type="uint8">Based on state_machine_state</field>
+            <field name="batteryVoltage100" type="uint16"/>
+            <field name="angleSetpoint10" type="int16"/>
+            <field name="pidRoll10" type="int16"/>
+            <field name="pidOutputAngle10" type="int8"/>
+        </message>
+
+        <message name="saved_data_chunk_size" id="12">
+            <field name="size" type="uint32"/>
+        </message>
+
+
+        <message name="clear_request" id="13">
+        </message>
+
+        <message name="clear_progress_info" id="14">
+            <field name="percentage" type="uint8"/>
+        </message>
+
+        <message name="clear_finish" id="15">
+        </message>
+
+
+        <message name="read_request" id="16">
+        </message>
+
+        <message name="read_finish" id="17">
+        </message>
+
+
+        <message name="recovery_request" id="18">
+        </message>
+
+        <message name="recovery_finish" id="19">
+        </message>
+    </messages>
+</protocol>

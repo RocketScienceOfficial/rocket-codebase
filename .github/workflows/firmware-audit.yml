@@ -1,0 +1,22 @@
+name: Audit Firmware
+
+on: [push]
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./firmware/obc
+
+    steps:
+      - name: Verify
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Audit
+        run: |
+          chmod +x ./obc.py
+          ./obc.py audit

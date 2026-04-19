@@ -1,0 +1,15 @@
+{
+  "name": "com.rocketscience.datalink-unity-utils",
+  "version": "1.0.0",
+  "displayName": "DataLink Unity Utils",
+  "description": "Utilities for communication in DataLink",
+  "unity": "2021.3",
+  "keywords": [
+	"DataLink",
+    "Communication",
+    "Serial"
+  ],
+  "author": {
+    "name": "Rocket Science"
+  }
+}

@@ -1,0 +1,89 @@
+import argparse
+from . import datalink
+from sim.connection.network import TCPSocket
+from sim.presentation import axes_plots, errors_plots, main_plot
+from sim.env.environments import *
+from sim.env.physics_engines import *
+from sim.env.sensors import *
+
+
+# ============ SIMULATION CONFIGURATION ============
+AUTO_ARM = True
+SIM_TICK_DT = 0.001
+# ==================================================
+
+
+# ============ SOCKETS SETUP ============
+physx_sock = TCPSocket(name="physx", ip="127.0.0.1", port=12345, is_server=False, blocking=True)
+radio_sock = TCPSocket(name="radio", ip="127.0.0.1", port=12346, is_server=False, blocking=False)
+# ================================================
+
+
+# =========== ENVIRONMENT SETUP ============
+parser = argparse.ArgumentParser(description="Python Rocket Simulation")
+parser.add_argument("--config", type=str, required=True, help="Path to the configuration file")
+args = parser.parse_args()
+
+if args.config == "fm2024":
+    from sim.configs.cfg_fm2024 import get_environment
+elif args.config == "or_taipan":
+    from sim.configs.cfg_or_taipan import get_environment
+elif args.config == "simulink":
+    from sim.configs.cfg_simulink import get_environment
+else:
+    raise ValueError(f"Unknown configuration: {args.config}")
+
+env = get_environment(SIM_TICK_DT)
+# ============================================
+
+
+# ============ SIMULATION LOOP ============
+if AUTO_ARM:
+    packet = datalink.telemetry_response(
+        cmd=datalink.telemetry_cmd.DATALINK_TELEMETRY_CMD_ARM,
+        cmd_seq=1,
+    )
+
+    radio_sock.send(packet.pack())
+
+    print("> Armed rocket.")
+
+print("> Starting simulation...")
+
+tick = 0
+received_data = []
+true_data = []
+
+env.forward(PhysicsEngineInput(fin_states=np.array([0, 0])))
+
+while not env.finished():
+    data = datalink.sitl_response_data.unpack(physx_sock.receive())
+    received_data.append(data)
+
+    env.forward(PhysicsEngineInput(fin_states=np.array([0, 0])))
+    true_data.append(env.get_current_true_data())
+
+    physx_sock.send(env.get_current_data().pack())
+
+    if tick % 100 == 0:
+        print(f"\r> Running simulation... Time: {tick/1000:.1f}s", end="", flush=True)
+
+    tick += 1
+
+print("\n> Simulation complete!")
+# ============================================
+
+
+# ================= CLEANUP =================
+physx_sock.close()
+radio_sock.close()
+# ============================================
+
+
+# ================== PLOTTING ==================
+print("> Plotting data...")
+
+main_plot.plot(received_data, SIM_TICK_DT)
+axes_plots.plot(received_data, true_data, SIM_TICK_DT)
+errors_plots.plot(received_data, true_data, SIM_TICK_DT)
+# ==============================================

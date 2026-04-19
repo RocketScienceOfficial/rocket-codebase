@@ -1,0 +1,39 @@
+name: Build Firmware
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./firmware/obc
+
+    steps:
+      - name: Verify
+        uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+
+      - name: Install Toolchain
+        run: sudo apt install cmake gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib build-essential ninja-build
+
+      - name: Build 'host'
+        run: |
+          chmod +x ./obc.py
+          ./obc.py build host --debug --board virtual_16mb
+
+      - name: Build 'pico'
+        run: |
+          chmod +x ./obc.py
+          ./obc.py build pico --debug --board rp2040_16mb
+
+      - name: Run tests
+        run: |
+          chmod +x ./obc.py
+          ./obc.py test
