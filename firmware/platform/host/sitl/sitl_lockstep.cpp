@@ -63,11 +63,6 @@ void sitl_stop(void)
     sitl_time_tick();
 }
 
-void osal_task_system_init(void)
-{
-    (void)0;
-}
-
 void osal_task_create(const char *task_name, osal_task_function_t task_func, void *arg, uint8_t *stack_buffer, size_t stack_size, osal_task_priority_t priority)
 {
     (void)task_name;

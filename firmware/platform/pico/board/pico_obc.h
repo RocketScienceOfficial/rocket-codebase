@@ -6,8 +6,6 @@
 #ifndef _PICO_OBC_H
 #define _PICO_OBC_H
 
-#include "../../config/board_config.h"
-
 // --- UART ---
 #ifndef PICO_DEFAULT_UART
 #define PICO_DEFAULT_UART 0

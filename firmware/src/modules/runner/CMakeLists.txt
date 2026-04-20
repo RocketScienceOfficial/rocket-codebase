@@ -1,13 +1,8 @@
-if(OBC_SITL)
-    set(RUNNER_PROFILE sitl)
-else()
-    set(RUNNER_PROFILE flight)
-endif()
-
+# ===== CHECK FOR REBUILD =====
 set(RUNNER_OUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated)
 set(RUNNER_GEN_PY ${CMAKE_CURRENT_LIST_DIR}/runner_gen.py)
 set(RUNNER_PROFILE_FILE ${CMAKE_CURRENT_LIST_DIR}/profiles/${RUNNER_PROFILE}.json)
-set(RUNNER_GEN_SOURCE ${RUNNER_OUT_DIR}/ModulesRunner.cpp)
+set(RUNNER_GEN_SOURCE ${RUNNER_OUT_DIR}/runner.cpp)
 set(RUNNER_GEN_CMAKE ${RUNNER_OUT_DIR}/runner.cmake)
 set(RUNNER_GEN_STAMP ${RUNNER_OUT_DIR}/runner.stamp)
 
@@ -36,12 +31,17 @@ if(RUNNER_NEEDS_GEN)
     file(TOUCH ${RUNNER_GEN_STAMP})
 endif()
 
-add_library(app_modules_runner STATIC
+# ===== ENTRY POINT SETUP -----=====
+add_library(app_main STATIC
     ${RUNNER_GEN_SOURCE}
+    ${HW_INIT_SOURCE}
 )
 
-target_include_directories(app_modules_runner PRIVATE
-    ${CMAKE_CURRENT_LIST_DIR}
+target_link_libraries(app_main PUBLIC
+    platform_hal
+    platform_osal
+    platform_board
+    app_pubsub
 )
 
 include(${RUNNER_GEN_CMAKE})

@@ -1,5 +1,4 @@
 #include "hal/flash_driver.h"
-#include "board_config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,7 +10,6 @@ static FILE *g_flashFile = NULL;
 
 static void _init_file(void)
 {
-#ifndef NDEBUG
     g_flashFile = fopen(FLASH_FILEPATH, "r+b");
 
     if (g_flashFile == NULL)
@@ -29,19 +27,16 @@ static void _init_file(void)
     {
         fread(g_flashMemory, 1, BOARD_FLASH_SIZE, g_flashFile);
     }
-#endif
 }
 
 static void _sync_to_file(size_t offset, size_t length)
 {
-#ifndef NDEBUG
     if (g_flashFile)
     {
         fseek(g_flashFile, (long)offset, SEEK_SET);
         fwrite(&g_flashMemory[offset], 1, length, g_flashFile);
         fflush(g_flashFile);
     }
-#endif
 }
 
 void hal_flash_init(void)

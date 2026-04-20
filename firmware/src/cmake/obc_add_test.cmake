@@ -1,5 +1,5 @@
 function(obc_add_test test_name)
-    if(OBC_TESTS AND OBC_SITL)
+    if(BUILD_TESTS)
         set(options "")
         set(oneValueArgs "")
         set(multiValueArgs SOURCES DEPENDS)

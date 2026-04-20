@@ -22,11 +22,6 @@ typedef enum
 typedef void (*osal_task_function_t)(void *arg); // Task function type definition.
 
 /**
- * @brief Initialize the task system. This function must be called before creating any tasks.
- */
-void osal_task_system_init(void);
-
-/**
  * @brief Create a new task.
  * 
  * @param task_name Name of the task.

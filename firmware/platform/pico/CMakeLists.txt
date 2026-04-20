@@ -2,10 +2,7 @@
 cmake_minimum_required(VERSION 3.13)
 
 # ============= BOARD CONFIG =============
-add_subdirectory(
-    ${CMAKE_CURRENT_LIST_DIR}/../config
-    ${CMAKE_BINARY_DIR}/config
-)
+include(../../boards/${BOARD_NAME}/board_hw.cmake)
 
 # ============= PICO SDK SETUP =============
 set(PICO_BOARD_HEADER_DIRS ${CMAKE_SOURCE_DIR}/board)
@@ -17,7 +14,7 @@ set(FREERTOS_CONFIG_FILE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
 include(${CMAKE_CURRENT_LIST_DIR}/../common/freertos/FreeRTOS-Kernel/portable/ThirdParty/GCC/RP2040/FreeRTOS_Kernel_import.cmake)
 
 # ============= PROJECT SETUP =============
-project(obc_firmware C CXX ASM)
+project(firmware C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 

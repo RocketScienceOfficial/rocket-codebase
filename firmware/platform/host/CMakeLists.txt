@@ -1,21 +1,15 @@
 # ============= SETUP =============
 cmake_minimum_required(VERSION 3.31)
 
-project(obc_firmware C CXX ASM)
+project(firmware C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
 # ============= BOARD CONFIG =============
-set(OBC_SITL ON)
-add_compile_definitions(OBC_SITL)
-
-add_subdirectory(
-    ${CMAKE_CURRENT_LIST_DIR}/../config
-    ${CMAKE_BINARY_DIR}/config
-)
+include(../../boards/${BOARD_NAME}/board_hw.cmake)
 
 # ============= TESTS SETUP =============
-if(OBC_TESTS)
+if(BUILD_TESTS)
     include(CTest)
     include(FetchContent)
 
@@ -51,7 +45,7 @@ target_include_directories(platform_hal PUBLIC
 # ============= SETUP OSAL LIB =============
 find_package(Threads REQUIRED)
 
-if(OBC_SITL_FREERUN)
+if(SITL_FREERUN)
     set(SITL_SOURCE sitl/sitl_freerun.cpp)
 else()
     set(SITL_SOURCE sitl/sitl_lockstep.cpp)

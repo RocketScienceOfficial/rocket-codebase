@@ -4,7 +4,6 @@ import sys
 from pathlib import Path
 
 
-ROOT = Path(__file__).parent.parent.resolve()
 
 
 def gen_source(profile):
@@ -14,10 +13,10 @@ def gen_source(profile):
         if module in names_cache:
             return names_cache[module]
 
-        module_path = ROOT / module
+        module_path = Path(__file__).parent.parent.resolve() / module
 
         if not module_path.exists():
-            print(f"Module '{module}' does not exist")
+            print(f"Module '{module}' does not exist (path: {module_path})")
             sys.exit(1)
 
         for file in module_path.iterdir():
@@ -29,9 +28,9 @@ def gen_source(profile):
         sys.exit(1)
 
     def gen_header(profile):
-        s = ""
-        s += "#include \"ModulesRunner.h\"\n"
+        s = ""        
         s += "#include <lib/debug/obc_assert.h>\n"
+        s += "#include <pubsub/MessageBus.h>\n"
         s += "#include <osal/task.h>\n"
         s += "#include <osal/systime.h>\n"
 
@@ -91,7 +90,7 @@ static void spawnTask(void (*taskFunc)(void *), const char *name, size_t stack_s
 
 """
 
-        s += "void ModulesRunner::startAllModules()\n{\n"
+        s += "static void start_tasks()\n{\n"
 
         priority_mapping = {
             "high": "OSAL_TASK_PRIORITY_HIGH",
@@ -108,7 +107,18 @@ static void spawnTask(void (*taskFunc)(void *), const char *name, size_t stack_s
 
         return s
 
-    print("Generating ModulesRunner code...")
+    def gen_main():
+        s = ""
+        s += "\n\nextern \"C\" void hw_init(void);\n\n"
+        s += "void app_main()\n{\n"
+        s += "    hw_init();\n"
+        s += "    PubSub::MessageBus::Init();\n"
+        s += "    start_tasks();\n"
+        s += "}\n"
+
+        return s
+
+    print("Generating code...")
 
     total = gen_header(profile)
 
@@ -116,12 +126,13 @@ static void spawnTask(void (*taskFunc)(void *), const char *name, size_t stack_s
         total += gen_loop(loop)
 
     total += gen_spawn(profile)
+    total += gen_main()
 
     return total
 
 
 def gen_cmake(profile):
-    print("Generating CMake code for ModulesRunner...")
+    print("Generating CMake...")
 
     s = ""
 
@@ -130,20 +141,19 @@ def gen_cmake(profile):
             s += "add_subdirectory(../{module} ${{CMAKE_CURRENT_BINARY_DIR}}/../{module})\n".format(module=module)
 
     s += "\n"
-    s += "target_link_libraries(app_modules_runner PUBLIC\n"
+    s += "target_link_libraries(app_main PUBLIC\n"
 
     for loop in profile:
         for module in loop["modules"]:
             s += "    app_modules_{module}\n".format(module=module)
 
-    s += "    platform_osal\n"
     s += ")\n"
 
     return s
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate ModulesRunner code from JSON profile.")
+    parser = argparse.ArgumentParser(description="Generate code from JSON profile.")
     parser.add_argument("--profile", help="Path to the JSON profile file.")
     parser.add_argument("--output-source", help="Path to the output C++ source file.")
     parser.add_argument("--output-cmake", help="Path to the output C++ CMake file.")

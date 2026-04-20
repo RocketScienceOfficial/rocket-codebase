@@ -40,9 +40,4 @@
 #define OBC_UART_TX 16
 #define OBC_UART_RX 17
 
-// --- FLASH ---
-#define BOARD_FLASH_PAGE_SIZE 256
-#define BOARD_FLASH_SECTOR_SIZE 4096
-#define BOARD_FLASH_SIZE (16 * 1024 * 1024)
-
 #endif
