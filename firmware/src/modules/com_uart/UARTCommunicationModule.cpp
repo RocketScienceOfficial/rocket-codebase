@@ -1,14 +1,14 @@
-#include "RadioCommunicationModule.h"
+#include "UARTCommunicationModule.h"
 #include "modules/common/ModuleLogger.h"
 #include <board_config.h>
 #include <lib/debug/sys_assert.h>
 #include <hal/uart_driver.h>
 
-void RadioCommunicationModule::init()
+void UARTCommunicationModule::init()
 {
 }
 
-void RadioCommunicationModule::run()
+void UARTCommunicationModule::run()
 {
     flushStartup();
 
@@ -16,7 +16,7 @@ void RadioCommunicationModule::run()
     drainRXBuffer();
 }
 
-void RadioCommunicationModule::drainTXBuffer()
+void UARTCommunicationModule::drainTXBuffer()
 {
     if (!hal_uart_is_writable(CFG_UART))
     {
@@ -42,7 +42,7 @@ void RadioCommunicationModule::drainTXBuffer()
     }
 }
 
-void RadioCommunicationModule::drainRXBuffer()
+void UARTCommunicationModule::drainRXBuffer()
 {
     if (!hal_uart_fifo_available(CFG_UART))
     {
@@ -82,7 +82,7 @@ void RadioCommunicationModule::drainRXBuffer()
     }
 }
 
-void RadioCommunicationModule::addToSendQueue(const datalink_message_t &message)
+void UARTCommunicationModule::addToSendQueue(const datalink_message_t &message)
 {
     int len = sizeof(m_SendBuffer) - m_CurrentSendBufferSize;
 
@@ -96,7 +96,7 @@ void RadioCommunicationModule::addToSendQueue(const datalink_message_t &message)
     }
 }
 
-void RadioCommunicationModule::flushStartup()
+void UARTCommunicationModule::flushStartup()
 {
     if (!m_UARTStartFlushed)
     {

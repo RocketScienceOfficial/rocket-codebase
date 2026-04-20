@@ -18,8 +18,8 @@ public:
 private:
     PubSub::Subscriber<PubSub::Topics::DatalinkMessage> m_SerialSubscriber{PUBSUB_ID(serial_rx)};
     PubSub::Publisher<PubSub::Topics::DatalinkMessage> m_SerialPublisher{PUBSUB_ID(serial_tx)};
-    PubSub::Subscriber<PubSub::Topics::DatalinkMessage> m_RadioSubscriber{PUBSUB_ID(radio_rx)};
-    PubSub::Publisher<PubSub::Topics::DatalinkMessage> m_RadioPublisher{PUBSUB_ID(radio_tx)};
+    PubSub::Subscriber<PubSub::Topics::DatalinkMessage> m_UARTSubscriber{PUBSUB_ID(uart_rx)};
+    PubSub::Publisher<PubSub::Topics::DatalinkMessage> m_UARTPublisher{PUBSUB_ID(uart_tx)};
 
     PubSub::Subscriber<PubSub::Topics::DatalinkMessage> m_DatabaseSubscriber{PUBSUB_ID(database_tx)};
     PubSub::Publisher<PubSub::Topics::DatalinkMessage> m_DatabasePublisher{PUBSUB_ID(database_rx)};
@@ -39,7 +39,7 @@ private:
 
     void handleRPCs();
     void processSerialMessage(const datalink_message_t &msg);
-    void processRadioMessage(const datalink_message_t &msg);
+    void processUARTMessage(const datalink_message_t &msg);
     void executeRadioCommand(uint8_t cmd);
     void setRadioRPCStatus(bool success);
     void updateState();

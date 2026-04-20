@@ -7,10 +7,10 @@
         ]
     },
     {
-        "name": "sitl_radio",
+        "name": "sitl_uart",
         "priority": "high",
         "modules": [
-            "sim_radio"
+            "sim_uart"
         ]
     },
     {

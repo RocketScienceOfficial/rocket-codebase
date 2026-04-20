@@ -19,9 +19,9 @@ void CommanderModule::run()
         processSerialMessage(m_SerialSubscriber.get());
     }
 
-    while (m_RadioSubscriber.poll())
+    while (m_UARTSubscriber.poll())
     {
-        processRadioMessage(m_RadioSubscriber.get());
+        processUARTMessage(m_UARTSubscriber.get());
     }
 
     while (m_DatabaseSubscriber.poll())
@@ -38,7 +38,7 @@ void CommanderModule::run()
         datalink_message_t msg;
         datalink_pack_telemetry_data_obc(&tlmData, &msg);
 
-        m_RadioPublisher.publish(msg);
+        m_UARTPublisher.publish(msg);
     }
 
     handleRPCs();
@@ -100,7 +100,7 @@ void CommanderModule::processSerialMessage(const datalink_message_t &msg)
     }
 }
 
-void CommanderModule::processRadioMessage(const datalink_message_t &msg)
+void CommanderModule::processUARTMessage(const datalink_message_t &msg)
 {
     switch (msg.msg_id)
     {

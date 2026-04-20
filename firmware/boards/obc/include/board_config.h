@@ -42,7 +42,7 @@
 
 // --- SIM ---
 #define CFG_SIM_BRIDGE_PORT 12345
-#define CFG_SIM_RADIO_PORT 12346
+#define CFG_SIM_UART_PORT 12346
 #define CFG_SIM_SERIAL_PORT 12347
 
 #endif

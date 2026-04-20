@@ -1,6 +1,6 @@
-add_module(sim_radio
+add_module(sim_uart
     SOURCES
-    SimRadioModule.cpp
+    SimUARTModule.cpp
     DEPENDS
     network_lib
     host_sitl

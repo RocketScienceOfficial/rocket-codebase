@@ -16,7 +16,7 @@
         "priority": "normal",
         "modules": [
             "com_serial",
-            "com_radio"
+            "com_uart"
         ]
     },
     {

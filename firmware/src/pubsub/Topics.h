@@ -47,8 +47,8 @@ namespace PubSub
     namespace Topics
     {
         using DatalinkMessage = datalink_message_t;
-        PUBSUB_REGISTER_TOPIC_SIZE(DatalinkMessage, radio_rx, 4)
-        PUBSUB_REGISTER_TOPIC_SIZE(DatalinkMessage, radio_tx, 4)
+        PUBSUB_REGISTER_TOPIC_SIZE(DatalinkMessage, uart_rx, 4)
+        PUBSUB_REGISTER_TOPIC_SIZE(DatalinkMessage, uart_tx, 4)
         PUBSUB_REGISTER_TOPIC_SIZE(DatalinkMessage, serial_rx, 4)
         PUBSUB_REGISTER_TOPIC_SIZE(DatalinkMessage, serial_tx, 4)
         PUBSUB_REGISTER_TOPIC_SIZE(DatalinkMessage, database_rx, 4)
