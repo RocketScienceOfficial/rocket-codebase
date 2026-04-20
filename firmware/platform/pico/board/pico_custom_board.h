@@ -3,8 +3,8 @@
 //       SHOULD ONLY CONSIST OF PREPROCESSOR DIRECTIVES
 // -----------------------------------------------------
 
-#ifndef _PICO_OBC_H
-#define _PICO_OBC_H
+#ifndef _PICO_CUSTOM_BOARD_H
+#define _PICO_CUSTOM_BOARD_H
 
 // --- UART ---
 #ifndef PICO_DEFAULT_UART

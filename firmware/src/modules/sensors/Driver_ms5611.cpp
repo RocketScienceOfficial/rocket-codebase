@@ -7,7 +7,7 @@
 
 void Driver_ms5611::initialize()
 {
-    ms56xx_init_spi(&m_Device, OBC_SPI, PIN_CS_MS56, true);
+    ms56xx_init_spi(&m_Device, CFG_SPI, CFG_PIN_CS_MS56, true);
     ms56xx_set_osr(&m_Device, MS56XX_OSR_512, MS56XX_OSR_512);
 }
 

@@ -6,7 +6,7 @@
 
 void LEDModule::init()
 {
-    hal_ws2812b_init(PIN_LED, false);
+    hal_ws2812b_init(CFG_PIN_LED, false);
 
     for (int i = 0; i < DIODES_COUNT; i++)
     {

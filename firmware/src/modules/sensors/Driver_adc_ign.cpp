@@ -10,20 +10,20 @@
 
 void Driver_adc_ign::initialize()
 {
-    hal_adc_init_pin(PIN_IGN_DET_1);
-    hal_adc_init_pin(PIN_IGN_DET_2);
-    hal_adc_init_pin(PIN_IGN_DET_3);
-    hal_adc_init_pin(PIN_IGN_DET_4);
+    hal_adc_init_pin(CFG_PIN_IGN_DET_1);
+    hal_adc_init_pin(CFG_PIN_IGN_DET_2);
+    hal_adc_init_pin(CFG_PIN_IGN_DET_3);
+    hal_adc_init_pin(CFG_PIN_IGN_DET_4);
 }
 
 void Driver_adc_ign::readAndPublish(float dt)
 {
     (void)dt;
     
-    m_CurrentFrame.volts[0] = exp_smoothing(readADC(PIN_IGN_DET_1), m_CurrentFrame.volts[0], EXP_FILTER_IGN_COEFF);
-    m_CurrentFrame.volts[1] = exp_smoothing(readADC(PIN_IGN_DET_2), m_CurrentFrame.volts[1], EXP_FILTER_IGN_COEFF);
-    m_CurrentFrame.volts[2] = exp_smoothing(readADC(PIN_IGN_DET_3), m_CurrentFrame.volts[2], EXP_FILTER_IGN_COEFF);
-    m_CurrentFrame.volts[3] = exp_smoothing(readADC(PIN_IGN_DET_4), m_CurrentFrame.volts[3], EXP_FILTER_IGN_COEFF);
+    m_CurrentFrame.volts[0] = exp_smoothing(readADC(CFG_PIN_IGN_DET_1), m_CurrentFrame.volts[0], EXP_FILTER_IGN_COEFF);
+    m_CurrentFrame.volts[1] = exp_smoothing(readADC(CFG_PIN_IGN_DET_2), m_CurrentFrame.volts[1], EXP_FILTER_IGN_COEFF);
+    m_CurrentFrame.volts[2] = exp_smoothing(readADC(CFG_PIN_IGN_DET_3), m_CurrentFrame.volts[2], EXP_FILTER_IGN_COEFF);
+    m_CurrentFrame.volts[3] = exp_smoothing(readADC(CFG_PIN_IGN_DET_4), m_CurrentFrame.volts[3], EXP_FILTER_IGN_COEFF);
 
     m_Publisher.publish(m_CurrentFrame);
 }

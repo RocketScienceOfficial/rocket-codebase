@@ -37,7 +37,7 @@ static const battery_table_entry_t s_BatteryTable[] = {
 
 void Driver_battery::initialize()
 {
-    ads786x_init(&m_Device, OBC_SPI, PIN_CS_ADS, ADS786X_TYPE_6, ADC_VREF);
+    ads786x_init(&m_Device, CFG_SPI, CFG_PIN_CS_ADS, ADS786X_TYPE_6, CFG_ADC_VREF);
     battery_init(&m_BatteryConfig, s_BatteryTable, sizeof(s_BatteryTable) / sizeof(battery_table_entry_t));
 }
 

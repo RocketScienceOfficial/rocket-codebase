@@ -5,9 +5,9 @@
 
 void VoltageModule::init()
 {
-    initPin(PIN_3V3);
-    initPin(PIN_5V);
-    initPin(PIN_VBAT);
+    initPin(CFG_PIN_3V3);
+    initPin(CFG_PIN_5V);
+    initPin(CFG_PIN_VBAT);
 }
 
 void VoltageModule::run()
@@ -17,7 +17,7 @@ void VoltageModule::run()
     if (m_RPC.requestAvailable())
     {
         const auto &req = m_RPC.getRequestData();
-        uint8_t pin = req.pin == VoltagePinsFlags::VOLTAGE_PIN_3V3 ? PIN_3V3 : (req.pin == VoltagePinsFlags::VOLTAGE_PIN_5V ? PIN_5V : PIN_VBAT);
+        uint8_t pin = req.pin == VoltagePinsFlags::VOLTAGE_PIN_3V3 ? CFG_PIN_3V3 : (req.pin == VoltagePinsFlags::VOLTAGE_PIN_5V ? CFG_PIN_5V : CFG_PIN_VBAT);
 
         m_CurrentPinStates = req.enabled ? (m_CurrentPinStates | req.pin) : (m_CurrentPinStates & ~req.pin);
 

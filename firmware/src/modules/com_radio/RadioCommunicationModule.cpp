@@ -18,7 +18,7 @@ void RadioCommunicationModule::run()
 
 void RadioCommunicationModule::drainTXBuffer()
 {
-    if (!hal_uart_is_writable(OBC_UART))
+    if (!hal_uart_is_writable(CFG_UART))
     {
         return;
     }
@@ -34,7 +34,7 @@ void RadioCommunicationModule::drainTXBuffer()
 
     if (i > 0 && m_CurrentSendBufferSize > 0)
     {
-        hal_uart_write(OBC_UART, m_SendBuffer, m_CurrentSendBufferSize);
+        hal_uart_write(CFG_UART, m_SendBuffer, m_CurrentSendBufferSize);
 
         OBC_DEBUG("Sent %d messages over UART (%lu bytes)", i, (unsigned long)m_CurrentSendBufferSize);
 
@@ -44,12 +44,12 @@ void RadioCommunicationModule::drainTXBuffer()
 
 void RadioCommunicationModule::drainRXBuffer()
 {
-    if (!hal_uart_fifo_available(OBC_UART))
+    if (!hal_uart_fifo_available(CFG_UART))
     {
         return;
     }
 
-    size_t bytes_read = hal_uart_read_fifo(OBC_UART, m_ReceiveFIFOBuffer, sizeof(m_ReceiveFIFOBuffer));
+    size_t bytes_read = hal_uart_read_fifo(CFG_UART, m_ReceiveFIFOBuffer, sizeof(m_ReceiveFIFOBuffer));
 
     for (size_t i = 0; i < bytes_read; i++)
     {
@@ -103,9 +103,9 @@ void RadioCommunicationModule::flushStartup()
         uint8_t i = 0;
         uint8_t dummyBuffer[UART_MAX_BYTES_PER_TICK];
 
-        while (hal_uart_fifo_available(OBC_UART) && i++ < UART_STARTUP_FLUSH_MAX_TRIES)
+        while (hal_uart_fifo_available(CFG_UART) && i++ < UART_STARTUP_FLUSH_MAX_TRIES)
         {
-            hal_uart_read_fifo(OBC_UART, dummyBuffer, sizeof(dummyBuffer));
+            hal_uart_read_fifo(CFG_UART, dummyBuffer, sizeof(dummyBuffer));
         }
 
         OBC_ASSERT_MSG(i < UART_STARTUP_FLUSH_MAX_TRIES, "UART startup flush exceeded max tries, possible continuous data stream on UART");

@@ -16,10 +16,10 @@
 
 void IgnitersModule::init()
 {
-    initIgniterPin(m_Igniters[0], PIN_IGN_EN_1);
-    initIgniterPin(m_Igniters[1], PIN_IGN_EN_2);
-    initIgniterPin(m_Igniters[2], PIN_IGN_EN_3);
-    initIgniterPin(m_Igniters[3], PIN_IGN_EN_4);
+    initIgniterPin(m_Igniters[0], CFG_PIN_IGN_EN_1);
+    initIgniterPin(m_Igniters[1], CFG_PIN_IGN_EN_2);
+    initIgniterPin(m_Igniters[2], CFG_PIN_IGN_EN_3);
+    initIgniterPin(m_Igniters[3], CFG_PIN_IGN_EN_4);
 }
 
 void IgnitersModule::run()

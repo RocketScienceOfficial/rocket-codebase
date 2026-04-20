@@ -5,7 +5,7 @@
 
 void BuzzerModule::init()
 {
-    hal_pwm_init_pin(&m_Device, PIN_BUZZER);
+    hal_pwm_init_pin(&m_Device, CFG_PIN_BUZZER);
 
     setTone(Tone::START);
 }

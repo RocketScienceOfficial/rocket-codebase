@@ -6,7 +6,7 @@ include(../../boards/${BOARD_NAME}/board_hw.cmake)
 
 # ============= PICO SDK SETUP =============
 set(PICO_BOARD_HEADER_DIRS ${CMAKE_SOURCE_DIR}/board)
-set(PICO_BOARD pico_obc)
+set(PICO_BOARD pico_custom_board)
 include(pico-sdk/pico_sdk_init.cmake)
 
 # ============= FREERTOS SETUP =============

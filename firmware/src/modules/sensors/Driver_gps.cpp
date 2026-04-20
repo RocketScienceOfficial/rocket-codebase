@@ -3,7 +3,7 @@
 
 void Driver_gps::initialize()
 {
-    gps_init_spi(&m_Device, OBC_SPI, PIN_CS_NEO);
+    gps_init_spi(&m_Device, CFG_SPI, CFG_PIN_CS_NEO);
 }
 
 void Driver_gps::readAndPublish(float dt)
