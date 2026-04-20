@@ -78,7 +78,6 @@ set(BUILD_NETWORK ON)
 string(TOUPPER "${CMAKE_BUILD_TYPE}" BUILD_TYPE_UPPER)
 
 if(BUILD_TYPE_UPPER STREQUAL "DEBUG")
-    add_compile_definitions(NETWORK_ASSERTS_ENABLED)
     add_compile_definitions(NETWORK_LOGS_ENABLED)
 endif()
 

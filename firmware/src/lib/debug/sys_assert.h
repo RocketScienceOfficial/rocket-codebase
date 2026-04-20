@@ -29,8 +29,8 @@
 
 #else
 
-#define SYS_ASSERT(expr) ((void)0)
-#define SYS_ASSERT_MSG(expr, ...) ((void)0)
+#define SYS_ASSERT(expr) ((void)sizeof(expr))
+#define SYS_ASSERT_MSG(expr, ...) ((void)sizeof(expr))
 
 #endif
 

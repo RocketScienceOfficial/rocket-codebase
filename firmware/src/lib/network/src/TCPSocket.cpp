@@ -1,4 +1,5 @@
 #include "network/TCPSocket.h"
+#include <lib/debug/sys_assert.h>
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
@@ -20,38 +21,6 @@
 #endif
 
 #define GET_NATIVE_SOCKET(x) ((NATIVE_SOCKET)(x))
-
-#ifdef NETWORK_ASSERTS_ENABLED
-static void _assert_handler(const char *expr, const char *file, int line)
-{
-    printf("\tNETWORK ASSERTION FAILED: %s, file: %s:%d\n", expr, file, line);
-
-    abort();
-}
-
-#define NETWORK_ASSERT(expr)                            \
-    do                                                  \
-    {                                                   \
-        if (!(expr))                                    \
-        {                                               \
-            _assert_handler(#expr, __FILE__, __LINE__); \
-        }                                               \
-    } while (0)
-#define NETWORK_ASSERT_MSG(expr, ...)                   \
-    do                                                  \
-    {                                                   \
-        if (!(expr))                                    \
-        {                                               \
-            printf("\t");                               \
-            printf(__VA_ARGS__);                        \
-            printf("\n");                               \
-            _assert_handler(#expr, __FILE__, __LINE__); \
-        }                                               \
-    } while (0)
-#else
-#define NETWORK_ASSERT(expr) ((void)sizeof(expr))
-#define NETWORK_ASSERT_MSG(expr, msg, ...) ((void)sizeof(expr))
-#endif
 
 #ifdef NETWORK_LOGS_ENABLED
 #define NETWORK_DEBUG(msg, ...) printf("[NETWORK] (debug)  " msg "\n", ##__VA_ARGS__)
@@ -91,7 +60,7 @@ namespace network
             WSADATA wsaData;
             int res = WSAStartup(MAKEWORD(2, 2), &wsaData);
 
-            NETWORK_ASSERT_MSG(res == 0, "WSAStartup failed: %d", res);
+            SYS_ASSERT_MSG(res == 0, "WSAStartup failed: %d", res);
         }
 #endif
     }
@@ -110,10 +79,10 @@ namespace network
 
     void TCPSocket::createServer(uint16_t port, bool blocking)
     {
-        NETWORK_ASSERT(m_SocketHandle == INVALID_SOCKET_HANDLE);
+        SYS_ASSERT(m_SocketHandle == INVALID_SOCKET_HANDLE);
 
         NATIVE_SOCKET tmpSocket = socket(AF_INET, SOCK_STREAM, 0);
-        NETWORK_ASSERT(tmpSocket != INVALID_SOCKET_HANDLE);
+        SYS_ASSERT(tmpSocket != INVALID_SOCKET_HANDLE);
         m_ServerSocketHandle = tmpSocket;
 
         int opt = 1;
@@ -131,7 +100,7 @@ namespace network
             close();
 
             NETWORK_ERROR("Bind failed");
-            NETWORK_ASSERT(false);
+            SYS_ASSERT(false);
 
             return;
         }
@@ -143,7 +112,7 @@ namespace network
             close();
 
             NETWORK_ERROR("Listen failed");
-            NETWORK_ASSERT(false);
+            SYS_ASSERT(false);
 
             return;
         }
@@ -172,11 +141,11 @@ namespace network
 
     void TCPSocket::createClient(const char *ip, uint16_t port)
     {
-        NETWORK_ASSERT(m_SocketHandle == INVALID_SOCKET_HANDLE);
-        NETWORK_ASSERT(ip != nullptr);
+        SYS_ASSERT(m_SocketHandle == INVALID_SOCKET_HANDLE);
+        SYS_ASSERT(ip != nullptr);
 
         NATIVE_SOCKET tmpSocket = socket(AF_INET, SOCK_STREAM, 0);
-        NETWORK_ASSERT(tmpSocket != INVALID_SOCKET_HANDLE);
+        SYS_ASSERT(tmpSocket != INVALID_SOCKET_HANDLE);
         m_SocketHandle = tmpSocket;
 
         sockaddr_in addr;
@@ -190,7 +159,7 @@ namespace network
             close();
 
             NETWORK_ERROR("Invalid IP");
-            NETWORK_ASSERT(false);
+            SYS_ASSERT(false);
 
             return;
         }
@@ -221,13 +190,13 @@ namespace network
 
     bool TCPSocket::receive(datalink_message_t *msg)
     {
-        NETWORK_ASSERT(msg != nullptr);
-        NETWORK_ASSERT(m_ServerSocketHandle != INVALID_SOCKET_HANDLE);
+        SYS_ASSERT(msg != nullptr);
+        SYS_ASSERT(m_ServerSocketHandle != INVALID_SOCKET_HANDLE);
 
         while (true)
         {
             int space_left = sizeof(m_ReceiveBuffer) - m_ReceiveBufferLength;
-            NETWORK_ASSERT(space_left > 0);
+            SYS_ASSERT(space_left > 0);
 
             int received = recv(GET_NATIVE_SOCKET(m_SocketHandle), (char *)(m_ReceiveBuffer + m_ReceiveBufferLength), space_left, 0);
 
@@ -258,7 +227,7 @@ namespace network
                     }
                     else
                     {
-                        NETWORK_ASSERT_MSG(false, "Failed to deserialize message from TCP, dropping message");
+                        SYS_ASSERT_MSG(false, "Failed to deserialize message from TCP, dropping message");
                     }
 
                     int remaining_bytes = m_ReceiveBufferLength - len;
@@ -285,13 +254,13 @@ namespace network
 
     void TCPSocket::send(const datalink_message_t *msg)
     {
-        NETWORK_ASSERT(msg != nullptr);
-        NETWORK_ASSERT(m_SocketHandle != INVALID_SOCKET_HANDLE);
+        SYS_ASSERT(msg != nullptr);
+        SYS_ASSERT(m_SocketHandle != INVALID_SOCKET_HANDLE);
 
         int len = sizeof(m_SendBuffer);
         int res = datalink_serialize_message_serial(msg, m_SendBuffer, &len);
 
-        NETWORK_ASSERT(res == DATALINK_OK);
+        SYS_ASSERT(res == DATALINK_OK);
 
         int total_sent = 0;
 
@@ -302,7 +271,7 @@ namespace network
             if (sent <= 0)
             {
                 NETWORK_ERROR("Failed to send data over TCP socket");
-                NETWORK_ASSERT(false);
+                SYS_ASSERT(false);
 
                 return;
             }

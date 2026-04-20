@@ -9,6 +9,7 @@ if(BUILD_NETWORK)
 
     target_link_libraries(network_lib PUBLIC
         datalink
+        sys_debug
     )
 
     if(WIN32)
