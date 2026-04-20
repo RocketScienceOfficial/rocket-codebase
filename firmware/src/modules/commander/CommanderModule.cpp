@@ -1,7 +1,7 @@
 #include "CommanderModule.h"
 #include "modules/common/ModuleLogger.h"
 #include <osal/systime.h>
-#include <lib/debug/obc_assert.h>
+#include <lib/debug/sys_assert.h>
 
 #define RADIO_COMMAND_TIMEOUT 10000
 
@@ -48,7 +48,7 @@ void CommanderModule::handleRPCs()
 {
     if (m_RadioCommandStatus == CommanderStatus::PENDING && osal_systime_get_ms() - m_LastRadioCommandTime > RADIO_COMMAND_TIMEOUT)
     {
-        OBC_ERROR("Radio command timed out");
+        LOG_ERROR("Radio command timed out");
 
         setRadioRPCStatus(false);
     }
@@ -86,7 +86,7 @@ void CommanderModule::processSerialMessage(const datalink_message_t &msg)
         ign_request_test req;
         int status = datalink_unpack_ign_request_test(&req, &msg);
 
-        OBC_ASSERT(status == DATALINK_OK);
+        SYS_ASSERT(status == DATALINK_OK);
 
         m_RPC_IGN.call({.channel = req.ignNum}, SERIAL_SRC_ID);
 
@@ -109,7 +109,7 @@ void CommanderModule::processRadioMessage(const datalink_message_t &msg)
         telemetry_response tlmData;
         int status = datalink_unpack_telemetry_response(&tlmData, &msg);
 
-        OBC_ASSERT(status == DATALINK_OK);
+        SYS_ASSERT(status == DATALINK_OK);
 
         m_TelemetryResponsePublisher.publish(tlmData);
 
@@ -117,17 +117,17 @@ void CommanderModule::processRadioMessage(const datalink_message_t &msg)
 
         if (tlmData.cmd == DATALINK_TELEMETRY_CMD_NONE)
         {
-            OBC_DEBUG("Received telemetry response with CMD_NONE");
+            LOG_DEBUG("Received telemetry response with CMD_NONE");
             return;
         }
         if (tlmData.cmd_seq != nextPredictedSeq)
         {
-            OBC_DEBUG("Received telemetry response with invalid cmd_seq %d (current %d)", tlmData.cmd_seq, m_RadioCommandSeq);
+            LOG_DEBUG("Received telemetry response with invalid cmd_seq %d (current %d)", tlmData.cmd_seq, m_RadioCommandSeq);
             return;
         }
         if (m_RadioCommandStatus == CommanderStatus::PENDING)
         {
-            OBC_DEBUG("Received telemetry response while pending - ignoring command");
+            LOG_DEBUG("Received telemetry response while pending - ignoring command");
             return;
         }
 
@@ -149,7 +149,7 @@ void CommanderModule::processRadioMessage(const datalink_message_t &msg)
     }
     default:
     {
-        OBC_ERROR("Received message with unknown ID %d on radio interface", msg.msg_id);
+        LOG_ERROR("Received message with unknown ID %d on radio interface", msg.msg_id);
         return;
     }
     }
@@ -159,7 +159,7 @@ void CommanderModule::executeRadioCommand(uint8_t cmd)
 {
     using namespace PubSub::Helpers;
 
-    OBC_DEBUG("Executing radio command %d", cmd);
+    LOG_DEBUG("Executing radio command %d", cmd);
 
     switch (cmd)
     {
@@ -225,7 +225,7 @@ void CommanderModule::executeRadioCommand(uint8_t cmd)
     }
     default:
     {
-        OBC_ERROR("Received unknown radio command %d", cmd);
+        LOG_ERROR("Received unknown radio command %d", cmd);
         break;
     }
     }
@@ -235,7 +235,7 @@ void CommanderModule::setRadioRPCStatus(bool success)
 {
     if (m_RadioCommandStatus != CommanderStatus::PENDING)
     {
-        OBC_ERROR("Attempted to set radio RPC status while not pending");
+        LOG_ERROR("Attempted to set radio RPC status while not pending");
 
         return;
     }
@@ -249,5 +249,5 @@ void CommanderModule::updateState()
 {
     m_CommanderRadioRPCStatePublisher.publish({.seq = m_RadioCommandSeq, .status = m_RadioCommandStatus});
 
-    OBC_DEBUG("Updated commander state: seq=%d, status=%d", m_RadioCommandSeq, (uint8_t)m_RadioCommandStatus);
+    LOG_DEBUG("Updated commander state: seq=%d, status=%d", m_RadioCommandSeq, (uint8_t)m_RadioCommandStatus);
 }

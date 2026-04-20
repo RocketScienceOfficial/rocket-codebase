@@ -1,4 +1,4 @@
-obc_add_module(state_machine
+add_module(state_machine
     SOURCES
     StateMachineModule.cpp
     DEPENDS

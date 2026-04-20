@@ -38,7 +38,7 @@ void TelemetryModule::run()
 
         scheduleNextPacket();
 
-        OBC_DEBUG("Didn't receive ack from radio module");
+        LOG_DEBUG("Didn't receive ack from radio module");
     }
 
     if (m_WaitingForResponse && m_RadioResponseRecoveryTimeOffset != 0 && osal_systime_get_ms() - m_RadioResponseRecoveryTimeOffset >= RADIO_RESPONSE_RECOVERY_TIME_MS)
@@ -48,7 +48,7 @@ void TelemetryModule::run()
 
         scheduleNextPacket();
 
-        OBC_DEBUG("Didn't receive response from GCS");
+        LOG_DEBUG("Didn't receive response from GCS");
     }
 
     if (m_WaitingToSendPacket && osal_systime_get_ms() - m_PacketTimer >= RADIO_PACKET_SEND_DELAY_MS)
@@ -73,7 +73,7 @@ void TelemetryModule::run()
 
         m_TelemetryTXPublisher.publish(payload);
 
-        OBC_DEBUG("Sent telemetry packet with (awaiting response: %d)", payload.sendResponse);
+        LOG_DEBUG("Sent telemetry packet with (awaiting response: %d)", payload.sendResponse);
 
         m_PacketTimer = 0;
         m_WaitingToSendPacket = false;

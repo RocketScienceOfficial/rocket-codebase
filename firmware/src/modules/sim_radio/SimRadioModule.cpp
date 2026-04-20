@@ -1,7 +1,7 @@
 #include "SimRadioModule.h"
 #include "sitl.h"
 #include "modules/common/ModuleLogger.h"
-#include <lib/debug/obc_assert.h>
+#include <lib/debug/sys_assert.h>
 
 #define RADIO_ENGINE_PORT 12346
 

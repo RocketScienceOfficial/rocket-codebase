@@ -29,7 +29,6 @@ def gen_source(profile):
 
     def gen_header(profile):
         s = ""        
-        s += "#include <lib/debug/obc_assert.h>\n"
         s += "#include <pubsub/MessageBus.h>\n"
         s += "#include <osal/task.h>\n"
         s += "#include <osal/systime.h>\n"

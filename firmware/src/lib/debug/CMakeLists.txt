@@ -1,8 +1,8 @@
-add_library(obc_debug STATIC
-    obc_assert.c
-    obc_benchmark.c
+add_library(sys_debug STATIC
+    sys_assert.c
+    sys_benchmark.c
 )
 
-target_link_libraries(obc_debug PUBLIC
+target_link_libraries(sys_debug PUBLIC
     platform_hal
 )

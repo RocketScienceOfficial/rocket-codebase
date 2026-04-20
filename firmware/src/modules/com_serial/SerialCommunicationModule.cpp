@@ -1,6 +1,6 @@
 #include "SerialCommunicationModule.h"
 #include "modules/common/ModuleLogger.h"
-#include <lib/debug/obc_assert.h>
+#include <lib/debug/sys_assert.h>
 #include <hal/stdio_driver.h>
 
 void SerialCommunicationModule::init()
@@ -39,7 +39,7 @@ void SerialCommunicationModule::drainRXBuffer()
     {
         if (m_CurrentReceiveBufferSize >= sizeof(m_ReceiveBuffer))
         {
-            OBC_ASSERT_MSG(false, "Receive buffer overflow, dropping data");
+            SYS_ASSERT_MSG(false, "Receive buffer overflow, dropping data");
 
             m_CurrentReceiveBufferSize = 0;
         }
@@ -56,7 +56,7 @@ void SerialCommunicationModule::drainRXBuffer()
             }
             else
             {
-                OBC_ERROR("Failed to deserialize message from serial, dropping message");
+                LOG_ERROR("Failed to deserialize message from serial, dropping message");
             }
 
             m_CurrentReceiveBufferSize = 0;
@@ -76,7 +76,7 @@ void SerialCommunicationModule::send(const datalink_message_t &message)
     }
     else
     {
-        OBC_ASSERT_MSG(false, "Failed to serialize message for Serial transmission, dropping message");
+        SYS_ASSERT_MSG(false, "Failed to serialize message for Serial transmission, dropping message");
     }
 }
 
@@ -92,7 +92,7 @@ void SerialCommunicationModule::flushStartup()
             continue;
         }
 
-        OBC_ASSERT_MSG(i < SERIAL_STARTUP_FLUSH_MAX_BYTES, "Serial startup flush exceeded max bytes, possible continuous data stream on Serial");
+        SYS_ASSERT_MSG(i < SERIAL_STARTUP_FLUSH_MAX_BYTES, "Serial startup flush exceeded max bytes, possible continuous data stream on Serial");
 
         m_SerialStartFlushed = true;
     }

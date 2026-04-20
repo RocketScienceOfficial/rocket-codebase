@@ -105,7 +105,7 @@ void BuzzerModule::setTone(Tone tone)
         return;
     }
 
-    OBC_INFO("Playing buzzer tone: %d", (int)tone);
+    LOG_INFO("Playing buzzer tone: %d", (int)tone);
 
     playCurrentTone();
 }
@@ -116,14 +116,14 @@ void BuzzerModule::playCurrentTone()
     {
         hal_pwm_set_duty(&m_Device, 0);
 
-        OBC_DEBUG("Silence for %d ms", m_CurrentTone != NULL ? m_CurrentTone->duration_ms : -1);
+        LOG_DEBUG("Silence for %d ms", m_CurrentTone != NULL ? m_CurrentTone->duration_ms : -1);
     }
     else
     {
         hal_pwm_set_frequency(&m_Device, m_CurrentTone->frequency);
         hal_pwm_set_duty(&m_Device, 1e6f * BUZZER_DUTY_CYCLE_RATIO / m_CurrentTone->frequency);
 
-        OBC_DEBUG("Playing tone with frequency %d Hz for %d ms", m_CurrentTone->frequency, m_CurrentTone->duration_ms);
+        LOG_DEBUG("Playing tone with frequency %d Hz for %d ms", m_CurrentTone->frequency, m_CurrentTone->duration_ms);
     }
 
     m_BuzzerToneStartTime = osal_systime_get_ms();

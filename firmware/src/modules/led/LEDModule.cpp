@@ -107,5 +107,5 @@ void LEDModule::update()
 {
     hal_ws2812b_set_colors(m_DiodesColors, DIODES_COUNT);
 
-    OBC_DEBUG("LEDs updated");
+    LOG_DEBUG("LEDs updated");
 }

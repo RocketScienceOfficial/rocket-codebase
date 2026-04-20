@@ -1,6 +1,6 @@
 #include "geo_mag.h"
 #include "wmm/mag_tables.h"
-#include <lib/debug/obc_assert.h>
+#include <lib/debug/sys_assert.h>
 #include <stdint.h>
 #include <math.h>
 
@@ -23,10 +23,10 @@ float geo_mag_get_strength(geo_position_t pos)
 
 float _get_value_from_table(geo_position_t pos, const int16_t table[LAT_DIM][LON_DIM])
 {
-    OBC_ASSERT(pos.lat >= SAMPLING_MIN_LAT);
-    OBC_ASSERT(pos.lat <= SAMPLING_MAX_LAT);
-    OBC_ASSERT(pos.lon >= SAMPLING_MIN_LON);
-    OBC_ASSERT(pos.lon <= SAMPLING_MAX_LON);
+    SYS_ASSERT(pos.lat >= SAMPLING_MIN_LAT);
+    SYS_ASSERT(pos.lat <= SAMPLING_MAX_LAT);
+    SYS_ASSERT(pos.lon >= SAMPLING_MIN_LON);
+    SYS_ASSERT(pos.lon <= SAMPLING_MAX_LON);
 
     float min_lat = floorf(pos.lat / SAMPLING_RES) * SAMPLING_RES;
     float min_lon = floorf(pos.lon / SAMPLING_RES) * SAMPLING_RES;
@@ -34,10 +34,10 @@ float _get_value_from_table(geo_position_t pos, const int16_t table[LAT_DIM][LON
     int min_lat_index = (int)((min_lat - SAMPLING_MIN_LAT) / SAMPLING_RES);
     int min_lon_index = (int)((min_lon - SAMPLING_MIN_LON) / SAMPLING_RES);
 
-    OBC_ASSERT(min_lat_index >= 0);
-    OBC_ASSERT(min_lat_index + 1 < LAT_DIM);
-    OBC_ASSERT(min_lon_index >= 0);
-    OBC_ASSERT(min_lon_index + 1 < LON_DIM);
+    SYS_ASSERT(min_lat_index >= 0);
+    SYS_ASSERT(min_lat_index + 1 < LAT_DIM);
+    SYS_ASSERT(min_lon_index >= 0);
+    SYS_ASSERT(min_lon_index + 1 < LON_DIM);
 
     float data_ne = (float)table[min_lat_index + 1][min_lon_index + 1];
     float data_se = (float)table[min_lat_index][min_lon_index + 1];

@@ -1,7 +1,7 @@
 #include "SimBridgeModule.h"
 #include "sitl.h"
 #include "modules/common/ModuleLogger.h"
-#include <lib/debug/obc_assert.h>
+#include <lib/debug/sys_assert.h>
 
 #define PHYSICS_ENGINE_PORT 12345
 
@@ -32,7 +32,7 @@ void SimBridgeModule::receivePhysicsData()
     datalink_message_t physxMsg;
     if (!m_PhysicsSocket.receive(&physxMsg))
     {
-        OBC_INFO("Physics engine disconnected, stopping SITL simulation.");
+        LOG_INFO("Physics engine disconnected, stopping SITL simulation.");
         sitl_stop();
         return;
     }
@@ -40,7 +40,7 @@ void SimBridgeModule::receivePhysicsData()
     sitl_request_data physxData;
     int unpackResult = datalink_unpack_sitl_request_data(&physxData, &physxMsg);
     
-    OBC_ASSERT(unpackResult == DATALINK_OK);
+    SYS_ASSERT(unpackResult == DATALINK_OK);
 
     if (physxData.readFlags & DATALINK_FLAGS_SITL_READ_IMU_1)
     {
@@ -79,7 +79,7 @@ void SimBridgeModule::sendPhysicsResponseData()
 {
     if (!m_PhysicsSocket.isActive())
     {
-        OBC_ERROR("Cannot send physics response data: No active connection to physics engine.");
+        LOG_ERROR("Cannot send physics response data: No active connection to physics engine.");
         
         return;
     }

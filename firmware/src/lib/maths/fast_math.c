@@ -1,9 +1,9 @@
 #include "fast_math.h"
-#include <lib/debug/obc_assert.h>
+#include <lib/debug/sys_assert.h>
 
 float fast_inv_sqrt(float x)
 {
-    OBC_ASSERT(x >= 0.0f);
+    SYS_ASSERT(x >= 0.0f);
 
     long i;
     float x2, y;

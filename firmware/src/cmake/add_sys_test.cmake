@@ -1,4 +1,4 @@
-function(obc_add_test test_name)
+function(add_sys_test test_name)
     if(BUILD_TESTS)
         set(options "")
         set(oneValueArgs "")
@@ -7,7 +7,7 @@ function(obc_add_test test_name)
         cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
         if(NOT ARG_SOURCES)
-            message(FATAL_ERROR "obc_add_test No SOURCES provided for module '${test_name}'")
+            message(FATAL_ERROR "add_sys_test No SOURCES provided for module '${test_name}'")
         endif()
 
         message(STATUS "Adding test: ${test_name}")

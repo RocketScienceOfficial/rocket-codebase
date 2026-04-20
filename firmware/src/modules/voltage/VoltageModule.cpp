@@ -26,7 +26,7 @@ void VoltageModule::run()
         m_RPC.sendResponse(true);
         m_VoltageStatePublisher.publish({.pingsFlags = m_CurrentPinStates});
 
-        OBC_DEBUG("Voltage pin %d set to %s", pin, req.enabled ? "ENABLED" : "DISABLED");
+        LOG_DEBUG("Voltage pin %d set to %s", pin, req.enabled ? "ENABLED" : "DISABLED");
     }
 }
 

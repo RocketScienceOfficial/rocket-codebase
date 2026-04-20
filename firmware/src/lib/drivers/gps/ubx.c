@@ -1,5 +1,5 @@
 #include "ubx.h"
-#include <lib/debug/obc_assert.h>
+#include <lib/debug/sys_assert.h>
 #include <string.h>
 
 #define UBX_PREAMBLE_SYNC_CHAR_1 0xb5
@@ -86,7 +86,7 @@ void ubx_set_airborne_dynamic_model(void)
 
 static size_t _create_frame(uint8_t *frameBuffer, uint16_t frameBufferLen, uint8_t class, uint8_t id, const uint8_t *payload, uint16_t length)
 {
-    OBC_ASSERT(frameBufferLen >= 6 + length + 2);
+    SYS_ASSERT(frameBufferLen >= 6 + length + 2);
 
     frameBuffer[0] = UBX_PREAMBLE_SYNC_CHAR_1;
     frameBuffer[1] = UBX_PREAMBLE_SYNC_CHAR_2;
@@ -116,7 +116,7 @@ size_t ubx_valset_apply(uint8_t *cfg, uint16_t cfgLen)
     buffer[i++] = 0x00;
     buffer[i++] = 0x00;
 
-    OBC_ASSERT(sizeof(buffer) - i >= g_cfgValBufferLen);
+    SYS_ASSERT(sizeof(buffer) - i >= g_cfgValBufferLen);
 
     memcpy(buffer + i, g_cfgValBuffer, g_cfgValBufferLen);
     i += g_cfgValBufferLen;

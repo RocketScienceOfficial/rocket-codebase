@@ -6,5 +6,5 @@ target_link_libraries(app_pubsub PUBLIC
     maths
     geo
     datalink
-    obc_debug
+    sys_debug
 )

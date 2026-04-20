@@ -1,4 +1,4 @@
-obc_add_module(database
+add_module(database
     SOURCES
     DatabaseModule.cpp
     DatabaseCleaner.cpp

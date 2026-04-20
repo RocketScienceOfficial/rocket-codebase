@@ -56,14 +56,14 @@ void StateMachineModule::updateData()
 
         if (m_State == DATALINK_SM_STATE_STANDING && req.arm)
         {
-            OBC_INFO("ARM");
+            LOG_INFO("ARM");
 
             changeState(DATALINK_SM_STATE_ARMED);
             valid = true;
         }
         else if (m_State == DATALINK_SM_STATE_ARMED && !req.arm)
         {
-            OBC_INFO("DISARM");
+            LOG_INFO("DISARM");
 
             changeState(DATALINK_SM_STATE_STANDING);
             valid = true;
@@ -101,7 +101,7 @@ void StateMachineModule::changeState(state_machine_state new_state)
 {
     m_State = new_state;
 
-    OBC_INFO("State changed to %d", m_State);
+    LOG_INFO("State changed to %d", m_State);
 
     m_FlightStatePublisher.publish({.state = m_State});
 }

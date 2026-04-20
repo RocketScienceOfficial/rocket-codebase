@@ -54,7 +54,7 @@ void DatabaseReader::onInit()
 
         m_TXPublisher.publish(msg);
 
-        OBC_INFO("Beginning data read. Attempting to read %d frames", m_CurrentFrameCount);
+        LOG_INFO("Beginning data read. Attempting to read %d frames", m_CurrentFrameCount);
     }
     else
     {
@@ -62,7 +62,7 @@ void DatabaseReader::onInit()
         m_CurrentSavedFrameCount = DATA_RECOVERY_MAX_FRAMES;
         m_CurrentFrameCount = m_CurrentStandingFrameCount + m_CurrentSavedFrameCount;
 
-        OBC_INFO("Beginning data recovery. Attempting to read up to %d frames", m_CurrentFrameCount);
+        LOG_INFO("Beginning data recovery. Attempting to read up to %d frames", m_CurrentFrameCount);
     }
 
     m_CurrentDataPtr = nullptr;
@@ -130,7 +130,7 @@ void DatabaseReader::onExit()
 
     m_TXPublisher.publish(msg);
 
-    OBC_INFO("Data read has finished");
+    LOG_INFO("Data read has finished");
 }
 
 void DatabaseReader::readNext()

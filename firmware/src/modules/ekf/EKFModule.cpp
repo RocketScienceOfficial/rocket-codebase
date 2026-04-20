@@ -44,7 +44,7 @@ void EKFModule::updateGPSData()
         {
             m_BaseGPSPos = gpsData.pos;
             
-            OBC_INFO("Base GPS position set to lat: %.6f, lon: %.6f, alt: %.2f", m_BaseGPSPos.lat, m_BaseGPSPos.lon, m_BaseGPSPos.alt);
+            LOG_INFO("Base GPS position set to lat: %.6f, lon: %.6f, alt: %.2f", m_BaseGPSPos.lat, m_BaseGPSPos.lon, m_BaseGPSPos.alt);
         }
         else
         {
@@ -88,7 +88,7 @@ void EKFModule::updateBarometerData()
         {
             m_BaroHeightOffset = baroData.baroHeight;
 
-            OBC_INFO("Barometer height offset set to %.2f m", m_BaroHeightOffset);
+            LOG_INFO("Barometer height offset set to %.2f m", m_BaroHeightOffset);
         }
         else
         {

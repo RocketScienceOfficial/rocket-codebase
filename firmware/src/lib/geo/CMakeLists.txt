@@ -7,12 +7,12 @@ add_library(geo STATIC
 )
 
 target_link_libraries(geo PUBLIC
-    obc_debug
+    sys_debug
     maths
     geo_wmm
 )
 
-obc_add_test(geo_tests
+add_sys_test(geo_tests
     SOURCES tests/geo_tests.cpp
     DEPENDS geo
 )

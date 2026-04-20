@@ -45,15 +45,15 @@ void IgnitersModule::run()
         {
             if (vec3_mag_compare(&m_EKFSubscriber.get().velocity, MALFUNCTION_SPEED) >= 0)
             {
-                OBC_INFO("Malfunction detected, firing backup igniter");
-                OBC_INFO("Height: %.2f m", m_SMHeightSubscriber.get().height);
-                OBC_INFO("Velocity: %.2f m/s", vec3_mag(&m_EKFSubscriber.get().velocity));
+                LOG_INFO("Malfunction detected, firing backup igniter");
+                LOG_INFO("Height: %.2f m", m_SMHeightSubscriber.get().height);
+                LOG_INFO("Velocity: %.2f m/s", vec3_mag(&m_EKFSubscriber.get().velocity));
 
                 ignFire(m_Igniters[1]);
             }
             else if (m_SMHeightSubscriber.get().height <= MAIN_PARACHUTE_HEIGHT)
             {
-                OBC_INFO("Main parachute deployment detected, firing backup igniter");
+                LOG_INFO("Main parachute deployment detected, firing backup igniter");
                 
                 ignFire(m_Igniters[1]);
             }
@@ -97,14 +97,14 @@ void IgnitersModule::initIgniterPin(IgniterPinData &data, uint8_t pin)
     hal_gpio_init_pin(pin, GPIO_OUTPUT);
     hal_gpio_set_pin_state(pin, GPIO_LOW);
 
-    OBC_INFO("Igniter pin %d initialized", pin);
+    LOG_INFO("Igniter pin %d initialized", pin);
 }
 
 void IgnitersModule::ignTestFire()
 {
     const auto &cmd = m_RPC_IGN.getRequestData();
 
-    OBC_INFO("Received igniter test fire command for channel %d", cmd.channel);
+    LOG_INFO("Received igniter test fire command for channel %d", cmd.channel);
 
     if (m_CurrentTestingIgniter == nullptr && cmd.channel >= 1 && cmd.channel <= PubSub::Helpers::IGN_CHANNELS_COUNT)
     {
@@ -114,7 +114,7 @@ void IgnitersModule::ignTestFire()
     }
     else
     {
-        OBC_WARN("Invalid igniter test fire command received or another test is currently running");
+        LOG_WARN("Invalid igniter test fire command received or another test is currently running");
         
         m_RPC_IGN.sendResponse(false);
     }
@@ -134,7 +134,7 @@ void IgnitersModule::ignFire(IgniterPinData &data)
             m_CurrentIgnFiredPubData.fired[i] = m_Igniters[i].fired;
         }
 
-        OBC_INFO("Fired igniter on pin %d", data.pin);
+        LOG_INFO("Fired igniter on pin %d", data.pin);
 
         m_IgnFiredPublisher.publish(m_CurrentIgnFiredPubData);
     }
@@ -168,7 +168,7 @@ void IgnitersModule::ignFinish(IgniterPinData &data)
         data.finished = true;
     }
 
-    OBC_INFO("Finished igniter on pin %d", data.pin);
+    LOG_INFO("Finished igniter on pin %d", data.pin);
 }
 
 void IgnitersModule::ignUpdateContinuity()

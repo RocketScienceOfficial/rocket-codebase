@@ -1,13 +1,13 @@
 #include "bmi088_gyro_driver.h"
 #include "time_utils.h"
-#include <lib/debug/obc_assert.h>
+#include <lib/debug/sys_assert.h>
 #include <lib/geo/physical_constants.h>
 #include <lib/maths/math_constants.h>
 #include <math.h>
 
 void bmi088_gyro_init_spi(bmi088_gyro_device_t *device, uint8_t spi, uint8_t cs)
 {
-    OBC_ASSERT(device != NULL);
+    SYS_ASSERT(device != NULL);
 
     device->rangeFactor = 0.0f;
 
@@ -16,7 +16,7 @@ void bmi088_gyro_init_spi(bmi088_gyro_device_t *device, uint8_t spi, uint8_t cs)
 
 void bmi088_gyro_init_i2c(bmi088_gyro_device_t *device, uint8_t i2c, bool sdo1Grounded)
 {
-    OBC_ASSERT(device != NULL);
+    SYS_ASSERT(device != NULL);
 
     device->rangeFactor = 0.0f;
 
@@ -27,14 +27,14 @@ void bmi088_gyro_init_i2c(bmi088_gyro_device_t *device, uint8_t i2c, bool sdo1Gr
 
 bool bmi088_gyro_validate(const bmi088_gyro_device_t *device)
 {
-    OBC_ASSERT(device != NULL);
+    SYS_ASSERT(device != NULL);
 
     return bus_utils_read_reg(&device->device, BMI088_GYRO_CHIP_ID) == BMI088_GYRO_CHIP_ID;
 }
 
 void bmi088_gyro_set_bandwidth(const bmi088_gyro_device_t *device, bmi088_gyro_bandwidth_t bw)
 {
-    OBC_ASSERT(device != NULL);
+    SYS_ASSERT(device != NULL);
 
     bus_utils_write_reg(&device->device, BMI088_GYRO_REG_BANDWIDTH, (uint8_t)bw);
 
@@ -43,7 +43,7 @@ void bmi088_gyro_set_bandwidth(const bmi088_gyro_device_t *device, bmi088_gyro_b
 
 void bmi088_gyro_set_range(bmi088_gyro_device_t *device, bmi088_gyro_range_t range)
 {
-    OBC_ASSERT(device != NULL);
+    SYS_ASSERT(device != NULL);
 
     device->rangeFactor = DEG_2_RAD(2000.0f / powf(2, range)) / (1 << 15);
 
@@ -54,8 +54,8 @@ void bmi088_gyro_set_range(bmi088_gyro_device_t *device, bmi088_gyro_range_t ran
 
 void bmi088_gyro_read(const bmi088_gyro_device_t *device, vec3_t *gyro)
 {
-    OBC_ASSERT(device != NULL);
-    OBC_ASSERT(gyro != NULL);
+    SYS_ASSERT(device != NULL);
+    SYS_ASSERT(gyro != NULL);
 
     uint8_t buff[6];
 

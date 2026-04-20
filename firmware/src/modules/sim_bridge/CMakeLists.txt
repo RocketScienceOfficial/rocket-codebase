@@ -1,4 +1,4 @@
-obc_add_module(sim_bridge
+add_module(sim_bridge
     SOURCES
     SimBridgeModule.cpp
     DEPENDS

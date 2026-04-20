@@ -2,7 +2,7 @@
 #include "ubx.h"
 #include "spi_utils.h"
 #include <lib/geo/physical_constants.h>
-#include <lib/debug/obc_assert.h>
+#include <lib/debug/sys_assert.h>
 #include <hal/spi_driver.h>
 #include <string.h>
 
@@ -10,7 +10,7 @@
 
 static void _configure_spi(gps_device_t *device)
 {
-    OBC_ASSERT(device != NULL);
+    SYS_ASSERT(device != NULL);
 
     ubx_set_nmea_enabled_spi(false);
     ubx_set_pvt_enabled_spi(true);
@@ -27,7 +27,7 @@ static void _configure_spi(gps_device_t *device)
 
 void gps_init_spi(gps_device_t *device, uint8_t spi, uint8_t cs)
 {
-    OBC_ASSERT(device != NULL);
+    SYS_ASSERT(device != NULL);
 
     device->spi = spi;
     device->cs = cs;
@@ -42,7 +42,7 @@ void gps_init_spi(gps_device_t *device, uint8_t spi, uint8_t cs)
 
 bool gps_read_spi(gps_device_t *device)
 {
-    OBC_ASSERT(device != NULL);
+    SYS_ASSERT(device != NULL);
     
     bool found = false;
     uint8_t i = 0;

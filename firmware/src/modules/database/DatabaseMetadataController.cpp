@@ -18,7 +18,7 @@ void DatabaseMetadataController::read()
 
         sendReadyNotification();
 
-        OBC_INFO("Database metadata loaded: savedFramesCount=%u, standingFramesCount=%u", m_CurrentMetadata.savedFramesCount, m_CurrentMetadata.standingFramesCount);
+        LOG_INFO("Database metadata loaded: savedFramesCount=%u, standingFramesCount=%u", m_CurrentMetadata.savedFramesCount, m_CurrentMetadata.standingFramesCount);
     }
     else
     {
@@ -46,7 +46,7 @@ void DatabaseMetadataController::save(const DatabaseMetadata &metadata)
 
     sendReadyNotification();
 
-    OBC_INFO("Database metadata saved: savedFramesCount=%u, standingFramesCount=%u", metadata.savedFramesCount, metadata.standingFramesCount);
+    LOG_INFO("Database metadata saved: savedFramesCount=%u, standingFramesCount=%u", metadata.savedFramesCount, metadata.standingFramesCount);
 }
 
 void DatabaseMetadataController::sendReadyNotification()

@@ -2,7 +2,7 @@
 #include "spi_utils.h"
 #include <hal/spi_driver.h>
 #include <hal/time_driver.h>
-#include <lib/debug/obc_assert.h>
+#include <lib/debug/sys_assert.h>
 
 static uint8_t ads786x_get_adc_bits(ads786x_type_t type)
 {
@@ -21,21 +21,21 @@ static uint8_t ads786x_get_adc_bits(ads786x_type_t type)
 
 void ads786x_init(ads786x_device_t *device, uint8_t spi, uint8_t cs, ads786x_type_t type, float vRef)
 {
-    OBC_ASSERT(device != NULL);
+    SYS_ASSERT(device != NULL);
 
     device->spi = spi;
     device->cs = cs;
     device->adcBits = ads786x_get_adc_bits(type);
     device->vRef = vRef;
 
-    OBC_ASSERT(device->adcBits != -1);
+    SYS_ASSERT(device->adcBits != -1);
 
     spi_utils_cs_init(cs);
 }
 
 float ads786x_read(const ads786x_device_t *device)
 {
-    OBC_ASSERT(device != NULL);
+    SYS_ASSERT(device != NULL);
     
     spi_utils_cs_select(device->cs);
 

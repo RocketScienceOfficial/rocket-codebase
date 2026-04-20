@@ -113,7 +113,7 @@ void DatabaseWriter::flushData()
             hal_flash_write_pages(SECTORS_OFFSET_DATA * BOARD_FLASH_SECTOR_SIZE / BOARD_FLASH_PAGE_SIZE + m_SaveFlashOffsetPages, m_SaveBuffer, sizeof(m_SaveBuffer) / BOARD_FLASH_PAGE_SIZE);
         }
 
-        OBC_INFO("Flash save buffer has been flushed. %d bytes were written", m_SaveBufferSize);
+        LOG_INFO("Flash save buffer has been flushed. %d bytes were written", m_SaveBufferSize);
 
         m_SaveBufferSize = 0;
     }
@@ -133,5 +133,5 @@ void DatabaseWriter::flushStandingBuffer()
 
     hal_flash_write_pages(SECTORS_OFFSET_STANDING_BUFFER * BOARD_FLASH_SECTOR_SIZE / BOARD_FLASH_PAGE_SIZE, data, pages);
 
-    OBC_INFO("Standing buffer has been flushed. %d frames (%d bytes) were written", m_StandingBufferLength, m_StandingBufferLength * sizeof(DatabaseFrameRaw));
+    LOG_INFO("Standing buffer has been flushed. %d frames (%d bytes) were written", m_StandingBufferLength, m_StandingBufferLength * sizeof(DatabaseFrameRaw));
 }

@@ -1,5 +1,5 @@
 #include "MessageBus.h"
-#include <lib/debug/obc_assert.h>
+#include <lib/debug/sys_assert.h>
 #include <cstring>
 #include <atomic>
 
@@ -52,23 +52,23 @@ namespace PubSub
 
     TopicHandle MessageBus::CreateHandle(TopicId id, const char *topic_name, size_t message_size)
     {
-        OBC_ASSERT(!g_creationBlocked);
-        OBC_ASSERT(id != nullptr);
-        OBC_ASSERT(topic_name != nullptr);
-        OBC_ASSERT_MSG(message_size > 0 && message_size <= MAX_MESSAGE_SIZE, "Invalid message size: %zu (%s)", message_size, topic_name);
+        SYS_ASSERT(!g_creationBlocked);
+        SYS_ASSERT(id != nullptr);
+        SYS_ASSERT(topic_name != nullptr);
+        SYS_ASSERT_MSG(message_size > 0 && message_size <= MAX_MESSAGE_SIZE, "Invalid message size: %zu (%s)", message_size, topic_name);
 
         Topic *t = _FindTopicById(id);
 
         if (t != nullptr)
         {
-            OBC_ASSERT_MSG(strcmp(t->name, topic_name) == 0, "Topic ID '%s' already exists with a different name: '%s' (requested: '%s')", topic_name, t->name, topic_name);
-            OBC_ASSERT_MSG(t->message_size == message_size, "Topic '%s' already exists with a different message size: %zu (requested: %zu)", topic_name, t->message_size, message_size);
+            SYS_ASSERT_MSG(strcmp(t->name, topic_name) == 0, "Topic ID '%s' already exists with a different name: '%s' (requested: '%s')", topic_name, t->name, topic_name);
+            SYS_ASSERT_MSG(t->message_size == message_size, "Topic '%s' already exists with a different message size: %zu (requested: %zu)", topic_name, t->message_size, message_size);
 
             return {(uint8_t)(t - g_topics), t->write_sequence.load(std::memory_order_acquire)};
         }
         else
         {
-            OBC_ASSERT_MSG(g_topicsCount < MAX_TOPICS, "Maximum number of topics reached");
+            SYS_ASSERT_MSG(g_topicsCount < MAX_TOPICS, "Maximum number of topics reached");
 
             Topic *slot = &g_topics[g_topicsCount++];
 
@@ -86,19 +86,19 @@ namespace PubSub
 
     void MessageBus::AdvertiseTopic(const TopicHandle *handle, size_t message_count)
     {
-        OBC_ASSERT(!g_creationBlocked);
-        OBC_ASSERT(_ValidateHandle(handle));
+        SYS_ASSERT(!g_creationBlocked);
+        SYS_ASSERT(_ValidateHandle(handle));
 
         Topic *topic = &g_topics[handle->topic_index];
 
-        OBC_ASSERT(_ValidateTopicByHandle(handle, topic));
-        OBC_ASSERT(topic->write_sequence.load(std::memory_order_acquire) == handle->read_sequence);
-        OBC_ASSERT_MSG(topic->owner == nullptr, "Topic '%s' is already owned by another handle", topic->name);
+        SYS_ASSERT(_ValidateTopicByHandle(handle, topic));
+        SYS_ASSERT(topic->write_sequence.load(std::memory_order_acquire) == handle->read_sequence);
+        SYS_ASSERT_MSG(topic->owner == nullptr, "Topic '%s' is already owned by another handle", topic->name);
 
         topic->owner = handle;
 
-        OBC_ASSERT_MSG(message_count > 1 && message_count <= MAX_MESSAGE_COUNT && FAST_MODULO(message_count, message_count) == 0, "Invalid message count: %zu (%s)", message_count, topic->name);
-        OBC_ASSERT_MSG(g_nextFreeMemoryOffset + topic->message_size * topic->message_count <= sizeof(g_topicsMemoryBuffer), "Not enough memory for topic '%s' (Current: %zu)", topic->name, g_nextFreeMemoryOffset);
+        SYS_ASSERT_MSG(message_count > 1 && message_count <= MAX_MESSAGE_COUNT && FAST_MODULO(message_count, message_count) == 0, "Invalid message count: %zu (%s)", message_count, topic->name);
+        SYS_ASSERT_MSG(g_nextFreeMemoryOffset + topic->message_size * topic->message_count <= sizeof(g_topicsMemoryBuffer), "Not enough memory for topic '%s' (Current: %zu)", topic->name, g_nextFreeMemoryOffset);
 
         topic->memory_offset = g_nextFreeMemoryOffset;
         topic->message_count = message_count;
@@ -107,15 +107,15 @@ namespace PubSub
 
     void MessageBus::PublishData(TopicHandle *handle, const void *data, size_t size)
     {
-        OBC_ASSERT(_ValidateHandle(handle));
-        OBC_ASSERT(data != nullptr);
+        SYS_ASSERT(_ValidateHandle(handle));
+        SYS_ASSERT(data != nullptr);
 
         Topic *topic = &g_topics[handle->topic_index];
 
-        OBC_ASSERT(_ValidateTopicByHandle(handle, topic));
-        OBC_ASSERT(topic->write_sequence.load(std::memory_order_acquire) == handle->read_sequence);
-        OBC_ASSERT_MSG(size == topic->message_size, "Data size does not match topic message size: %zu (expected: %zu)", size, topic->message_size);
-        OBC_ASSERT_MSG(topic->owner == handle, "Handle does not own the topic '%s'", topic->name);
+        SYS_ASSERT(_ValidateTopicByHandle(handle, topic));
+        SYS_ASSERT(topic->write_sequence.load(std::memory_order_acquire) == handle->read_sequence);
+        SYS_ASSERT_MSG(size == topic->message_size, "Data size does not match topic message size: %zu (expected: %zu)", size, topic->message_size);
+        SYS_ASSERT_MSG(topic->owner == handle, "Handle does not own the topic '%s'", topic->name);
 
         size_t offset = topic->memory_offset + (FAST_MODULO(topic->write_sequence.load(std::memory_order_acquire), topic->message_count)) * topic->message_size;
 
@@ -127,14 +127,14 @@ namespace PubSub
 
     bool MessageBus::CopyData(TopicHandle *handle, void *buffer, size_t buffer_size, bool latest)
     {
-        OBC_ASSERT(_ValidateHandle(handle));
-        OBC_ASSERT(buffer != nullptr);
+        SYS_ASSERT(_ValidateHandle(handle));
+        SYS_ASSERT(buffer != nullptr);
 
         Topic *topic = &g_topics[handle->topic_index];
 
-        OBC_ASSERT(_ValidateTopicByHandle(handle, topic));
-        OBC_ASSERT_MSG(topic->owner != nullptr, "Topic '%s' is not owned by any handle", topic->name);
-        OBC_ASSERT_MSG(buffer_size == topic->message_size, "Buffer size does not match topic message size: %zu (expected: %zu)", buffer_size, topic->message_size);
+        SYS_ASSERT(_ValidateTopicByHandle(handle, topic));
+        SYS_ASSERT_MSG(topic->owner != nullptr, "Topic '%s' is not owned by any handle", topic->name);
+        SYS_ASSERT_MSG(buffer_size == topic->message_size, "Buffer size does not match topic message size: %zu (expected: %zu)", buffer_size, topic->message_size);
 
         uint32_t write_seq = 0;
 
@@ -155,7 +155,7 @@ namespace PubSub
             {
                 if (write_seq - handle->read_sequence > topic->message_count)
                 {
-                    OBC_ASSERT_MSG(false, "Subscriber is too slow and has missed messages on topic '%s' (read_sequence: %u, write_sequence: %u)", topic->name, handle->read_sequence, write_seq);
+                    SYS_ASSERT_MSG(false, "Subscriber is too slow and has missed messages on topic '%s' (read_sequence: %u, write_sequence: %u)", topic->name, handle->read_sequence, write_seq);
 
                     handle->read_sequence = write_seq - topic->message_count + 1;
                 }

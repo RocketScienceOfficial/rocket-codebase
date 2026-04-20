@@ -1,4 +1,4 @@
-obc_add_module(ign
+add_module(ign
     SOURCES
     IgnitersModule.cpp
 )

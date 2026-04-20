@@ -34,7 +34,7 @@ void DatabaseCleaner::onInit()
 {
     m_CurrentIndex = 0;
 
-    OBC_INFO("Starting database clearing");
+    LOG_INFO("Starting database clearing");
 }
 
 void DatabaseCleaner::onUpdate()
@@ -74,5 +74,5 @@ void DatabaseCleaner::onExit()
 
     m_TXPublisher.publish(msg);
 
-    OBC_INFO("Database cleared");
+    LOG_INFO("Database cleared");
 }

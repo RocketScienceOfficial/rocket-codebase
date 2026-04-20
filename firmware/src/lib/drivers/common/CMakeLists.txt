@@ -7,7 +7,7 @@ add_library(drivers_common STATIC
 target_link_libraries(drivers_common PUBLIC
     platform_hal
     platform_osal
-    obc_debug
+    sys_debug
 )
 
 target_include_directories(drivers_common PUBLIC

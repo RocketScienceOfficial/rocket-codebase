@@ -1,4 +1,4 @@
-obc_add_module(sim_radio
+add_module(sim_radio
     SOURCES
     SimRadioModule.cpp
     DEPENDS

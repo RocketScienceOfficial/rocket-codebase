@@ -1,4 +1,4 @@
-function(obc_add_module module_name)
+function(add_module module_name)
     set(lib_name app_modules_${module_name})
     set(options "")
     set(oneValueArgs "")
@@ -7,7 +7,7 @@ function(obc_add_module module_name)
     cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     if(NOT ARG_SOURCES)
-        message(FATAL_ERROR "obc_add_module: No SOURCES provided for module '${module_name}'")
+        message(FATAL_ERROR "add_module: No SOURCES provided for module '${module_name}'")
     endif()
 
     add_library(${lib_name} STATIC ${ARG_SOURCES})

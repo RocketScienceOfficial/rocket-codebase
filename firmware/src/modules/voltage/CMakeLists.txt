@@ -1,4 +1,4 @@
-obc_add_module(voltage
+add_module(voltage
     SOURCES
     VoltageModule.cpp
 )

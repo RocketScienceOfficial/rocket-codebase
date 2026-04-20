@@ -1,4 +1,4 @@
-obc_add_module(sensors
+add_module(sensors
     SOURCES
     SensorsModule.cpp
     Driver_adc_ign.cpp

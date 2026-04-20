@@ -1,6 +1,6 @@
 #include "bmi088_acc_driver.h"
 #include "time_utils.h"
-#include <lib/debug/obc_assert.h>
+#include <lib/debug/sys_assert.h>
 #include <lib/geo/physical_constants.h>
 #include <lib/maths/math_constants.h>
 #include <math.h>
@@ -55,7 +55,7 @@ static void _bmi088_acc_init_base(bmi088_acc_device_t *device)
 
 void bmi088_acc_init_spi(bmi088_acc_device_t *device, uint8_t spi, uint8_t cs)
 {
-    OBC_ASSERT(device != NULL);
+    SYS_ASSERT(device != NULL);
 
     device->rangeFactor = 0.0f;
 
@@ -66,7 +66,7 @@ void bmi088_acc_init_spi(bmi088_acc_device_t *device, uint8_t spi, uint8_t cs)
 
 void bmi088_acc_init_i2c(bmi088_acc_device_t *device, uint8_t i2c, bool sdo1Grounded)
 {
-    OBC_ASSERT(device != NULL);
+    SYS_ASSERT(device != NULL);
 
     device->rangeFactor = 0.0f;
 
@@ -79,14 +79,14 @@ void bmi088_acc_init_i2c(bmi088_acc_device_t *device, uint8_t i2c, bool sdo1Grou
 
 bool bmi088_acc_validate(const bmi088_acc_device_t *device)
 {
-    OBC_ASSERT(device != NULL);
+    SYS_ASSERT(device != NULL);
 
     return _bmi088_acc_read_reg(device, BMI088_ACC_REG_CHIP_ID) == BMI088_ACC_CHIP_ID;
 }
 
 void bmi088_acc_set_conf(const bmi088_acc_device_t *device, bmi088_acc_odr_t odr, bmi088_acc_osr_t osr)
 {
-    OBC_ASSERT(device != NULL);
+    SYS_ASSERT(device != NULL);
 
     _bmi088_acc_write_reg(device, BMI088_ACC_REG_CONF, (uint8_t)odr | ((uint8_t)osr << BMI088_ACC_CONF_OSR_BITSHIFT));
 
@@ -95,7 +95,7 @@ void bmi088_acc_set_conf(const bmi088_acc_device_t *device, bmi088_acc_odr_t odr
 
 void bmi088_acc_set_range(bmi088_acc_device_t *device, bmi088_acc_range_t range)
 {
-    OBC_ASSERT(device != NULL);
+    SYS_ASSERT(device != NULL);
 
     device->rangeFactor = powf(2, range + 1) * 1.5f * EARTH_GRAVITY / (1 << 15);
 
@@ -104,8 +104,8 @@ void bmi088_acc_set_range(bmi088_acc_device_t *device, bmi088_acc_range_t range)
 
 void bmi088_acc_read(const bmi088_acc_device_t *device, vec3_t *accel)
 {
-    OBC_ASSERT(device != NULL);
-    OBC_ASSERT(accel != NULL);
+    SYS_ASSERT(device != NULL);
+    SYS_ASSERT(accel != NULL);
 
     uint8_t buff[6];
 

@@ -2,13 +2,13 @@
 #include "math_constants.h"
 #include "fast_math.h"
 #include "math_utils.h"
-#include <lib/debug/obc_assert.h>
+#include <lib/debug/sys_assert.h>
 #include <math.h>
 
 quat_t quat_mul(const quat_t *a, const quat_t *b)
 {
-    OBC_ASSERT(a != NULL);
-    OBC_ASSERT(b != NULL);
+    SYS_ASSERT(a != NULL);
+    SYS_ASSERT(b != NULL);
 
     return (quat_t){
         .w = a->w * b->w - a->x * b->x - a->y * b->y - a->z * b->z,
@@ -20,7 +20,7 @@ quat_t quat_mul(const quat_t *a, const quat_t *b)
 
 void quat_conj(quat_t *q)
 {
-    OBC_ASSERT(q != NULL);
+    SYS_ASSERT(q != NULL);
 
     q->x = -q->x;
     q->y = -q->y;
@@ -29,7 +29,7 @@ void quat_conj(quat_t *q)
 
 void quat_inv(quat_t *q)
 {
-    OBC_ASSERT(q != NULL);
+    SYS_ASSERT(q != NULL);
 
     float sq_norm = q->w * q->w + q->x * q->x + q->y * q->y + q->z * q->z;
     float normInv = fast_inv_sqrt(sq_norm);
@@ -43,7 +43,7 @@ void quat_inv(quat_t *q)
 
 void quat_normalize(quat_t *q)
 {
-    OBC_ASSERT(q != NULL);
+    SYS_ASSERT(q != NULL);
 
     float sq_norm = q->w * q->w + q->x * q->x + q->y * q->y + q->z * q->z;
     float normInv = fast_inv_sqrt(sq_norm);
@@ -56,8 +56,8 @@ void quat_normalize(quat_t *q)
 
 void quat_rotate_vec(vec3_t *v, const quat_t *q)
 {
-    OBC_ASSERT(v != NULL);
-    OBC_ASSERT(q != NULL);
+    SYS_ASSERT(v != NULL);
+    SYS_ASSERT(q != NULL);
 
     *v = (vec3_t){
         .x = v->x * (1.0f - 2.0f * (q->y * q->y + q->z * q->z)) + v->y * 2.0f * (q->x * q->y - q->z * q->w) + v->z * 2.0f * (q->x * q->z + q->y * q->w),
@@ -68,8 +68,8 @@ void quat_rotate_vec(vec3_t *v, const quat_t *q)
 
 quat_t quat_gyro_derivative(const quat_t *q, const vec3_t *gyro)
 {
-    OBC_ASSERT(q != NULL);
-    OBC_ASSERT(gyro != NULL);
+    SYS_ASSERT(q != NULL);
+    SYS_ASSERT(gyro != NULL);
 
     return (quat_t){
         .w = 0.5f * (-gyro->x * q->x - gyro->y * q->y - gyro->z * q->z),
@@ -81,7 +81,7 @@ quat_t quat_gyro_derivative(const quat_t *q, const vec3_t *gyro)
 
 void integrate_gyro(quat_t *q, vec3_t gyro, float dt)
 {
-    OBC_ASSERT(q != NULL);
+    SYS_ASSERT(q != NULL);
 
     quat_t derivative = quat_gyro_derivative(q, &gyro);
 

@@ -1,7 +1,7 @@
 #include "ms56xx_driver.h"
 #include "spi_utils.h"
 #include "time_utils.h"
-#include <lib/debug/obc_assert.h>
+#include <lib/debug/sys_assert.h>
 #include <hal/spi_driver.h>
 #include <hal/time_driver.h>
 
@@ -96,7 +96,7 @@ static bool _ms56xx_read_coefficents(ms56xx_device_t *device)
 
 void ms56xx_init_spi(ms56xx_device_t *device, uint8_t spi, uint8_t cs, bool version_5611)
 {
-    OBC_ASSERT(device != NULL);
+    SYS_ASSERT(device != NULL);
 
     device->spi = spi;
     device->cs = cs;
@@ -112,7 +112,7 @@ void ms56xx_init_spi(ms56xx_device_t *device, uint8_t spi, uint8_t cs, bool vers
 
 void ms56xx_set_osr(ms56xx_device_t *device, ms56xx_osr_t press, ms56xx_osr_t temp)
 {
-    OBC_ASSERT(device != NULL);
+    SYS_ASSERT(device != NULL);
 
     device->pressOSR = press;
     device->tempOSR = temp;
@@ -120,7 +120,7 @@ void ms56xx_set_osr(ms56xx_device_t *device, ms56xx_osr_t press, ms56xx_osr_t te
 
 bool ms56xx_validate(const ms56xx_device_t *device)
 {
-    OBC_ASSERT(device != NULL);
+    SYS_ASSERT(device != NULL);
 
     return device->coeffs_valid;
 }
@@ -170,7 +170,7 @@ static void _ms56xx_req_value(ms56xx_device_t *device, bool pressure)
     ms56xx_osr_t osr = pressure ? device->pressOSR : device->tempOSR;
     uint32_t timeout = _ms56xx_get_timeout(osr);
 
-    OBC_ASSERT(timeout > 0);
+    SYS_ASSERT(timeout > 0);
 
     device->nextTime = hal_time_get_us_since_boot() + timeout;
 }
@@ -243,9 +243,9 @@ static void _ms5607_convert_raw_values(const ms56xx_prom_data_t *coeffs, uint32_
 
 bool ms56xx_read_non_blocking(ms56xx_device_t *device, int *pressure, float *temperature)
 {
-    OBC_ASSERT(device != NULL);
-    OBC_ASSERT(pressure != NULL);
-    OBC_ASSERT(temperature != NULL);
+    SYS_ASSERT(device != NULL);
+    SYS_ASSERT(pressure != NULL);
+    SYS_ASSERT(temperature != NULL);
 
     bool result = false;
 

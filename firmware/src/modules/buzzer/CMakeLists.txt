@@ -1,4 +1,4 @@
-obc_add_module(buzzer
+add_module(buzzer
     SOURCES
     BuzzerModule.cpp
 )

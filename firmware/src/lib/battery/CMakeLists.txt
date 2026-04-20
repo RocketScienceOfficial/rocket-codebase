@@ -3,5 +3,5 @@ add_library(battery STATIC
 )
 
 target_link_libraries(battery PUBLIC
-    obc_debug
+    sys_debug
 )

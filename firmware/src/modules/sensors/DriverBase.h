@@ -3,7 +3,7 @@
 #include <pubsub/Topics.h>
 #include <pubsub/Publisher.h>
 #include <osal/systime.h>
-#include <lib/debug/obc_assert.h>
+#include <lib/debug/sys_assert.h>
 
 template <typename Derived, typename TopicStruct>
 class DriverBase
@@ -12,7 +12,7 @@ public:
     DriverBase(const PubSub::TopicMetadata<TopicStruct> *meta) : m_Publisher(meta), m_ReadDelay(0) {}
     DriverBase(const PubSub::TopicMetadata<TopicStruct> *meta, int frequency) : m_Publisher(meta), m_ReadDelay(1000 / frequency)
     {
-        OBC_ASSERT(frequency > 0 && frequency <= 1000);
+        SYS_ASSERT(frequency > 0 && frequency <= 1000);
     }
 
     void init()
@@ -27,7 +27,7 @@ public:
         {
             float dt = (osal_systime_get_ms() - m_LastPublishTime) / 1000.0f;
 
-            OBC_ASSERT(m_Driver != nullptr);
+            SYS_ASSERT(m_Driver != nullptr);
 
             m_Driver->readAndPublish(dt);
             m_LastPublishTime = osal_systime_get_ms();

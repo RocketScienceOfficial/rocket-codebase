@@ -93,7 +93,7 @@ void DatabaseModule::setState(DatamanState newState)
     {
         m_CurrentState = newState;
 
-        OBC_DEBUG("New state: %d", (int)m_CurrentState);
+        LOG_DEBUG("New state: %d", (int)m_CurrentState);
     }
 }
 

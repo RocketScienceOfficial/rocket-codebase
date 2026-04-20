@@ -1,6 +1,6 @@
 add_subdirectory(derivation)
 
-obc_add_module(ekf
+add_module(ekf
     SOURCES
     EKFModule.cpp
     ekf.cpp

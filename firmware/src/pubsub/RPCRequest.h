@@ -3,7 +3,7 @@
 #include "MessageBus.h"
 #include "Subscriber.h"
 #include "Publisher.h"
-#include <lib/debug/obc_assert.h>
+#include <lib/debug/sys_assert.h>
 
 namespace PubSub
 {
@@ -29,14 +29,14 @@ namespace PubSub
 
         bool isSuccess() const
         {
-            OBC_ASSERT_MSG(m_ResponseAvailable, "No RPC response data available");
+            SYS_ASSERT_MSG(m_ResponseAvailable, "No RPC response data available");
 
             return m_ResponseSubscriber.get().success != 0;
         }
 
         uint8_t getResponseSource() const
         {
-            OBC_ASSERT_MSG(m_ResponseAvailable, "No RPC response data available");
+            SYS_ASSERT_MSG(m_ResponseAvailable, "No RPC response data available");
 
             return m_ResponseSubscriber.get().src;
         }

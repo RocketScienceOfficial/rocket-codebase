@@ -1,7 +1,7 @@
 #include "RadioCommunicationModule.h"
 #include "modules/common/ModuleLogger.h"
 #include <board_config.h>
-#include <lib/debug/obc_assert.h>
+#include <lib/debug/sys_assert.h>
 #include <hal/uart_driver.h>
 
 void RadioCommunicationModule::init()
@@ -36,7 +36,7 @@ void RadioCommunicationModule::drainTXBuffer()
     {
         hal_uart_write(CFG_UART, m_SendBuffer, m_CurrentSendBufferSize);
 
-        OBC_DEBUG("Sent %d messages over UART (%lu bytes)", i, (unsigned long)m_CurrentSendBufferSize);
+        LOG_DEBUG("Sent %d messages over UART (%lu bytes)", i, (unsigned long)m_CurrentSendBufferSize);
 
         m_CurrentSendBufferSize = 0;
     }
@@ -57,7 +57,7 @@ void RadioCommunicationModule::drainRXBuffer()
 
         if (m_CurrentReceiveBufferSize >= sizeof(m_ReceiveBuffer))
         {
-            OBC_ASSERT_MSG(false, "Receive buffer overflow, dropping data");
+            SYS_ASSERT_MSG(false, "Receive buffer overflow, dropping data");
 
             m_CurrentReceiveBufferSize = 0;
         }
@@ -74,7 +74,7 @@ void RadioCommunicationModule::drainRXBuffer()
             }
             else
             {
-                OBC_ERROR("Failed to deserialize message from UART, dropping message");
+                LOG_ERROR("Failed to deserialize message from UART, dropping message");
             }
 
             m_CurrentReceiveBufferSize = 0;
@@ -92,7 +92,7 @@ void RadioCommunicationModule::addToSendQueue(const datalink_message_t &message)
     }
     else
     {
-        OBC_ASSERT_MSG(false, "Failed to serialize message for UART transmission, dropping message");
+        SYS_ASSERT_MSG(false, "Failed to serialize message for UART transmission, dropping message");
     }
 }
 
@@ -108,7 +108,7 @@ void RadioCommunicationModule::flushStartup()
             hal_uart_read_fifo(CFG_UART, dummyBuffer, sizeof(dummyBuffer));
         }
 
-        OBC_ASSERT_MSG(i < UART_STARTUP_FLUSH_MAX_TRIES, "UART startup flush exceeded max tries, possible continuous data stream on UART");
+        SYS_ASSERT_MSG(i < UART_STARTUP_FLUSH_MAX_TRIES, "UART startup flush exceeded max tries, possible continuous data stream on UART");
 
         m_UARTStartFlushed = true;
     }
