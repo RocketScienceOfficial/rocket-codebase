@@ -1,7 +1,7 @@
 .PHONY: obc obc_sitl obc_sitl_freerun run_obc_sitl test audit clean
 .SILENT:
 
-BUILD_TYPE ?= Debug
+BUILD_TYPE ?= Release
 LOG_LEVEL  ?= OFF
 
 obc:
@@ -47,7 +47,7 @@ run_obc_sitl:
 test:
 	cmake \
 		-S platform/host \
-		-B build/obc_sitl \
+		-B build/test \
 		-G Ninja \
 		-D BOARD_NAME=obc \
 		-D RUNNER_PROFILE=obc_sitl \
@@ -55,8 +55,8 @@ test:
 		-D LOG_LEVEL=OFF \
 		-D SITL_FREERUN=OFF \
 		-D BUILD_TESTS=ON
-	ninja -C build/obc_sitl
-	ctest --test-dir build/obc_sitl --output-on-failure
+	ninja -C build/test
+	ctest --test-dir build/test --output-on-failure
 
 audit:
 	python tools/audit.py

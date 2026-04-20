@@ -1,4 +1,6 @@
 function(add_module module_name)
+    message(STATUS "Adding module: ${module_name}")
+
     set(lib_name app_modules_${module_name})
     set(options "")
     set(oneValueArgs "")

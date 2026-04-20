@@ -4,8 +4,6 @@ import sys
 from pathlib import Path
 
 
-
-
 def gen_source(profile):
     names_cache = {}
 
