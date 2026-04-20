@@ -2,8 +2,7 @@
 #include "sitl.h"
 #include "modules/common/ModuleLogger.h"
 #include <lib/debug/sys_assert.h>
-
-#define RADIO_ENGINE_PORT 12346
+#include <board_config.h>
 
 SimRadioModule::~SimRadioModule()
 {
@@ -14,7 +13,7 @@ void SimRadioModule::init()
 {
     sitl_init_godmode();
 
-    m_RadioSocket.createServer(RADIO_ENGINE_PORT, false);
+    m_RadioSocket.createServer(CFG_SIM_RADIO_PORT, false);
 }
 
 void SimRadioModule::run()

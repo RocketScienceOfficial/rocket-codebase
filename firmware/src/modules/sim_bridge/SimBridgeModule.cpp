@@ -2,8 +2,7 @@
 #include "sitl.h"
 #include "modules/common/ModuleLogger.h"
 #include <lib/debug/sys_assert.h>
-
-#define PHYSICS_ENGINE_PORT 12345
+#include <board_config.h>
 
 SimBridgeModule::~SimBridgeModule()
 {
@@ -14,7 +13,7 @@ void SimBridgeModule::init()
 {
     sitl_init_godmode();
 
-    m_PhysicsSocket.createServer(PHYSICS_ENGINE_PORT, true);
+    m_PhysicsSocket.createServer(CFG_SIM_BRIDGE_PORT, true);
 }
 
 void SimBridgeModule::run()

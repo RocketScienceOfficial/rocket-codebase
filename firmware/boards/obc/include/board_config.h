@@ -40,4 +40,9 @@
 #define CFG_UART_TX 16
 #define CFG_UART_RX 17
 
+// --- SIM ---
+#define CFG_SIM_BRIDGE_PORT 12345
+#define CFG_SIM_RADIO_PORT 12346
+#define CFG_SIM_SERIAL_PORT 12347
+
 #endif

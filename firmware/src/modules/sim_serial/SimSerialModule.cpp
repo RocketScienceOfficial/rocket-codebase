@@ -2,8 +2,7 @@
 #include "sitl.h"
 #include "modules/common/ModuleLogger.h"
 #include <lib/debug/sys_assert.h>
-
-#define SERIAL_ENGINE_PORT 12347
+#include <board_config.h>
 
 SimSerialModule::~SimSerialModule()
 {
@@ -14,7 +13,7 @@ void SimSerialModule::init()
 {
     sitl_init_godmode();
 
-    m_SerialSocket.createServer(SERIAL_ENGINE_PORT, false);
+    m_SerialSocket.createServer(CFG_SIM_SERIAL_PORT, false);
 }
 
 void SimSerialModule::run()
