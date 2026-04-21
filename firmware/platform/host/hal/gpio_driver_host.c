@@ -29,3 +29,15 @@ void hal_gpio_pull_up_pin(uint8_t pin)
 {
     (void)pin;
 }
+
+void hal_gpio_attach_interrupt(uint8_t pin, void (*callback)(void), hal_gpio_irq_mode_t mode)
+{
+    (void)pin;
+    (void)callback;
+    (void)mode;
+}
+
+void hal_gpio_detach_interrupt(uint8_t pin)
+{
+    (void)pin;
+}

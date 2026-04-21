@@ -14,8 +14,9 @@ namespace network
         TCPSocket();
         ~TCPSocket();
 
-        void createServer(uint16_t port, bool blocking);
+        void createServer(uint16_t port);
         void createClient(const char *ip, uint16_t port);
+        void setBlocking(bool blocking);
         void close();
         bool receive(datalink_message_t *msg);
         void send(const datalink_message_t *msg);

@@ -1,0 +1,37 @@
+#ifndef _BOARD_CONFIG_H
+#define _BOARD_CONFIG_H
+
+// --- DATALINK ---
+#define CFG_RADIO_SRC_ID 0x11
+#define CFG_RADIO_DST_ID 0xDF
+
+// --- LORA ---
+#define CFG_LORA_SPI 0
+#define CFG_LORA_PIN_CS 5
+#define CFG_LORA_SPI_SCK_PIN 2
+#define CFG_LORA_SPI_MOSI_PIN 3
+#define CFG_LORA_SPI_MISO_PIN 4
+#define CFG_LORA_PIN_DIO1 6
+#define CFG_LORA_PIN_DIO2 29
+#define CFG_LORA_PIN_RESET 1
+#define CFG_LORA_PIN_BUSY 0
+#define CFG_LORA_PIN_TXEN 28
+#define CFG_LORA_PIN_RXEN 27
+#define CFG_LORA_FREQ 433
+#define CFG_LORA_BANDWIDTH 250
+#define CFG_LORA_SF 7
+#define CFG_LORA_TX_POWER 17
+
+// --- UART ---
+#define CFG_UART 0
+#define CFG_UART_FREQ 1843200
+#define CFG_UART_TX 12
+#define CFG_UART_RX 13
+
+// --- SIM ---
+#define CFG_SIM_UART_SERVER "127.0.0.1"
+#define CFG_SIM_UART_PORT 12346
+#define CFG_SIM_LORA_SERVER "127.0.0.1"
+#define CFG_SIM_LORA_PORT 12348
+
+#endif

@@ -27,3 +27,8 @@ bool hal_spi_read(uint8_t bus, uint8_t repeatedTXData, uint8_t *destination, siz
 {
     return spi_read_blocking(_get_spi(bus), repeatedTXData, destination, size) >= 0;
 }
+
+bool hal_spi_transfer(uint8_t bus, const uint8_t *txData, uint8_t *rxData, size_t size)
+{
+    return spi_write_read_blocking(_get_spi(bus), txData, rxData, size);
+}

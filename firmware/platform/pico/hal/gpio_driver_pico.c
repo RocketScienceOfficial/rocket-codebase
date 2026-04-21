@@ -1,6 +1,25 @@
 #include "hal/gpio_driver.h"
 #include "pico/stdlib.h"
+#include "hardware/gpio.h"
 #include <stdbool.h>
+
+#define PI_PICO_MAX_USER_GPIO (NUM_BANK0_GPIOS)
+
+static irq_handler_t g_callbacks[PI_PICO_MAX_USER_GPIO] = {0};
+static uint32_t g_irq_event_masks[PI_PICO_MAX_USER_GPIO] = {0};
+
+static void _irq_handler(uint gpio, uint32_t events)
+{
+    if (g_irq_event_masks[gpio] == 0)
+    {
+        return;
+    }
+
+    if ((events & g_irq_event_masks[gpio]) && g_callbacks[gpio])
+    {
+        g_callbacks[gpio]();
+    }
+}
 
 void hal_gpio_init_pin(uint8_t pin, hal_gpio_direction_t dir)
 {
@@ -46,4 +65,34 @@ void hal_gpio_set_pin_function(uint8_t pin, hal_gpio_function_t function)
 void hal_gpio_pull_up_pin(uint8_t pin)
 {
     gpio_pull_up(pin);
+}
+
+void hal_gpio_attach_interrupt(uint8_t pin, void (*callback)(void), hal_gpio_irq_mode_t mode)
+{
+    uint32_t pico_mode = 0;
+
+    if (mode & GPIO_IRQ_RISING_EDGE)
+    {
+        pico_mode |= GPIO_IRQ_EDGE_RISE;
+    }
+    if (mode & GPIO_IRQ_FALLING_EDGE)
+    {
+        pico_mode |= GPIO_IRQ_EDGE_FALL;
+    }
+
+    g_callbacks[pin] = (irq_handler_t)callback;
+    g_irq_event_masks[pin] = pico_mode;
+
+    gpio_set_irq_callback(_irq_handler);
+    gpio_set_irq_enabled(pin, pico_mode, true);
+
+    irq_set_enabled(IO_IRQ_BANK0, true);
+}
+
+void hal_gpio_detach_interrupt(uint8_t pin)
+{
+    gpio_set_irq_enabled(pin, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, false);
+
+    g_callbacks[pin] = NULL;
+    g_irq_event_masks[pin] = 0;
 }

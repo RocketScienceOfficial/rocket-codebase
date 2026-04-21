@@ -27,3 +27,13 @@ bool hal_spi_read(uint8_t bus, uint8_t repeatedTXData, uint8_t *destination, siz
 
     return true;
 }
+
+bool hal_spi_transfer(uint8_t bus, const uint8_t *outData, uint8_t *inData, size_t size)
+{
+    (void)bus;
+    (void)outData;
+    (void)inData;
+    (void)size;
+
+    return true;
+}

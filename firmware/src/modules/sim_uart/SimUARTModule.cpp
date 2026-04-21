@@ -13,7 +13,13 @@ void SimUARTModule::init()
 {
     sitl_init_godmode();
 
-    m_UARTSocket.createServer(CFG_SIM_UART_PORT, false);
+#ifndef CFG_SIM_UART_SERVER
+    m_UARTSocket.createServer(CFG_SIM_UART_PORT);
+#else
+    m_UARTSocket.createClient(CFG_SIM_UART_SERVER, CFG_SIM_UART_PORT);
+#endif
+
+    m_UARTSocket.setBlocking(false);
 }
 
 void SimUARTModule::run()
@@ -38,10 +44,17 @@ void SimUARTModule::receive()
 
 void SimUARTModule::sendIfAvailable()
 {
+    if (!m_Flushed)
+    {
+        m_UARTSubscriber.pollLatest();
+        m_Flushed = true;
+        return;
+    }
+
     while (m_UARTSubscriber.poll())
     {
         const auto &data = m_UARTSubscriber.get();
-
+        
         m_UARTSocket.send(&data);
     }
 }

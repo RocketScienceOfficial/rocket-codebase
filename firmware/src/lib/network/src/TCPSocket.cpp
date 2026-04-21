@@ -77,7 +77,7 @@ namespace network
 #endif
     }
 
-    void TCPSocket::createServer(uint16_t port, bool blocking)
+    void TCPSocket::createServer(uint16_t port)
     {
         SYS_ASSERT(m_SocketHandle == INVALID_SOCKET_HANDLE);
 
@@ -133,10 +133,6 @@ namespace network
         NETWORK_DEBUG("Client connected!");
 
         m_Active = true;
-        m_Blocking = blocking;
-
-        SetNonBlocking(m_ServerSocketHandle, !m_Blocking);
-        SetNonBlocking(m_SocketHandle, !m_Blocking);
     }
 
     void TCPSocket::createClient(const char *ip, uint16_t port)
@@ -178,6 +174,14 @@ namespace network
         NETWORK_DEBUG("TCP Client socket connected!");
     }
 
+    void TCPSocket::setBlocking(bool blocking)
+    {
+        m_Blocking = blocking;
+
+        SetNonBlocking(m_ServerSocketHandle, !m_Blocking);
+        SetNonBlocking(m_SocketHandle, !m_Blocking);
+    }
+
     void TCPSocket::close()
     {
         closeSocket();
@@ -191,7 +195,7 @@ namespace network
     bool TCPSocket::receive(datalink_message_t *msg)
     {
         SYS_ASSERT(msg != nullptr);
-        SYS_ASSERT(m_ServerSocketHandle != INVALID_SOCKET_HANDLE);
+        SYS_ASSERT(m_SocketHandle != INVALID_SOCKET_HANDLE);
 
         while (true)
         {

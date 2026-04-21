@@ -18,6 +18,7 @@ private:
     PubSub::Subscriber<PubSub::Topics::DatalinkMessage> m_UARTSubscriber{PUBSUB_ID(uart_tx)};
 
     network::TCPSocket m_UARTSocket;
+    bool m_Flushed;
 
     void receive();
     void sendIfAvailable();

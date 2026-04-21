@@ -13,7 +13,13 @@ void SimSerialModule::init()
 {
     sitl_init_godmode();
 
-    m_SerialSocket.createServer(CFG_SIM_SERIAL_PORT, false);
+#ifndef CFG_SIM_SERIAL_SERVER
+    m_SerialSocket.createServer(CFG_SIM_SERIAL_PORT);
+#else
+    m_SerialSocket.createClient(CFG_SIM_SERIAL_SERVER, CFG_SIM_SERIAL_PORT);
+#endif
+
+    m_SerialSocket.setBlocking(false);
 }
 
 void SimSerialModule::run()
@@ -38,6 +44,13 @@ void SimSerialModule::receive()
 
 void SimSerialModule::sendIfAvailable()
 {
+    if (!m_Flushed)
+    {
+        m_SerialSubscriber.pollLatest();
+        m_Flushed = true;
+        return;
+    }
+    
     while (m_SerialSubscriber.poll())
     {
         const auto &data = m_SerialSubscriber.get();

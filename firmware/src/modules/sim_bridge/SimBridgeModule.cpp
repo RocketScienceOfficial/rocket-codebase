@@ -13,7 +13,8 @@ void SimBridgeModule::init()
 {
     sitl_init_godmode();
 
-    m_PhysicsSocket.createServer(CFG_SIM_BRIDGE_PORT, true);
+    m_PhysicsSocket.createServer(CFG_SIM_BRIDGE_PORT);
+    m_PhysicsSocket.setBlocking(true);
 }
 
 void SimBridgeModule::run()

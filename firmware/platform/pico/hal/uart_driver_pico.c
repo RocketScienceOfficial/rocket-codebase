@@ -11,6 +11,7 @@
 #define RING_BITS 8
 
 static_assert((RING_SIZE & (RING_SIZE - 1)) == 0, "RING_SIZE must be a power of 2");
+static_assert(RING_SIZE == (1 << RING_BITS), "RING_SIZE must be equal to 2^RING_BITS");
 
 typedef struct
 {
@@ -48,7 +49,7 @@ static void _dma_setup_rx(uart_context_t *ctx)
     channel_config_set_ring(&c, true, RING_BITS);
     channel_config_set_dreq(&c, uart_get_dreq(ctx->uart, false));
 
-    dma_channel_configure(ctx->dma_chan_rx, &c, ctx->dma_buffer, ctx->uart_hw, 0xFFFFFFFF, true);
+    dma_channel_configure(ctx->dma_chan_rx, &c, ctx->dma_buffer, &ctx->uart_hw->dr, 0xFFFFFFFF, true);
 }
 
 static void _dma_setup_tx(uart_context_t *ctx)
@@ -112,9 +113,9 @@ bool hal_uart_fifo_available(uint8_t bus)
 size_t hal_uart_read_fifo(uint8_t bus, uint8_t *buffer, size_t bufSize)
 {
     uart_context_t *ctx = _get_ctx(bus);
-    
+
     size_t read_index = ctx->read_seq % RING_SIZE;
-    size_t bytes_to_end = RING_SIZE - 1 - read_index;
+    size_t bytes_to_end = RING_SIZE - read_index;
 
     size_t size = ctx->absolute_bytes_written - ctx->read_seq;
     size = (size > bufSize) ? bufSize : size;

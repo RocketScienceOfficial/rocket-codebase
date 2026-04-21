@@ -18,6 +18,7 @@ private:
     PubSub::Subscriber<PubSub::Topics::DatalinkMessage> m_SerialSubscriber{PUBSUB_ID(serial_tx)};
 
     network::TCPSocket m_SerialSocket;
+    bool m_Flushed;
 
     void receive();
     void sendIfAvailable();

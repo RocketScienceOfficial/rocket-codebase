@@ -26,6 +26,15 @@ typedef enum
 } hal_gpio_state_t;
 
 /**
+ * @brief Type for GPIO pin interrupt mode
+ */
+typedef enum
+{
+    GPIO_IRQ_RISING_EDGE = (1 << 0),
+    GPIO_IRQ_FALLING_EDGE = (1 << 1),
+} hal_gpio_irq_mode_t;
+
+/**
  * @brief Type for GPIO pin function
  */
 typedef enum
@@ -53,7 +62,7 @@ void hal_gpio_init_pin(uint8_t pin, hal_gpio_direction_t dir);
 void hal_gpio_set_pin_state(uint8_t pin, hal_gpio_state_t state);
 
 /**
- * @brief Gety state of GPIO pin
+ * @brief Get state of GPIO pin
  *
  * @param pin Pin to get state of
  * @return State of pin
@@ -74,6 +83,22 @@ void hal_gpio_set_pin_function(uint8_t pin, hal_gpio_function_t function);
  * @param pin Pin to pull up
  */
 void hal_gpio_pull_up_pin(uint8_t pin);
+
+/**
+ * @brief Attach interrupt to GPIO pin
+ * 
+ * @param pin Pin to attach interrupt
+ * @param callback Callback function to call when interrupt is triggered
+ * @param mode Interrupt mode (rising edge, falling edge, or both)
+ */
+void hal_gpio_attach_interrupt(uint8_t pin, void (*callback)(void), hal_gpio_irq_mode_t mode);
+
+/**
+ * @brief Detach interrupt from GPIO pin
+ * 
+ * @param pin Pin to detach interrupt from
+ */
+void hal_gpio_detach_interrupt(uint8_t pin);
 
 #ifdef __cplusplus
 }

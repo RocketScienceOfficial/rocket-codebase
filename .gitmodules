@@ -4,6 +4,6 @@
 [submodule "firmware/platform/pico/pico-sdk"]
 	path = firmware/platform/pico/pico-sdk
 	url = https://github.com/raspberrypi/pico-sdk.git
-[submodule "firmware/src/radio/lib/RadioLib"]
-	path = firmware/src/radio/lib/RadioLib
+[submodule "firmware/src/lib/drivers/radio/RadioLib"]
+	path = firmware/src/lib/drivers/radio/RadioLib
 	url = https://github.com/jgromes/RadioLib.git
