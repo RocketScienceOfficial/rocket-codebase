@@ -18,12 +18,26 @@ void hal_i2c_init(uint8_t i2c, uint8_t sda, uint8_t scl, uint32_t baudrate)
     hal_gpio_pull_up_pin(scl);
 }
 
-bool hal_i2c_write(uint8_t i2c, uint8_t address, const uint8_t *data, size_t size, bool nostop)
+bool hal_i2c_transfer(uint8_t bus, uint8_t address, const uint8_t *tx_buffer, size_t tx_size, uint8_t *rx_buffer, size_t rx_size)
 {
-    return i2c_write_blocking(_get_i2c(i2c), address, data, size, nostop) >= 0;
-}
+    bool do_write = tx_buffer != NULL && tx_size > 0;
+    bool do_read = rx_buffer != NULL && rx_size > 0;
 
-bool hal_i2c_read(uint8_t i2c, uint8_t address, uint8_t *destination, size_t size, bool nostop)
-{
-    return i2c_read_blocking(_get_i2c(i2c), address, destination, size, nostop) >= 0;
+    if (do_write)
+    {
+        if (!i2c_write_blocking(_get_i2c(bus), address, tx_buffer, tx_size, do_read))
+        {
+            return false;
+        }
+    }
+
+    if (do_read)
+    {
+        if (!i2c_read_blocking(_get_i2c(bus), address, rx_buffer, rx_size, false))
+        {
+            return false;
+        }
+    }
+
+    return true;
 }

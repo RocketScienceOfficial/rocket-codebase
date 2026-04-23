@@ -1,8 +1,13 @@
+set(ESP_PLATFORM OFF CACHE BOOL "" FORCE)
+
 add_subdirectory(RadioLib)
+
+unset(ESP_PLATFORM CACHE)
 
 target_compile_options(RadioLib PRIVATE
     -Wno-stringop-overflow
     -Wno-overloaded-virtual
+    -Wno-double-promotion
 )
 
 add_library(drivers_radio STATIC

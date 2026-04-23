@@ -1,19 +1,18 @@
 #include "hal/pwm_driver.h"
 
-void hal_pwm_init_pin(hal_pwm_config_t *config, uint8_t pin)
+void hal_pwm_init_pin(uint8_t pin)
 {
-    (void)config;
     (void)pin;
 }
 
-void hal_pwm_set_frequency(hal_pwm_config_t *config, unsigned long frequency)
+void hal_pwm_set_frequency(uint8_t pin, unsigned long frequency)
 {
-    (void)config;
+    (void)pin;
     (void)frequency;
 }
 
-void hal_pwm_set_duty(const hal_pwm_config_t *config, float dutyCycleUs)
+void hal_pwm_set_duty(uint8_t pin, float dutyCycleUs)
 {
-    (void)config;
+    (void)pin;
     (void)dutyCycleUs;
 }

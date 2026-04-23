@@ -20,28 +20,17 @@ extern "C" {
 void hal_i2c_init(uint8_t bus, uint8_t sda, uint8_t scl, uint32_t baudrate);
 
 /**
- * @brief Write to I2C with blocking
- *
+ * @brief Transfer data to/from I2C with blocking
+ * 
  * @param bus I2C Instance
  * @param address Address of I2C
- * @param data Data pointer to write
- * @param size Size of data
- * @param nostop No stop
+ * @param tx_buffer Data pointer to write, can be NULL if only reading
+ * @param tx_size Size of data to write
+ * @param rx_buffer Data pointer to read to, can be NULL if only writing
+ * @param rx_size Size of data to receive
  * @return true if success, false if failure
  */
-bool hal_i2c_write(uint8_t bus, uint8_t address, const uint8_t *data, size_t size, bool nostop);
-
-/**
- * @brief Read from I2C with blocking
- *
- * @param bus I2C Instance
- * @param address Address of I2C
- * @param destination Data pointer to read to
- * @param size Size of data to receive
- * @param nostop No stop
- * @return true if success, false if failure
- */
-bool hal_i2c_read(uint8_t bus, uint8_t address, uint8_t *destination, size_t size, bool nostop);
+bool hal_i2c_transfer(uint8_t bus, uint8_t address, const uint8_t *tx_buffer, size_t tx_size, uint8_t *rx_buffer, size_t rx_size);
 
 #ifdef __cplusplus
 }

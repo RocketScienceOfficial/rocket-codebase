@@ -8,24 +8,14 @@ void hal_i2c_init(uint8_t i2c, uint8_t sda, uint8_t scl, uint32_t baudrate)
     (void)baudrate;
 }
 
-bool hal_i2c_write(uint8_t i2c, uint8_t address, const uint8_t *data, size_t size, bool nostop)
+bool hal_i2c_transfer(uint8_t bus, uint8_t address, const uint8_t *tx_buffer, size_t tx_size, uint8_t *rx_buffer, size_t rx_size)
 {
-    (void)i2c;
+    (void)bus;
     (void)address;
-    (void)data;
-    (void)size;
-    (void)nostop;
-
-    return true;
-}
-
-bool hal_i2c_read(uint8_t i2c, uint8_t address, uint8_t *destination, size_t size, bool nostop)
-{
-    (void)i2c;
-    (void)address;
-    (void)destination;
-    (void)size;
-    (void)nostop;
+    (void)tx_buffer;
+    (void)tx_size;
+    (void)rx_buffer;
+    (void)rx_size;
 
     return true;
 }

@@ -1,8 +1,10 @@
-.PHONY: obc obc_sitl obc_sitl_freerun run_obc_sitl radio_module radio_module_sitl run_radio_module_sitl test audit clean
+.PHONY: obc obc_sitl obc_sitl_freerun run_obc_sitl radio_module radio_module_sitl run_radio_module_sitl gcs gcs_flash gcs_sitl run_gcs_sitl test audit clean
 .SILENT:
+
 
 BUILD_TYPE ?= Release
 LOG_LEVEL  ?= OFF
+
 
 obc:
 	cmake \
@@ -39,6 +41,7 @@ obc_sitl_freerun:
 		-D SITL_FREERUN=ON
 	ninja -C build/obc_sitl
 
+
 run_obc_sitl:
 	cd build/obc_sitl && ./firmware
 
@@ -68,6 +71,47 @@ radio_module_sitl:
 run_radio_module_sitl:
 	cd build/radio_module_sitl && ./firmware
 
+
+esp32_shell_win:
+	powershell -ExecutionPolicy Bypass -File C:/esp/v6.0/esp-idf/export.ps1
+
+esp32_shell_unix:
+	source ~/esp/esp-idf/export.sh
+
+gcs:
+	idf.py \
+		-C platform/esp32 \
+		-B build/gcs \
+		-D BOARD_NAME=gcs \
+		-D RUNNER_PROFILE=gcs_flight \
+		-D CMAKE_BUILD_TYPE=$(BUILD_TYPE) \
+		-D LOG_LEVEL=$(LOG_LEVEL) \
+		build
+
+PORT ?= /dev/ttyUSB0
+
+gcs_flash:
+	idf.py \
+		-C build/gcs \
+		-p ${PORT} \
+		flash
+
+gcs_sitl:
+	cmake \
+		-S platform/host \
+		-B build/gcs_sitl \
+		-G Ninja \
+		-D BOARD_NAME=gcs \
+		-D RUNNER_PROFILE=gcs_sitl \
+		-D CMAKE_BUILD_TYPE=$(BUILD_TYPE) \
+		-D LOG_LEVEL=$(LOG_LEVEL) \
+		-D SITL_FREERUN=ON
+	ninja -C build/gcs_sitl
+
+run_gcs_sitl:
+	cd build/gcs_sitl && ./firmware
+
+
 test:
 	cmake \
 		-S platform/host \
@@ -81,6 +125,7 @@ test:
 		-D BUILD_TESTS=ON
 	ninja -C build/test
 	ctest --test-dir build/test --output-on-failure
+
 
 audit:
 	python tools/audit.py

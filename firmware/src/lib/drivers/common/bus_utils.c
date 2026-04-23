@@ -44,18 +44,17 @@ void bus_utils_write_reg(const bus_com_device_t *device, uint8_t address, uint8_
 {
     address &= device->writeMask;
 
+    uint8_t txData[2] = {address, value};
+
     if (!device->useSPI)
     {
-        hal_i2c_write(device->i2c, device->i2cAddress, &address, 1, false);
-        hal_i2c_read(device->i2c, device->i2cAddress, &value, 1, false);
+        hal_i2c_transfer(device->i2c, device->i2cAddress, txData, sizeof(txData), NULL, 0);
     }
     else
     {
+
         spi_utils_cs_select(device->cs);
-
-        hal_spi_write(device->spi, &address, 1);
-        hal_spi_write(device->spi, &value, 1);
-
+        hal_spi_transfer(device->spi, txData, NULL, sizeof(txData));
         spi_utils_cs_deselect(device->cs);
     }
 }
@@ -64,14 +63,12 @@ void bus_utils_single_write(const bus_com_device_t *device, uint8_t value)
 {
     if (!device->useSPI)
     {
-        hal_i2c_write(device->i2c, device->i2cAddress, &value, 1, false);
+        hal_i2c_transfer(device->i2c, device->i2cAddress, &value, 1, NULL, 0);
     }
     else
     {
         spi_utils_cs_select(device->cs);
-
-        hal_spi_read(device->spi, 0, &value, 1);
-
+        hal_spi_transfer(device->spi, &value, NULL, 1);
         spi_utils_cs_deselect(device->cs);
     }
 }
@@ -84,17 +81,18 @@ uint8_t bus_utils_read_reg(const bus_com_device_t *device, uint8_t address)
 
     if (!device->useSPI)
     {
-        hal_i2c_write(device->i2c, device->i2cAddress, &address, 1, false);
-        hal_i2c_read(device->i2c, device->i2cAddress, &data, 1, false);
+        hal_i2c_transfer(device->i2c, device->i2cAddress, &address, 1, &data, 1);
     }
     else
     {
+        uint8_t txData[2] = {address, 0x00};
+        uint8_t rxData[2] = {};
+
         spi_utils_cs_select(device->cs);
-
-        hal_spi_write(device->spi, &address, 1);
-        hal_spi_read(device->spi, 0, &data, 1);
-
+        hal_spi_transfer(device->spi, txData, rxData, sizeof(txData));
         spi_utils_cs_deselect(device->cs);
+
+        data = rxData[1];
     }
 
     return data;
@@ -106,16 +104,13 @@ void bus_utils_read_regs(const bus_com_device_t *device, uint8_t address, uint8_
 
     if (!device->useSPI)
     {
-        hal_i2c_write(device->i2c, device->i2cAddress, &address, 1, false);
-        hal_i2c_read(device->i2c, device->i2cAddress, buffer, count, false);
+        hal_i2c_transfer(device->i2c, device->i2cAddress, &address, 1, buffer, count);
     }
     else
     {
         spi_utils_cs_select(device->cs);
-
-        hal_spi_write(device->spi, &address, 1);
-        hal_spi_read(device->spi, 0, buffer, count);
-
+        hal_spi_transfer(device->spi, &address, NULL, 1);
+        hal_spi_transfer(device->spi, NULL, buffer, count);
         spi_utils_cs_deselect(device->cs);
     }
 }
@@ -126,14 +121,12 @@ uint8_t bus_utils_single_read(const bus_com_device_t *device)
 
     if (!device->useSPI)
     {
-        hal_i2c_read(device->i2c, device->i2cAddress, &data, 1, false);
+        hal_i2c_transfer(device->i2c, device->i2cAddress, NULL, 0, &data, 1);
     }
     else
     {
         spi_utils_cs_select(device->cs);
-
-        hal_spi_read(device->spi, 0, &data, 1);
-
+        hal_spi_transfer(device->spi, NULL, &data, 1);
         spi_utils_cs_deselect(device->cs);
     }
 

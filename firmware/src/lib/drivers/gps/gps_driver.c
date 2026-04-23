@@ -21,7 +21,7 @@ static void _configure_spi(gps_device_t *device)
     size_t len = ubx_valset_apply(buffer, sizeof(buffer));
 
     spi_utils_cs_select(device->cs);
-    hal_spi_write(device->spi, buffer, len);
+    hal_spi_transfer(device->spi, buffer, NULL, len);
     spi_utils_cs_deselect(device->cs);
 }
 
@@ -52,7 +52,7 @@ bool gps_read_spi(gps_device_t *device)
 
     while (i++ < GPS_MAX_READ_BYTES)
     {
-        hal_spi_read(device->spi, 0, &byte, 1);
+        hal_spi_transfer(device->spi, NULL, &byte, 1);
         ubx_parser_status_t status = ubx_process_byte(&device->parser, byte);
 
         if (status == UBX_PARSER_STATUS_FINISHED)

@@ -1,0 +1,16 @@
+# Bootloader config
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
+
+# Enable PSRAM
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_USE_MALLOC=y
+
+# Set CPU to 240MHz instead of 160MHz
+CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240=y
+CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ=240
+
+# Enable support for TaskCreateStatic and other static functions
+CONFIG_FREERTOS_SUPPORT_STATIC_ALLOCATION=y
+
+# Set the RTOS tick rate to 1000Hz (1ms per tick)
+CONFIG_FREERTOS_HZ=1000

@@ -8,37 +8,27 @@ extern "C" {
 #endif
 
 /**
- * @brief PWM protocol configuration
- */
-typedef struct
-{
-    uint8_t pin;
-    unsigned long clockDiv;
-} hal_pwm_config_t;
-
-/**
  * @brief Initialize PWM on pin
  *
- * @param config PWM configuration
- * @param pin Pin to intialize
+ * @param pin Pin to intialize PWM on
  */
-void hal_pwm_init_pin(hal_pwm_config_t *config, uint8_t pin);
+void hal_pwm_init_pin(uint8_t pin);
 
 /**
  * @brief Sets frequency of PWM
  *
- * @param config PWM configuration
+ * @param pin PWM pin
  * @param frequency Frequency in Hz of PWM
  */
-void hal_pwm_set_frequency(hal_pwm_config_t *config, unsigned long frequency);
+void hal_pwm_set_frequency(uint8_t pin, unsigned long frequency);
 
 /**
  * @brief Set duty cycle of PWM
  *
- * @param config PWM configuration
+ * @param pin PWM pin
  * @param dutyCycleUs Duty cycle in microseconds
  */
-void hal_pwm_set_duty(const hal_pwm_config_t *config, float dutyCycleUs);
+void hal_pwm_set_duty(uint8_t pin, float dutyCycleUs);
 
 #ifdef __cplusplus
 }

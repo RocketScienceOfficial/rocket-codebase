@@ -25,8 +25,8 @@ private:
     size_t m_CurrentStandingFrameCount;
     size_t m_CurrentSavedFrameCount;
     size_t m_CurrentFrameCount;
-    const uint8_t *m_CurrentDataPtr;
-    size_t m_CurrentDataIndex;
+    size_t m_CurrentDataOffset;
+    bool m_NewSectionInitialized;
 
     void onInit();
     void onUpdate();
@@ -34,5 +34,6 @@ private:
     void readNext();
     bool isFrameValid(const DatabaseFrameRaw *rawFrame);
     void sendFrame(const DatabaseFrameRaw *rawFrame);
-    void handleFaultyFrame();
+    void handleFaultyFrameRead();
+    void handleFaultyFrameRecovery();
 };

@@ -107,7 +107,7 @@ static void spawnTask(void (*taskFunc)(void *), const char *name, size_t stack_s
     def gen_main():
         s = ""
         s += "\n\nextern \"C\" void hw_init(void);\n\n"
-        s += "void app_main()\n{\n"
+        s += "void core_main()\n{\n"
         s += "    hw_init();\n"
         s += "    PubSub::MessageBus::Init();\n"
         s += "    start_tasks();\n"

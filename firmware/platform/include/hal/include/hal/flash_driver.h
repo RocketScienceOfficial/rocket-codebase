@@ -19,7 +19,7 @@ void hal_flash_init(void);
  * @param offset Offset in bytes of data
  * @param data pointer to data pointer
  */
-void hal_flash_read(size_t offset, const uint8_t **data);
+void hal_flash_read(size_t offset, uint8_t *dst, size_t size);
 
 /**
  * @brief Write pages to flash.

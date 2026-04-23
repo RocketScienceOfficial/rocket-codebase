@@ -44,9 +44,9 @@ void hal_flash_init(void)
     _init_file();
 }
 
-void hal_flash_read(size_t offset, const uint8_t **data)
+void hal_flash_read(size_t offset, uint8_t *dst, size_t size)
 {
-    *data = &g_flashMemory[offset];
+    memcpy(dst, &g_flashMemory[offset], size);
 }
 
 void hal_flash_write_pages(size_t offsetPages, const uint8_t *buffer, size_t pagesCount)

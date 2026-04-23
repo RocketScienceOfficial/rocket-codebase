@@ -1,0 +1,10 @@
+[
+    {
+        "name": "uart",
+        "rate": 1000,
+        "priority": "high",
+        "modules": [
+            "com_uart"
+        ]
+    }
+]

@@ -65,8 +65,7 @@ void DatabaseReader::onInit()
         LOG_INFO("Beginning data recovery. Attempting to read up to %d frames", m_CurrentFrameCount);
     }
 
-    m_CurrentDataPtr = nullptr;
-    m_CurrentDataIndex = 0;
+    m_NewSectionInitialized = false;
 }
 
 void DatabaseReader::onUpdate()
@@ -75,36 +74,34 @@ void DatabaseReader::onUpdate()
     {
         m_CurrentStandingFrameCount--;
 
-        if (m_CurrentDataPtr == nullptr)
+        if (!m_NewSectionInitialized)
         {
-            m_CurrentDataIndex = 0;
-
-            hal_flash_read(SECTORS_OFFSET_STANDING_BUFFER * BOARD_FLASH_SECTOR_SIZE, &m_CurrentDataPtr);
+            m_CurrentDataOffset = SECTORS_OFFSET_STANDING_BUFFER * BOARD_FLASH_SECTOR_SIZE;
+            m_NewSectionInitialized = true;
         }
 
         readNext();
 
         if (m_CurrentStandingFrameCount == 0)
         {
-            m_CurrentDataPtr = nullptr;
+            m_NewSectionInitialized = false;
         }
     }
     else if (m_CurrentSavedFrameCount > 0)
     {
         m_CurrentSavedFrameCount--;
 
-        if (m_CurrentDataPtr == nullptr)
+        if (!m_NewSectionInitialized)
         {
-            m_CurrentDataIndex = 0;
-
-            hal_flash_read(SECTORS_OFFSET_DATA * BOARD_FLASH_SECTOR_SIZE, &m_CurrentDataPtr);
+            m_CurrentDataOffset = SECTORS_OFFSET_DATA * BOARD_FLASH_SECTOR_SIZE;
+            m_NewSectionInitialized = true;
         }
 
         readNext();
 
         if (m_CurrentSavedFrameCount == 0)
         {
-            m_CurrentDataPtr = nullptr;
+            m_NewSectionInitialized = false;
         }
     }
     else
@@ -135,34 +132,27 @@ void DatabaseReader::onExit()
 
 void DatabaseReader::readNext()
 {
-    const DatabaseFrameRaw *frame = (const DatabaseFrameRaw *)m_CurrentDataPtr + m_CurrentDataIndex;
+    DatabaseFrameRaw frame;
+    hal_flash_read(m_CurrentDataOffset, (uint8_t *)&frame, sizeof(frame));
+    m_CurrentDataOffset += sizeof(frame);
 
-    if (isFrameValid(frame))
+    if (isFrameValid(&frame))
     {
-        sendFrame(frame);
+        sendFrame(&frame);
     }
     else
     {
+        LOG_WARN("Read invalid frame");
+
         if (!m_RecoverMode)
         {
-            handleFaultyFrame();
+            handleFaultyFrameRead();
         }
         else
         {
-            m_CurrentDataPtr = nullptr;
-
-            if (m_CurrentStandingFrameCount > 0)
-            {
-                m_CurrentStandingFrameCount = 0;
-            }
-            else
-            {
-                m_CurrentSavedFrameCount = 0;
-            }
+            handleFaultyFrameRecovery();
         }
     }
-
-    m_CurrentDataIndex++;
 }
 
 bool DatabaseReader::isFrameValid(const DatabaseFrameRaw *rawFrame)
@@ -220,7 +210,7 @@ void DatabaseReader::sendFrame(const DatabaseFrameRaw *rawFrame)
     m_TXPublisher.publish(msg);
 }
 
-void DatabaseReader::handleFaultyFrame()
+void DatabaseReader::handleFaultyFrameRead()
 {
     m_CurrentFrameCount--;
 
@@ -231,4 +221,16 @@ void DatabaseReader::handleFaultyFrame()
     datalink_pack_saved_data_chunk_size(&payload, &msg);
 
     m_TXPublisher.publish(msg);
+}
+
+void DatabaseReader::handleFaultyFrameRecovery()
+{
+    if (m_CurrentStandingFrameCount > 0)
+    {
+        m_CurrentStandingFrameCount = 0;
+    }
+    else
+    {
+        m_CurrentSavedFrameCount = 0;
+    }
 }

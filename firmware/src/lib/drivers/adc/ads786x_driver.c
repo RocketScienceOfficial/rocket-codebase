@@ -42,7 +42,7 @@ float ads786x_read(const ads786x_device_t *device)
     hal_time_sleep_us(25);
 
     uint8_t buffer[2];
-    hal_spi_read(device->spi, 0, buffer, sizeof(buffer));
+    hal_spi_transfer(device->spi, NULL, buffer, sizeof(buffer));
 
     spi_utils_cs_deselect(device->cs);
 

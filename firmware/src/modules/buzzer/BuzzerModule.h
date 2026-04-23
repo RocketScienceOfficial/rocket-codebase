@@ -25,7 +25,6 @@ private:
         LANDED,
     };
 
-    hal_pwm_config_t m_Device;
     const BuzzerTone *m_CurrentTone;
     size_t m_CurrentToneSize;
     uint32_t m_BuzzerToneStartTime;

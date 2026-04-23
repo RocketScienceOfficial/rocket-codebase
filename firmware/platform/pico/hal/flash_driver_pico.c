@@ -2,6 +2,7 @@
 #include "hardware/flash.h"
 #include "hardware/timer.h"
 #include "pico/flash.h"
+#include <string.h>
 
 typedef struct
 {
@@ -14,9 +15,9 @@ void hal_flash_init(void)
 {
 }
 
-void hal_flash_read(size_t offset, const uint8_t **data)
+void hal_flash_read(size_t offset, uint8_t *dst, size_t size)
 {
-    *data = (const uint8_t *)(XIP_BASE + offset);
+    memcpy(dst, (const uint8_t *)(XIP_BASE + offset), size);
 }
 
 static void __not_in_flash_func(_flash_write_helper)(void *arg)

@@ -1,8 +1,8 @@
-extern void app_main(void);
+extern void core_main(void);
 
 int main()
 {
-    app_main();
+    core_main();
 
     return 0;
 }

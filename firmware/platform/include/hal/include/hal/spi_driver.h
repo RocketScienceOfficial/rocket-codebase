@@ -21,33 +21,12 @@ extern "C" {
 void hal_spi_init(uint8_t bus, uint8_t miso, uint8_t mosi, uint8_t sck, uint32_t baudrate);
 
 /**
- * @brief Write to SPI with blocking
- *
- * @param bus SPI bus
- * @param data Data pointer to write
- * @param size Size of data
- * @return true if success, false if failure
- */
-bool hal_spi_write(uint8_t bus, const uint8_t *data, size_t size);
-
-/**
- * @brief Read from SPI with blocking
- *
- * @param bus SPI bus
- * @param repeatedTXData Buffer to data to write
- * @param destination Data pointer to read from
- * @param size Size of data to receive
- * @return true if success, false if failure
- */
-bool hal_spi_read(uint8_t bus, uint8_t repeatedTXData, uint8_t *destination, size_t size);
-
-/**
  * @brief Transfer data over SPI with blocking
  * 
  * @param bus SPI bus
- * @param txData Data pointer to write
- * @param rxData Data pointer to read from
- * @param size Size of data to transfer
+ * @param txData Data pointer to write. Can be NULL if only reading.
+ * @param rxData Data pointer to read from. Can be NULL if only writing.
+ * @param size Size of data to transfer.
  * @return true if success, false if failure
  */
 bool hal_spi_transfer(uint8_t bus, const uint8_t *txData, uint8_t *rxData, size_t size);

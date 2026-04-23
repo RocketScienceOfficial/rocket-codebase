@@ -10,7 +10,7 @@ static void _ms56xx_reset(const ms56xx_device_t *device)
     uint8_t data = MS56XX_CMD_RESET;
 
     spi_utils_cs_select(device->cs);
-    hal_spi_write(device->spi, &data, 1);
+    hal_spi_transfer(device->spi, &data, NULL, 1);
     spi_utils_cs_deselect(device->cs);
 
     time_utils_delay_us_osal(MS56XX_TIMEOUT_RESET_US);
@@ -73,15 +73,14 @@ static bool _ms56xx_read_coefficents(ms56xx_device_t *device)
 
     for (uint8_t i = 0; i < 8; i++)
     {
-        uint8_t addr = MS56XX_CMD_PROM_READ_BASE + (i << 1);
-        uint8_t data[2] = {0};
+        uint8_t tx[3] = {MS56XX_CMD_PROM_READ_BASE + (i << 1), 0x00, 0x00};
+        uint8_t rx[3]= {};
 
         spi_utils_cs_select(device->cs);
-        hal_spi_write(device->spi, &addr, 1);
-        hal_spi_read(device->spi, 0, data, 2);
+        hal_spi_transfer(device->spi, tx, rx, sizeof(tx));
         spi_utils_cs_deselect(device->cs);
 
-        ((uint16_t *)&coeffs)[i] = data[0] << 8 | data[1];
+        ((uint16_t *)&coeffs)[i] = rx[1] << 8 | rx[2];
     }
 
     if (!_ms56xx_validate_crc((uint16_t *)&coeffs))
@@ -127,15 +126,14 @@ bool ms56xx_validate(const ms56xx_device_t *device)
 
 static uint32_t _ms56xx_read_raw_value(const ms56xx_device_t *device)
 {
-    uint8_t newData = MS56XX_CMD_ADC_READ;
-    uint8_t buffer[3];
+    uint8_t tx[4] = {MS56XX_CMD_ADC_READ, 0x00, 0x00, 0x00};
+    uint8_t rx[4] = {};
 
     spi_utils_cs_select(device->cs);
-    hal_spi_write(device->spi, &newData, 1);
-    hal_spi_read(device->spi, 0, buffer, sizeof(buffer));
+    hal_spi_transfer(device->spi, tx, rx, sizeof(tx));
     spi_utils_cs_deselect(device->cs);
 
-    uint32_t d = (uint32_t)((uint32_t)buffer[0] << 16 | (uint32_t)buffer[1] << 8 | (uint32_t)buffer[2]);
+    uint32_t d = (uint32_t)((uint32_t)rx[1] << 16 | (uint32_t)rx[2] << 8 | (uint32_t)rx[3]);
 
     return d;
 }
@@ -164,7 +162,7 @@ static void _ms56xx_req_value(ms56xx_device_t *device, bool pressure)
     uint8_t data = pressure ? (uint8_t)device->pressOSR : ((uint8_t)device->tempOSR + MS56XX_CMD_CONVERT_D2_OSR_256 - MS56XX_CMD_CONVERT_D1_OSR_256);
 
     spi_utils_cs_select(device->cs);
-    hal_spi_write(device->spi, &data, 1);
+    hal_spi_transfer(device->spi, &data, NULL, 1);
     spi_utils_cs_deselect(device->cs);
 
     ms56xx_osr_t osr = pressure ? device->pressOSR : device->tempOSR;

@@ -7,14 +7,12 @@
 
 void DatabaseMetadataController::read()
 {
-    const uint8_t *data;
-    hal_flash_read(SECTORS_OFFSET_METADATA * BOARD_FLASH_SECTOR_SIZE, &data);
+    DatabaseMetadataRaw info;
+    hal_flash_read(SECTORS_OFFSET_METADATA * BOARD_FLASH_SECTOR_SIZE, (uint8_t *)&info, sizeof(info));
 
-    const DatabaseMetadataRaw *info = (const DatabaseMetadataRaw *)data;
-
-    if (validateInfo(info))
+    if (validateInfo(&info))
     {
-        m_CurrentMetadata = info->metadata;
+        m_CurrentMetadata = info.metadata;
 
         sendReadyNotification();
 
