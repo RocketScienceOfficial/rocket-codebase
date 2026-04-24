@@ -1,0 +1,10 @@
+[
+    {
+        "name": "oled",
+        "rate": 1000,
+        "priority": "high",
+        "modules": [
+            "oled"
+        ]
+    }
+]

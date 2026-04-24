@@ -1,3 +1,11 @@
+#include <hal/stdio_driver.h>
+#include <hal/i2c_driver.h>
+#include <hal/time_driver.h>
+#include <board_config.h>
+
 void hw_init(void)
 {
+    hal_stdio_init();
+    hal_i2c_init(CFG_I2C, CFG_OLED_SDA_PIN, CFG_OLED_SCL_PIN, CFG_I2C_FREQUENCY);
+    hal_time_init();
 }

@@ -7,3 +7,6 @@
 [submodule "firmware/src/lib/drivers/radio/RadioLib"]
 	path = firmware/src/lib/drivers/radio/RadioLib
 	url = https://github.com/jgromes/RadioLib.git
+[submodule "firmware/src/lib/drivers/oled/u8g2"]
+	path = firmware/src/lib/drivers/oled/u8g2
+	url = https://github.com/olikraus/u8g2

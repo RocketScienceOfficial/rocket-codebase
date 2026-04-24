@@ -42,7 +42,7 @@ obc_sitl_freerun:
 	ninja -C build/obc_sitl
 
 
-run_obc_sitl:
+obc_sitl_run:
 	cd build/obc_sitl && ./firmware
 
 radio_module:
@@ -68,15 +68,9 @@ radio_module_sitl:
 		-D SITL_FREERUN=ON
 	ninja -C build/radio_module_sitl
 
-run_radio_module_sitl:
+radio_module_sitl_run:
 	cd build/radio_module_sitl && ./firmware
 
-
-esp32_shell_win:
-	powershell -ExecutionPolicy Bypass -File C:/esp/v6.0/esp-idf/export.ps1
-
-esp32_shell_unix:
-	source ~/esp/esp-idf/export.sh
 
 gcs:
 	idf.py \
@@ -92,9 +86,12 @@ PORT ?= /dev/ttyUSB0
 
 gcs_flash:
 	idf.py \
-		-C build/gcs \
+		-C platform/esp32 \
+		-B build/gcs \
 		-p ${PORT} \
 		flash
+
+OLED_TEST_MODE ?= OFF
 
 gcs_sitl:
 	cmake \
@@ -105,10 +102,11 @@ gcs_sitl:
 		-D RUNNER_PROFILE=gcs_sitl \
 		-D CMAKE_BUILD_TYPE=$(BUILD_TYPE) \
 		-D LOG_LEVEL=$(LOG_LEVEL) \
+		-D OLED_TEST_MODE=$(OLED_TEST_MODE) \
 		-D SITL_FREERUN=ON
 	ninja -C build/gcs_sitl
 
-run_gcs_sitl:
+gcs_sitl_run:
 	cd build/gcs_sitl && ./firmware
 
 
