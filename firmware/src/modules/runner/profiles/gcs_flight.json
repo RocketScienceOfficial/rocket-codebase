@@ -14,5 +14,13 @@
         "modules": [
             "oled"
         ]
+    },
+    {
+        "name": "pmu",
+        "rate": 10,
+        "priority": "high",
+        "modules": [
+            "pmu"
+        ]
     }
 ]

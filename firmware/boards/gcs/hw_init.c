@@ -6,6 +6,6 @@
 void hw_init(void)
 {
     hal_stdio_init();
-    hal_i2c_init(CFG_I2C, CFG_OLED_SDA_PIN, CFG_OLED_SCL_PIN, CFG_I2C_FREQUENCY);
+    hal_i2c_init(CFG_I2C, CFG_I2C_SDA_PIN, CFG_I2C_SCL_PIN, CFG_I2C_FREQUENCY);
     hal_time_init();
 }
