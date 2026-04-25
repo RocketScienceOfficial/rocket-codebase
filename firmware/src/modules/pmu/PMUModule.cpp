@@ -71,6 +71,5 @@ void PMUModule::run()
     float batteryVoltage = m_Device.getBattVoltage() / 1000.0f;
     int batteryPercentage = m_Device.getBatteryPercent();
 
-    (void)batteryVoltage;
-    (void)batteryPercentage;
+    m_Publisher.publish({batteryVoltage, batteryPercentage});
 }

@@ -11,6 +11,9 @@
 
 void OLEDModule::init()
 {
+    m_RocketData.name = "ROCKET";
+    m_GCSData.name = "GCS";
+
     initDisplay();
     setNewState(OLEDState::ROCKET);
 
@@ -22,6 +25,22 @@ void OLEDModule::init()
 
 void OLEDModule::run()
 {
+    if (m_PMUSubscriber.poll())
+    {
+        const auto &pmuState = m_PMUSubscriber.get();
+
+        m_GCSData.batteryPercentage = pmuState.batteryPercentage;
+        m_GCSData.batteryVoltage = pmuState.batteryVoltage;
+    }
+
+    if (m_SimplifiedGPSSubscriber.poll())
+    {
+        const auto &simplifiedGPS = m_SimplifiedGPSSubscriber.get();
+
+        m_GCSData.lat = simplifiedGPS.lat;
+        m_GCSData.lon = simplifiedGPS.lon;
+    }
+
     handleStateChange();
 
     if (osal_systime_get_ms() - m_LastUpdateTime >= REFRESH_RATE_MS)
@@ -64,16 +83,16 @@ void OLEDModule::setNewState(OLEDState newState)
     switch (m_CurrentState)
     {
     case OLEDState::ROCKET:
-        m_CurrentData.name = "ROCKET";
+        m_CurrentData = &m_RocketData;
         break;
     case OLEDState::GCS:
-        m_CurrentData.name = "GCS";
+        m_CurrentData = &m_GCSData;
         break;
     default:
         break;
     }
 
-    LOG_INFO("Switched to state: '%s'", m_CurrentData.name);
+    LOG_INFO("Switched to state: '%s'", m_CurrentData->name);
 }
 
 static void _draw_left_str_f(u8g2_t *u8g2, uint8_t x, uint8_t y, const char *str, ...)
@@ -146,18 +165,18 @@ static void _draw_battery_indicator(u8g2_t *u8g2, uint16_t x, uint16_t y, uint16
 
 void OLEDModule::drawPanel()
 {
-    _draw_progress_bar(&m_Display, 0, 2, 45, 6, (uint8_t)_get_rssi_percentage(m_CurrentData.rssi));
+    _draw_progress_bar(&m_Display, 0, 2, 45, 6, (uint8_t)_get_rssi_percentage(m_CurrentData->rssi));
 
-    _draw_left_str_f(&m_Display, 52, 10, "%d", m_CurrentData.rssi);
-    _draw_right_str_f(&m_Display, 125, 10, "%s", m_CurrentData.name);
+    _draw_left_str_f(&m_Display, 52, 10, "%d", m_CurrentData->rssi);
+    _draw_right_str_f(&m_Display, 125, 10, "%s", m_CurrentData->name);
 
-    _draw_left_str_f(&m_Display, 0, 23, "RX: %d", m_CurrentData.rx);
-    _draw_left_str_f(&m_Display, 50, 23, "TX: %d", m_CurrentData.tx);
-    _draw_left_str_f(&m_Display, 0, 36, "EXEC: %ds", m_CurrentData.execTimeoutLeft);
-    _draw_left_str_f(&m_Display, 0, 50, "%.7f", m_CurrentData.lat);
-    _draw_left_str_f(&m_Display, 0, 62, "%.7f", m_CurrentData.lon);
+    _draw_left_str_f(&m_Display, 0, 23, "RX: %d", m_CurrentData->rx);
+    _draw_left_str_f(&m_Display, 50, 23, "TX: %d", m_CurrentData->tx);
+    _draw_left_str_f(&m_Display, 0, 36, "EXEC: %ds", m_CurrentData->execTimeoutLeft);
+    _draw_left_str_f(&m_Display, 0, 50, "%.7f", m_CurrentData->lat);
+    _draw_left_str_f(&m_Display, 0, 62, "%.7f", m_CurrentData->lon);
 
-    _draw_right_str_f(&m_Display, 125, 28, "%d %%", m_CurrentData.batteryPercentage);
-    _draw_battery_indicator(&m_Display, 110, 41, 30, 15, m_CurrentData.batteryPercentage);
-    _draw_right_str_f(&m_Display, 125, 63, "%.2f V", m_CurrentData.batteryVoltage);
+    _draw_right_str_f(&m_Display, 125, 28, "%d %%", m_CurrentData->batteryPercentage);
+    _draw_battery_indicator(&m_Display, 110, 41, 30, 15, m_CurrentData->batteryPercentage);
+    _draw_right_str_f(&m_Display, 125, 63, "%.2f V", m_CurrentData->batteryVoltage);
 }

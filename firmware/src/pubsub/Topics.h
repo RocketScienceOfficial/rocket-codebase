@@ -91,6 +91,9 @@ namespace PubSub
         };
         PUBSUB_REGISTER_TOPIC(SensorsGPS, sensors_gps_1)
 
+        using SensorsSimplifiedGPS = geo_position_wgs84_t;
+        PUBSUB_REGISTER_TOPIC(SensorsSimplifiedGPS, sensors_simplified_gps_1)
+
         struct SensorsBattery
         {
             float batVolts;
@@ -155,6 +158,13 @@ namespace PubSub
             uint8_t reserved;
         };
         PUBSUB_REGISTER_TOPIC(RadioAck, radio_ack)
+
+        struct PMUState
+        {
+            float batteryVoltage;
+            int batteryPercentage;
+        };
+        PUBSUB_REGISTER_TOPIC(PMUState, pmu_state)
 
         struct CommanderState
         {

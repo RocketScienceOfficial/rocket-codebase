@@ -10,7 +10,7 @@
     {
         "name": "oled",
         "rate": 50,
-        "priority": "high",
+        "priority": "normal",
         "modules": [
             "oled"
         ]
@@ -18,9 +18,17 @@
     {
         "name": "pmu",
         "rate": 10,
-        "priority": "high",
+        "priority": "low",
         "modules": [
             "pmu"
+        ]
+    },
+    {
+        "name": "gps",
+        "rate": 1000,
+        "priority": "high",
+        "modules": [
+            "gps_simple"
         ]
     }
 ]
