@@ -166,6 +166,12 @@ namespace PubSub
         };
         PUBSUB_REGISTER_TOPIC(PMUState, pmu_state)
 
+        struct GCSCommanderTimeout
+        {
+            uint8_t timeoutSec;
+        };
+        PUBSUB_REGISTER_TOPIC(GCSCommanderTimeout, gcs_commander_timeout)
+
         struct CommanderState
         {
             uint8_t seq;

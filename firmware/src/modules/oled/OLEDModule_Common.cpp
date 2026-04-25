@@ -41,6 +41,14 @@ void OLEDModule::run()
         m_GCSData.lon = simplifiedGPS.lon;
     }
 
+    if (m_GCSCommanderTimeoutSubscriber.poll())
+    {
+        const auto &gcsCommanderTimeout = m_GCSCommanderTimeoutSubscriber.get();
+
+        m_RocketData.execTimeoutLeft = gcsCommanderTimeout.timeoutSec;
+        m_GCSData.execTimeoutLeft = gcsCommanderTimeout.timeoutSec;
+    }
+
     handleStateChange();
 
     if (osal_systime_get_ms() - m_LastUpdateTime >= REFRESH_RATE_MS)
