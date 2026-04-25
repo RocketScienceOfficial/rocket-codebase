@@ -8,7 +8,7 @@
 namespace PubSub
 {
     constexpr size_t MAX_TOPICS = 32u;
-    constexpr size_t MAX_MESSAGE_SIZE = 256u;
+    constexpr size_t MAX_MESSAGE_SIZE = 300u;
     constexpr size_t MAX_MESSAGE_COUNT = 16u;
     constexpr size_t DEFAULT_MESSAGE_COUNT = 2u;
 

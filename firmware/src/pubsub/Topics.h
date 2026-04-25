@@ -60,6 +60,21 @@ namespace PubSub
         using TelemetryResponse = telemetry_response;
         PUBSUB_REGISTER_TOPIC(TelemetryResponse, telemetry_rx)
 
+        struct LoRaRXData
+        {
+            datalink_message_t msg;
+            int rssi;
+            uint8_t sequence;
+        };
+        PUBSUB_REGISTER_TOPIC(LoRaRXData, lora_rx)
+
+        struct LoRaTXData
+        {
+            datalink_message_t msg;
+            uint8_t sequence;
+        };
+        PUBSUB_REGISTER_TOPIC(LoRaTXData, lora_tx)
+
         struct SensorsIMU
         {
             float dt;
@@ -158,6 +173,13 @@ namespace PubSub
             uint8_t reserved;
         };
         PUBSUB_REGISTER_TOPIC(RadioAck, radio_ack)
+
+        struct GCSRadioState
+        {
+            uint32_t rx;
+            uint32_t tx;
+        };
+        PUBSUB_REGISTER_TOPIC(GCSRadioState, gcs_radio_state)
 
         struct PMUState
         {

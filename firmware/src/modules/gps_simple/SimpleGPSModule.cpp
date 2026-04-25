@@ -44,12 +44,12 @@ void SimpleGPSModule::run()
 
 static float _get_lat_sign(char ns)
 {
-    return ns == 'N' ? 1 : -1;
+    return ns == 'S' ? -1 : 1;
 }
 
 static float _get_lon_sign(char ew)
 {
-    return ew == 'E' ? 1 : -1;
+    return ew == 'W' ? -1 : 1;
 }
 
 void SimpleGPSModule::parseSentence()

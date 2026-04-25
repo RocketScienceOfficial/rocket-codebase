@@ -1,4 +1,5 @@
 #include "OLEDModule.h"
+#include "OLEDLogo.h"
 #include "modules/common/ModuleLogger.h"
 #include <lib/maths/math_utils.h>
 #include <osal/systime.h>
@@ -7,12 +8,14 @@
 #include <stdio.h>
 #include <math.h>
 
+#define LOGO_DISPLAY_TIME_MS 3000
 #define REFRESH_RATE_MS 200
 
 void OLEDModule::init()
 {
     m_RocketData.name = "ROCKET";
     m_GCSData.name = "GCS";
+    m_LogoDisableTime = osal_systime_get_ms() + LOGO_DISPLAY_TIME_MS;
 
     initDisplay();
     setNewState(OLEDState::ROCKET);
@@ -21,6 +24,10 @@ void OLEDModule::init()
     u8g2_SetPowerSave(&m_Display, 0);
 
     u8g2_SetFont(&m_Display, u8g2_font_lucasfont_alternate_tf);
+
+    u8g2_ClearBuffer(&m_Display);
+    u8g2_DrawXBM(&m_Display, 0, 0, LOGO_XBM_WIDTH, LOGO_XBM_HEIGHT, LOGO_XMB);
+    u8g2_SendBuffer(&m_Display);
 }
 
 void OLEDModule::run()
@@ -49,9 +56,17 @@ void OLEDModule::run()
         m_GCSData.execTimeoutLeft = gcsCommanderTimeout.timeoutSec;
     }
 
+    if (m_RadioSubscriber.poll())
+    {
+        const auto &radioData = m_RadioSubscriber.get();
+
+        m_RocketData.rssi = radioData.rssi;
+        m_GCSData.rssi = radioData.rssi;
+    }
+
     handleStateChange();
 
-    if (osal_systime_get_ms() - m_LastUpdateTime >= REFRESH_RATE_MS)
+    if (osal_systime_get_ms() > m_LogoDisableTime && osal_systime_get_ms() - m_LastUpdateTime >= REFRESH_RATE_MS)
     {
         u8g2_ClearBuffer(&m_Display);
         drawPanel();
@@ -173,9 +188,16 @@ static void _draw_battery_indicator(u8g2_t *u8g2, uint16_t x, uint16_t y, uint16
 
 void OLEDModule::drawPanel()
 {
-    _draw_progress_bar(&m_Display, 0, 2, 45, 6, (uint8_t)_get_rssi_percentage(m_CurrentData->rssi));
+    if (m_CurrentData->rssi < 0)
+    {
+        _draw_progress_bar(&m_Display, 0, 2, 45, 6, (uint8_t)_get_rssi_percentage(m_CurrentData->rssi));
+        _draw_left_str_f(&m_Display, 52, 10, "%d", m_CurrentData->rssi);
+    }
+    else
+    {
+        _draw_left_str_f(&m_Display, 0, 10, "NO SIGNAL");
+    }
 
-    _draw_left_str_f(&m_Display, 52, 10, "%d", m_CurrentData->rssi);
     _draw_right_str_f(&m_Display, 125, 10, "%s", m_CurrentData->name);
 
     _draw_left_str_f(&m_Display, 0, 23, "RX: %d", m_CurrentData->rx);

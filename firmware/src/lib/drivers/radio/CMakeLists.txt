@@ -18,8 +18,8 @@ add_library(drivers_radio STATIC
     RadioLibHALPort.cpp
 )
 
-target_compile_options(drivers_radio PRIVATE
-    -Wno-overloaded-virtual
+target_compile_options(drivers_radio PUBLIC
+    $<$<COMPILE_LANGUAGE:CXX>:-Wno-overloaded-virtual>
 )
 
 target_link_libraries(drivers_radio PUBLIC

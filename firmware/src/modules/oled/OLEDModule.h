@@ -14,8 +14,10 @@ private:
     PubSub::Subscriber<PubSub::Topics::PMUState> m_PMUSubscriber{PUBSUB_ID(pmu_state)};
     PubSub::Subscriber<PubSub::Topics::SensorsSimplifiedGPS> m_SimplifiedGPSSubscriber{PUBSUB_ID(sensors_simplified_gps_1)};
     PubSub::Subscriber<PubSub::Topics::GCSCommanderTimeout> m_GCSCommanderTimeoutSubscriber{PUBSUB_ID(gcs_commander_timeout)};
+    PubSub::Subscriber<PubSub::Topics::LoRaRXData> m_RadioSubscriber{PUBSUB_ID(lora_rx)};
 
     u8g2_t m_Display;
+    uint32_t m_LogoDisableTime;
     uint32_t m_LastUpdateTime;
 
     struct PanelData

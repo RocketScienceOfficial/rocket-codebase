@@ -30,5 +30,21 @@
         "modules": [
             "gps_simple"
         ]
+    },
+    {
+        "name": "commander",
+        "rate": 50,
+        "priority": "high",
+        "modules": [
+            "commander_gcs"
+        ]
+    },
+    {
+        "name": "lora",
+        "rate": 100,
+        "priority": "high",
+        "modules": [
+            "com_lora_gcs"
+        ]
     }
 ]

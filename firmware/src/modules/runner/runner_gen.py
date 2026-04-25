@@ -37,7 +37,7 @@ def gen_source(profile):
 
         s += "\n"
 
-        s += "static uint8_t g_stackBuffer[16 * 1024];\n"
+        s += f"static uint8_t g_stackBuffer[4096 * {len(profile)}];\n"
         s += "static size_t g_stackBufferOffset = 0;\n"
 
         s += "\n"
