@@ -6,7 +6,8 @@ from pathlib import Path
 def main():
     print("Auditing platforms...")
 
-    p = Path(os.getcwd(), "src")
+    repo_root = Path(os.getcwd())
+    p = repo_root / "src"
     foundIssues = False
 
     keyword_pattern = re.compile(r'\b(malloc|free|new|delete|try|catch|exception|vector<|string<|array<)\b')
@@ -17,7 +18,10 @@ def main():
     strip_pattern = re.compile(r'//[^\n]*|/\*.*?\*/|"(?:\\.|[^"\\])*"', re.DOTALL)
 
     for file_path in p.rglob("*"):
-        if file_path.is_file() and file_path.suffix in ['.c', '.cpp', '.h']:
+        if any((parent / ".git").is_file() for parent in file_path.parents if repo_root in parent.parents or parent == repo_root):
+            continue
+
+        if file_path.is_file() and file_path.suffix in ['.c', '.cpp', '.h', '.hpp', '.cc', '.hh']:
             with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
                 content = f.read()
                 clean_content = strip_pattern.sub('', content)

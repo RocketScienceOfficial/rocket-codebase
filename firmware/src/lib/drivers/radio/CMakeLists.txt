@@ -10,6 +10,10 @@ target_compile_options(RadioLib PRIVATE
     -Wno-double-promotion
 )
 
+target_compile_definitions(RadioLib PRIVATE
+    RADIOLIB_STATIC_ONLY
+)
+
 add_library(drivers_radio STATIC
     RadioLibHALPort.cpp
 )
