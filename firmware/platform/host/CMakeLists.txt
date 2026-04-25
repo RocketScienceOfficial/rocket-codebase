@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.31)
 
 project(firmware C CXX ASM)
 set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 # ============= BOARD CONFIG =============
 include(../../boards/${BOARD_NAME}/board_hw.cmake)

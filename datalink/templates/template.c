@@ -276,7 +276,7 @@ int datalink_deserialize_message_serial(datalink_message_t *msg, const uint8_t *
         return DATALINK_ERROR;
     }
 
-    datalink_frame_structure_serial_t frame = {};
+    datalink_frame_structure_serial_t frame;
 
     frame.magic_serial = tmpBuffer[0];
 
@@ -366,7 +366,7 @@ int datalink_deserialize_message_radio(datalink_message_t *msg, uint8_t *seq, ui
         return DATALINK_ERROR;
     }
 
-    datalink_frame_structure_radio_t frame = {};
+    datalink_frame_structure_radio_t frame;
 
     frame.magic_radio = buffer[0];
 

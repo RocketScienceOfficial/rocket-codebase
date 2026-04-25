@@ -74,7 +74,7 @@ static bool _ms56xx_read_coefficents(ms56xx_device_t *device)
     for (uint8_t i = 0; i < 8; i++)
     {
         uint8_t tx[3] = {MS56XX_CMD_PROM_READ_BASE + (i << 1), 0x00, 0x00};
-        uint8_t rx[3]= {};
+        uint8_t rx[3];
 
         spi_utils_cs_select(device->cs);
         hal_spi_transfer(device->spi, tx, rx, sizeof(tx));
@@ -127,7 +127,7 @@ bool ms56xx_validate(const ms56xx_device_t *device)
 static uint32_t _ms56xx_read_raw_value(const ms56xx_device_t *device)
 {
     uint8_t tx[4] = {MS56XX_CMD_ADC_READ, 0x00, 0x00, 0x00};
-    uint8_t rx[4] = {};
+    uint8_t rx[4];
 
     spi_utils_cs_select(device->cs);
     hal_spi_transfer(device->spi, tx, rx, sizeof(tx));

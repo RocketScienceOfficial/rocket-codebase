@@ -157,6 +157,7 @@ ubx_parser_status_t ubx_process_byte(ubx_parser_t *parser, uint8_t b)
     switch (parser->state)
     {
     case UBX_PARSER_STATE_SYNC1:
+    {
         if (b == UBX_PREAMBLE_SYNC_CHAR_1)
         {
             parser->state = UBX_PARSER_STATE_SYNC2;
@@ -166,7 +167,9 @@ ubx_parser_status_t ubx_process_byte(ubx_parser_t *parser, uint8_t b)
             return UBX_PARSER_STATUS_UNAVAILABLE;
         }
         break;
+    }
     case UBX_PARSER_STATE_SYNC2:
+    {
         if (b == UBX_PREAMBLE_SYNC_CHAR_2)
         {
             parser->state = UBX_PARSER_STATE_HEADER;
@@ -179,7 +182,9 @@ ubx_parser_status_t ubx_process_byte(ubx_parser_t *parser, uint8_t b)
             _reset_parser(parser);
         }
         break;
+    }
     case UBX_PARSER_STATE_HEADER:
+    {
         if (parser->idx >= sizeof(parser->buffer))
         {
             _reset_parser(parser);
@@ -197,7 +202,9 @@ ubx_parser_status_t ubx_process_byte(ubx_parser_t *parser, uint8_t b)
             parser->payload_read = 0;
         }
         break;
+    }
     case UBX_PARSER_STATE_PAYLOAD:
+    {
         if (parser->idx >= sizeof(parser->buffer))
         {
             _reset_parser(parser);
@@ -214,7 +221,9 @@ ubx_parser_status_t ubx_process_byte(ubx_parser_t *parser, uint8_t b)
             parser->state = UBX_PARSER_STATE_CKA;
         }
         break;
+    }
     case UBX_PARSER_STATE_CKA:
+    {
         if (b == parser->ck_a)
         {
             parser->state = UBX_PARSER_STATE_CKB;
@@ -224,7 +233,9 @@ ubx_parser_status_t ubx_process_byte(ubx_parser_t *parser, uint8_t b)
             _reset_parser(parser);
         }
         break;
+    }
     case UBX_PARSER_STATE_CKB:
+    {
         ubx_parser_status_t status = UBX_PARSER_STATUS_PARSING;
 
         if (b == parser->ck_b)
@@ -238,6 +249,7 @@ ubx_parser_status_t ubx_process_byte(ubx_parser_t *parser, uint8_t b)
         _reset_parser(parser);
 
         return status;
+    }
     }
 
     return UBX_PARSER_STATUS_PARSING;

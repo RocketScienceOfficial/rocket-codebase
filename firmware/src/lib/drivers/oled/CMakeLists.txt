@@ -4,12 +4,6 @@ add_library(drivers_oled STATIC
     ${U8G2_SRCS}
 )
 
-target_compile_options(drivers_oled PRIVATE
-    -ffunction-sections
-    -fdata-sections
-    -Os
-)
-
 target_link_libraries(drivers_oled PUBLIC
     drivers_common
 )
@@ -17,6 +11,22 @@ target_link_libraries(drivers_oled PUBLIC
 target_include_directories(drivers_oled PUBLIC
     u8g2/csrc
 )
+
+if(MSVC)
+    target_compile_options(drivers_oled PRIVATE
+        /w
+        /Os
+        /Gy # -ffunction-sections
+        /Gw # -fdata-sections
+    )
+else()
+    target_compile_options(drivers_oled PRIVATE
+        -w
+        -Os
+        -ffunction-sections
+        -fdata-sections
+    )
+endif()
 
 if(OLED_TEST_MODE)
     message(STATUS "OLED Test Mode: Including SDL2 for simulation")

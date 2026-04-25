@@ -86,7 +86,7 @@ uint8_t bus_utils_read_reg(const bus_com_device_t *device, uint8_t address)
     else
     {
         uint8_t txData[2] = {address, 0x00};
-        uint8_t rxData[2] = {};
+        uint8_t rxData[2];
 
         spi_utils_cs_select(device->cs);
         hal_spi_transfer(device->spi, txData, rxData, sizeof(txData));

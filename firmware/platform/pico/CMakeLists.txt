@@ -16,7 +16,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/../common/freertos/FreeRTOS-Kernel/portable/Th
 # ============= PROJECT SETUP =============
 project(firmware C CXX ASM)
 set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 # ============= PICO INIT =============
 pico_sdk_init()
