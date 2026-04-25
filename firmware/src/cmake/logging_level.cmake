@@ -14,4 +14,6 @@ else()
     message(FATAL_ERROR "LOG_LEVEL not set.")
 endif()
 
+message(STATUS "LOG_LEVEL set to ${LOG_LEVEL} (${LOG_LEVEL_VALUE})")
+
 add_compile_definitions(LOG_LEVEL=${LOG_LEVEL_VALUE})

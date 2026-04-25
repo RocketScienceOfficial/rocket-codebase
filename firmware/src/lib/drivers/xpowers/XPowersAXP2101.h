@@ -1425,7 +1425,7 @@ public:
         int val = readRegister(XPOWERS_AXP2101_DC_VOL1_CTRL);
         if (val ==  -1)return 0;
         val &= 0x7F;
-        if (val < XPOWERS_AXP2101_DCDC2_VOL_STEPS2_BASE) {
+        if ((unsigned int)val < XPOWERS_AXP2101_DCDC2_VOL_STEPS2_BASE) {
             return (val  * XPOWERS_AXP2101_DCDC2_VOL_STEPS1) +  XPOWERS_AXP2101_DCDC2_VOL1_MIN;
         } else  {
             return (val  * XPOWERS_AXP2101_DCDC2_VOL_STEPS2) - 200;
@@ -1505,9 +1505,9 @@ public:
     uint16_t getDC3Voltage(void)
     {
         int val = readRegister(XPOWERS_AXP2101_DC_VOL2_CTRL) & 0x7F;
-        if (val < XPOWERS_AXP2101_DCDC3_VOL_STEPS2_BASE) {
+        if ((unsigned int)val < XPOWERS_AXP2101_DCDC3_VOL_STEPS2_BASE) {
             return (val  * XPOWERS_AXP2101_DCDC3_VOL_STEPS1) +  XPOWERS_AXP2101_DCDC3_VOL_MIN;
-        } else if (val >= XPOWERS_AXP2101_DCDC3_VOL_STEPS2_BASE && val < XPOWERS_AXP2101_DCDC3_VOL_STEPS3_BASE) {
+        } else if ((unsigned int)val >= XPOWERS_AXP2101_DCDC3_VOL_STEPS2_BASE && (unsigned int)val < XPOWERS_AXP2101_DCDC3_VOL_STEPS3_BASE) {
             return (val  * XPOWERS_AXP2101_DCDC3_VOL_STEPS2) - 200;
         } else  {
             return (val  * XPOWERS_AXP2101_DCDC3_VOL_STEPS3)  - 7200;
@@ -1583,7 +1583,7 @@ public:
         int val = readRegister(XPOWERS_AXP2101_DC_VOL3_CTRL);
         if (val == -1)return 0;
         val &= 0x7F;
-        if (val < XPOWERS_AXP2101_DCDC4_VOL_STEPS2_BASE) {
+        if ((unsigned int)val < XPOWERS_AXP2101_DCDC4_VOL_STEPS2_BASE) {
             return (val  * XPOWERS_AXP2101_DCDC4_VOL_STEPS1) +  XPOWERS_AXP2101_DCDC4_VOL1_MIN;
         } else  {
             return (val  * XPOWERS_AXP2101_DCDC4_VOL_STEPS2) - 200;
@@ -2480,7 +2480,7 @@ public:
      */
     void clearIrqStatus(void)
     {
-        for (int i = 0; i < XPOWERS_AXP2101_INTSTS_CNT; i++) {
+        for (unsigned int i = 0; i < XPOWERS_AXP2101_INTSTS_CNT; i++) {
             writeRegister(XPOWERS_AXP2101_INTSTS1 + i, 0xFF);
             statusRegister[i] = 0;
         }

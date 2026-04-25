@@ -1,4 +1,6 @@
 if(BUILD_NETWORK)
+    message(STATUS "Building network library")
+    
     add_library(network_lib STATIC
         src/TCPSocket.cpp
     )
