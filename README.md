@@ -6,3 +6,5 @@ The codebase also contains the obc_app project, which provides the operational o
 In addition, it includes the telemetry project for communication and data handling across mission workflows.
 Simulation environments and supporting tools are provided to enable testing, validation, and system-level integration before deployment.
 Overall, this is a comprehensive, enterprise-grade codebase designed to support robust engineering, collaboration, and long-term evolution.
+
+See the [docs](https://github.com/RocketScienceOfficial/rocket-codebase/tree/main/docs) for detailed documentation on the architecture, development guidelines, and contribution process.

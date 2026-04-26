@@ -12,6 +12,7 @@ target_link_libraries(maths PUBLIC
 target_compile_options(maths PRIVATE
     -Wno-strict-aliasing
     -Wno-uninitialized
+    -Wno-array-bounds
 )
 
 add_sys_test(math_tests
