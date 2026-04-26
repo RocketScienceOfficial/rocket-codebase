@@ -1,5 +1,5 @@
 # ============= CMAKE VERSION =============
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.31)
 
 # ============= BOARD CONFIG =============
 include(../../boards/${BOARD_NAME}/board_hw.cmake)

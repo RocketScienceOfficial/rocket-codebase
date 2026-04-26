@@ -14,17 +14,17 @@ add_library(drivers_radio STATIC
 
 if(MSVC)
     target_compile_options(RadioLib PRIVATE
-        $<$<COMPILE_LANGUAGE:CXX>:/w>
-        $<$<COMPILE_LANGUAGE:CXX>:/Wno-c++20-extensions>
-        $<$<COMPILE_LANGUAGE:CXX>:/Wno-stringop-overflow>
-        $<$<COMPILE_LANGUAGE:CXX>:/Wno-double-promotion>
+       /w
+       /Wno-c++20-extensions
+       /Wno-stringop-overflow
+       /Wno-double-promotion
     )
 else()
     target_compile_options(RadioLib PRIVATE
-        $<$<COMPILE_LANGUAGE:CXX>:-Wno-overloaded-virtual>
-        $<$<COMPILE_LANGUAGE:CXX>:-Wno-c++20-extensions>
-        $<$<COMPILE_LANGUAGE:CXX>:-Wno-stringop-overflow>
-        $<$<COMPILE_LANGUAGE:CXX>:-Wno-double-promotion>
+        -Wno-overloaded-virtual
+        -Wno-c++20-extensions
+        -Wno-stringop-overflow
+        -Wno-double-promotion
     )
 endif()
 
