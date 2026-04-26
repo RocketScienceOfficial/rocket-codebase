@@ -8,3 +8,8 @@ target_link_libraries(drivers_gps PUBLIC
     drivers_common
     geo
 )
+
+add_sys_test(gps_tests
+    SOURCES tests/nmea_tests.cpp
+    DEPENDS drivers_gps
+)

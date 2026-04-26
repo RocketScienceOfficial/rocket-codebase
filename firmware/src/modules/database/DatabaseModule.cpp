@@ -114,7 +114,7 @@ DatabaseFrame DatabaseModule::getFrame(uint16_t dt_us)
         ignFlags |= val_fired;
     }
 
-    return (DatabaseFrame){
+    DatabaseFrame frame = {
         .dt_us = dt_us,
         .accRaw = m_IMUSubscriber.get().acc,
         .gyroRaw = m_IMUSubscriber.get().gyro,
@@ -130,6 +130,7 @@ DatabaseFrame DatabaseModule::getFrame(uint16_t dt_us)
         .batteryVoltage100 = (uint8_t)(m_BatterySubscriber.get().batVolts * 100),
         .ignFlags = ignFlags,
     };
+    return frame;
 }
 
 void DatabaseModule::handle_state_read()

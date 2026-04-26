@@ -22,7 +22,9 @@ void EKFModule::init()
     m_EKF.init();
     m_EKF.setVariances(m_EKFVars);
 
-    m_CurrentFrame.orientation = (quat_t){1.0f, 0.0f, 0.0f, 0.0f};
+    quat_t initialOrientation = {1.0f, 0.0f, 0.0f, 0.0f};
+    m_CurrentFrame.orientation = initialOrientation;
+
     m_MadgwickGain = 1.0f;
     m_HighGainDisableTimer = osal_systime_get_ms();
 }
