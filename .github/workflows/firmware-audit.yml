@@ -8,15 +8,14 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./firmware/obc
+        working-directory: ./firmware
 
     steps:
-      - name: Verify
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: false
 
       - name: Audit
         run: |
-          chmod +x ./obc.py
-          ./obc.py audit
+          make audit

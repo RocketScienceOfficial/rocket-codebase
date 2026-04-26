@@ -41,9 +41,9 @@ obc_sitl_freerun:
 		-D SITL_FREERUN=ON
 	ninja -C build/obc_sitl
 
-
 obc_sitl_run:
 	cd build/obc_sitl && ./firmware
+
 
 radio_module:
 	cmake \

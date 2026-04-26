@@ -12,10 +12,10 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./firmware/obc
+        working-directory: ./firmware
 
     steps:
-      - name: Verify
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: "recursive"
@@ -23,17 +23,22 @@ jobs:
       - name: Install Toolchain
         run: sudo apt install cmake gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib build-essential ninja-build
 
-      - name: Build 'host'
+      - name: Build 'obc'
         run: |
-          chmod +x ./obc.py
-          ./obc.py build host --debug --board virtual_16mb
+          make obc
 
-      - name: Build 'pico'
+      - name: Build 'obc_sitl'
         run: |
-          chmod +x ./obc.py
-          ./obc.py build pico --debug --board rp2040_16mb
+          make obc_sitl
+
+      - name: Build 'radio_module'
+        run: |
+          make radio_module
+
+      - name: Build 'radio_module_sitl'
+        run: |
+          make radio_module_sitl
 
       - name: Run tests
         run: |
-          chmod +x ./obc.py
-          ./obc.py test
+          make test
