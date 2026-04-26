@@ -184,10 +184,11 @@ namespace network
 
     void TCPSocket::close()
     {
+        m_Active = false;
+
         closeSocket();
         closeServerSocket();
 
-        m_Active = false;
         m_ReceiveBufferLength = 0;
         m_SendBufferLength = 0;
     }
@@ -275,7 +276,8 @@ namespace network
             if (sent <= 0)
             {
                 NETWORK_ERROR("Failed to send data over TCP socket");
-                SYS_ASSERT(false);
+                
+                close();
 
                 return;
             }

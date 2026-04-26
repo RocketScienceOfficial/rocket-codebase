@@ -9,6 +9,8 @@ using UnityEngine.UI;
 
 public class PortsUIController : MonoBehaviour
 {
+    private const string TCP_DESTINATION = "127.0.0.1:12349";
+
     [SerializeField] private GameObject m_LoadingPanel;
     [SerializeField] private GameObject m_PortSelectPanel;
     [SerializeField] private Transform m_Parent;
@@ -37,9 +39,16 @@ public class PortsUIController : MonoBehaviour
 
         Clear();
 
-        foreach (var port in SerialPort.GetPortNames().OrderBy(p => p))
+        if (CommunicationManager.Instance.IsSerial())
         {
-            SetupMicrocontroller(port);
+            foreach (var port in SerialPort.GetPortNames().OrderBy(p => p))
+            {
+                SetupMicrocontroller(port);
+            }
+        }
+        else
+        {
+            SetupMicrocontroller(TCP_DESTINATION);
         }
 
         m_LoadingPanel.SetActive(false);

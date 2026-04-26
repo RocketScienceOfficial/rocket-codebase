@@ -12,6 +12,7 @@ namespace DataLink
         private TcpClient _client;
         private NetworkStream _stream;
         private Thread _readThread;
+        private bool _isClosing;
 
         public override void Connect(string destination)
         {
@@ -34,11 +35,11 @@ namespace DataLink
                 {
                     _stream = _client.GetStream();
 
-                    _readThread = new Thread(ReadThread);
-                    _readThread.Start();
-
                     if (IsConnected())
                     {
+                        _readThread = new Thread(ReadThread);
+                        _readThread.Start();
+
                         Debug.Log("Connected to server");
 
                         _onConnected?.Invoke();
@@ -61,6 +62,13 @@ namespace DataLink
 
         public override void Disconnect()
         {
+            if (_isClosing)
+            {
+                Debug.Log("Already closing TCP connection...");
+
+                return;
+            }
+
             new Thread(() =>
             {
                 if (_client == null || _stream == null)
@@ -71,6 +79,8 @@ namespace DataLink
                 }
 
                 Debug.Log("Begining disconnecting...");
+
+                _isClosing = true;
 
                 _stream?.Close();
                 _stream = null;
@@ -86,9 +96,13 @@ namespace DataLink
 
                     _readThread.Join();
                     _readThread = null;
+
+                    Debug.Log("Read thread closed!");
                 }
 
                 _onDisconnected?.Invoke();
+
+                _isClosing = false;
             }).Start();
         }
 
@@ -108,6 +122,13 @@ namespace DataLink
                 {
                     if (_stream.DataAvailable)
                     {
+                        if (buffer.Length - currentLen <= 0)
+                        {
+                            Debug.Log("Buffer overflow! Clearing buffer...");
+
+                            currentLen = 0;
+                        }
+
                         var bytesRead = _stream.Read(buffer, currentLen, buffer.Length - currentLen);
 
                         if (bytesRead <= 0)

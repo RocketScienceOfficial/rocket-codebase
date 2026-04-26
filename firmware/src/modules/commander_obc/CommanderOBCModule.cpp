@@ -1,4 +1,4 @@
-#include "CommanderModule.h"
+#include "CommanderOBCModule.h"
 #include "modules/common/ModuleLogger.h"
 #include <osal/systime.h>
 #include <lib/debug/sys_assert.h>
@@ -8,11 +8,11 @@
 #define SERIAL_SRC_ID 0
 #define RADIO_SRC_ID 1
 
-void CommanderModule::init()
+void CommanderOBCModule::init()
 {
 }
 
-void CommanderModule::run()
+void CommanderOBCModule::run()
 {
     while (m_SerialSubscriber.poll())
     {
@@ -44,7 +44,7 @@ void CommanderModule::run()
     handleRPCs();
 }
 
-void CommanderModule::handleRPCs()
+void CommanderOBCModule::handleRPCs()
 {
     if (m_RadioCommandStatus == CommanderStatus::PENDING && osal_systime_get_ms() - m_LastRadioCommandTime > RADIO_COMMAND_TIMEOUT)
     {
@@ -77,7 +77,7 @@ void CommanderModule::handleRPCs()
     }
 }
 
-void CommanderModule::processSerialMessage(const datalink_message_t &msg)
+void CommanderOBCModule::processSerialMessage(const datalink_message_t &msg)
 {
     switch (msg.msg_id)
     {
@@ -100,7 +100,7 @@ void CommanderModule::processSerialMessage(const datalink_message_t &msg)
     }
 }
 
-void CommanderModule::processUARTMessage(const datalink_message_t &msg)
+void CommanderOBCModule::processUARTMessage(const datalink_message_t &msg)
 {
     switch (msg.msg_id)
     {
@@ -155,7 +155,7 @@ void CommanderModule::processUARTMessage(const datalink_message_t &msg)
     }
 }
 
-void CommanderModule::executeRadioCommand(uint8_t cmd)
+void CommanderOBCModule::executeRadioCommand(uint8_t cmd)
 {
     using namespace PubSub::Helpers;
 
@@ -231,7 +231,7 @@ void CommanderModule::executeRadioCommand(uint8_t cmd)
     }
 }
 
-void CommanderModule::setRadioRPCStatus(bool success)
+void CommanderOBCModule::setRadioRPCStatus(bool success)
 {
     if (m_RadioCommandStatus != CommanderStatus::PENDING)
     {
@@ -245,7 +245,7 @@ void CommanderModule::setRadioRPCStatus(bool success)
     updateState();
 }
 
-void CommanderModule::updateState()
+void CommanderOBCModule::updateState()
 {
     m_CommanderRadioRPCStatePublisher.publish({.seq = m_RadioCommandSeq, .status = m_RadioCommandStatus});
 

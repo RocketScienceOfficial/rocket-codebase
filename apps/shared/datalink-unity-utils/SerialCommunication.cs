@@ -82,6 +82,8 @@ namespace DataLink
 
                     _readThread.Join();
                     _readThread = null;
+
+                    Debug.Log("Read thread closed!");
                 }
 
                 _onDisconnected?.Invoke();
@@ -107,6 +109,8 @@ namespace DataLink
 
                     if (buffer.Count >= BUFFER_SIZE)
                     {
+                        Debug.Log("Buffer overflow! Clearing buffer...");
+
                         buffer.Clear();
                     }
 

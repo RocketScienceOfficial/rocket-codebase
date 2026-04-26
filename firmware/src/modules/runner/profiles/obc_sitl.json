@@ -36,7 +36,7 @@
         "priority": "low",
         "modules": [
             "buzzer",
-            "commander",
+            "commander_obc",
             "database",
             "led",
             "telemetry",

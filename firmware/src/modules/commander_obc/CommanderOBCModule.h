@@ -9,7 +9,7 @@
 
 using CommanderStatus = PubSub::Helpers::CommanderStatus;
 
-class CommanderModule
+class CommanderOBCModule
 {
 public:
     void init();

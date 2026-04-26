@@ -26,13 +26,13 @@ void OLEDModule::init()
     u8g2_SetFont(&m_Display, u8g2_font_lucasfont_alternate_tf);
 
     u8g2_ClearBuffer(&m_Display);
-    u8g2_DrawXBM(&m_Display, 0, 0, LOGO_XBM_WIDTH, LOGO_XBM_HEIGHT, LOGO_XMB);
+    u8g2_DrawXBM(&m_Display, 0, 0, LOGO_XBM_WIDTH, LOGO_XBM_HEIGHT, LOGO_XBM_DATA);
     u8g2_SendBuffer(&m_Display);
 }
 
 void OLEDModule::run()
 {
-    if (m_PMUSubscriber.poll())
+    if (m_PMUSubscriber.pollLatest())
     {
         const auto &pmuState = m_PMUSubscriber.get();
 
@@ -40,7 +40,7 @@ void OLEDModule::run()
         m_GCSData.batteryVoltage = pmuState.batteryVoltage;
     }
 
-    if (m_SimplifiedGPSSubscriber.poll())
+    if (m_SimplifiedGPSSubscriber.pollLatest())
     {
         const auto &simplifiedGPS = m_SimplifiedGPSSubscriber.get();
 
@@ -48,7 +48,7 @@ void OLEDModule::run()
         m_GCSData.lon = simplifiedGPS.lon;
     }
 
-    if (m_GCSCommanderTimeoutSubscriber.poll())
+    if (m_GCSCommanderTimeoutSubscriber.pollLatest())
     {
         const auto &gcsCommanderTimeout = m_GCSCommanderTimeoutSubscriber.get();
 
@@ -56,12 +56,22 @@ void OLEDModule::run()
         m_GCSData.execTimeoutLeft = gcsCommanderTimeout.timeoutSec;
     }
 
-    if (m_RadioSubscriber.poll())
+    if (m_RadioSubscriber.pollLatest())
     {
         const auto &radioData = m_RadioSubscriber.get();
 
         m_RocketData.rssi = radioData.rssi;
         m_GCSData.rssi = radioData.rssi;
+    }
+
+    if (m_GCSRadioStateSubscriber.pollLatest())
+    {
+        const auto &gcsRadioState = m_GCSRadioStateSubscriber.get();
+
+        m_RocketData.rx = gcsRadioState.rx;
+        m_RocketData.tx = gcsRadioState.tx;
+        m_GCSData.rx = gcsRadioState.rx;
+        m_GCSData.tx = gcsRadioState.tx;
     }
 
     handleStateChange();

@@ -3,7 +3,6 @@
 #include <osal/systime.h>
 #include <lib/debug/sys_assert.h>
 
-#define CMD_TIMEOUT_MS 10000
 #define RESPONSE_SEND_DELAY_MS 100
 #define TMP_RX_RESET_TIME 5000
 
@@ -25,31 +24,10 @@ void CommanderGCSModule::run()
         processRadioMessage(m_RadioSubscriber.get());
     }
 
-    if (m_CommandActive)
-    {
-        if (osal_systime_get_ms() - m_CommandStartTime > CMD_TIMEOUT_MS)
-        {
-            LOG_WARN("Command %d timed out", m_CurrentCMD);
-            nack();
-            return;
-        }
+    m_CommandHandler.update();
 
-        handleCommandElapsedTime();
-    }
-
-    if (m_ResponseStartTime != 0 && osal_systime_get_ms() - m_ResponseStartTime > RESPONSE_SEND_DELAY_MS)
-    {
-        sendTelemetryResponse();
-
-        m_ResponseStartTime = 0;
-    }
-
-    if (osal_systime_get_ms() - m_RadioTmpRXStartTime > TMP_RX_RESET_TIME)
-    {
-        m_RadioTmpRX = 0;
-        m_PacketsLost = 0;
-        m_RadioTmpRXStartTime = osal_systime_get_ms();
-    }
+    checkPacketLossResetTimeout();
+    checkTelemetryResponseTimeout();
 }
 
 void CommanderGCSModule::processSerialMessage(const datalink_message_t &msg)
@@ -63,7 +41,7 @@ void CommanderGCSModule::processSerialMessage(const datalink_message_t &msg)
 
         SYS_ASSERT(status == DATALINK_OK);
 
-        set(payload.cmd);
+        m_CommandHandler.set(payload.cmd);
 
         break;
     }
@@ -97,6 +75,8 @@ void CommanderGCSModule::processRadioMessage(const PubSub::Topics::LoRaRXData &d
 
         return;
     }
+
+    LOG_INFO("Received radio message (id: %d) with seq %d (rssi: %d)", data.msg.msg_id, data.sequence, data.rssi);
 
     telemetry_data_obc frame;
     int status = datalink_unpack_telemetry_data_obc(&frame, &data.msg);
@@ -133,52 +113,36 @@ void CommanderGCSModule::processRadioMessage(const PubSub::Topics::LoRaRXData &d
         m_ResponseStartTime = osal_systime_get_ms();
     }
 
-    handleNewRadioSequence(frame.cmd_seq, frame.cmd_last_status);
+    m_CommandHandler.onNewSequence(frame.cmd_seq, frame.cmd_last_status);
 }
 
-void CommanderGCSModule::handleNewRadioSequence(uint8_t seq, uint8_t status)
+void CommanderGCSModule::checkPacketLossResetTimeout()
 {
-    m_RemoteCommandSeq = seq;
-
-    LOG_INFO("Remote Seq: %d Status: %d Current: %d\n", m_RemoteCommandSeq, status, m_CurrentCommandSeq);
-
-    if (m_CommandActive && m_RemoteCommandSeq == m_CurrentCommandSeq)
+    if (osal_systime_get_ms() - m_RadioTmpRXStartTime > TMP_RX_RESET_TIME)
     {
-        if (status == DATALINK_TELEMETRY_CMD_STATUS_PENDING)
-        {
-            m_CurrentCMD = DATALINK_TELEMETRY_CMD_NONE;
-        }
-        else
-        {
-            ack(status == DATALINK_TELEMETRY_CMD_STATUS_SUCCESS);
-        }
-    }
-    else if (!m_CommandActive && m_RemoteCommandSeq != m_CurrentCommandSeq)
-    {
-        nack();
+        LOG_DEBUG("Packet loss stats reset (%d packets lost in last %d seconds)", m_PacketsLost, TMP_RX_RESET_TIME / 1000);
+
+        m_RadioTmpRX = 0;
+        m_PacketsLost = 0;
+        m_RadioTmpRXStartTime = osal_systime_get_ms();
     }
 }
 
-void CommanderGCSModule::handleCommandElapsedTime()
+void CommanderGCSModule::checkTelemetryResponseTimeout()
 {
-    uint32_t diff = osal_systime_get_ms() - m_CommandStartTime;
-    int elapsedTime = (CMD_TIMEOUT_MS - (int)diff) / 1000;
-    int nextElapsedTime = elapsedTime < 0 ? 0 : elapsedTime;
-
-    if (nextElapsedTime != m_ElapsedTimeSec)
+    if (m_ResponseStartTime != 0 && osal_systime_get_ms() - m_ResponseStartTime > RESPONSE_SEND_DELAY_MS)
     {
-        m_ElapsedTimeSec = nextElapsedTime;
-        m_CommandTimeoutPublisher.publish({m_ElapsedTimeSec});
+        sendTelemetryResponse();
 
-        LOG_DEBUG("Command %d Elapsed Time: %d sec\n", m_CurrentCMD, m_ElapsedTimeSec);
+        m_ResponseStartTime = 0;
     }
 }
 
 void CommanderGCSModule::sendTelemetryResponse()
 {
     telemetry_response payload;
-    payload.cmd = m_CurrentCMD;
-    payload.cmd_seq = m_CurrentCommandSeq;
+    payload.cmd = m_CommandHandler.getCurrentCommand();
+    payload.cmd_seq = m_CommandHandler.getCurrentSequence();
 
     datalink_message_t msg;
     datalink_pack_telemetry_response(&payload, &msg);
@@ -193,7 +157,7 @@ void CommanderGCSModule::sendTelemetryResponse()
 
     updateRadioState();
 
-    LOG_INFO("Sent telemetry response for command %d (seq %d)", m_CurrentCMD, m_CurrentCommandSeq);
+    LOG_INFO("Sent telemetry response for command %d (seq %d)", payload.cmd, payload.cmd_seq);
 }
 
 void CommanderGCSModule::updateRadioState()
@@ -202,58 +166,4 @@ void CommanderGCSModule::updateRadioState()
         .rx = m_RadioRX,
         .tx = m_RadioTX,
     });
-}
-
-void CommanderGCSModule::set(uint8_t cmd)
-{
-    if (m_CommandActive)
-    {
-        LOG_WARN("Received command %d while command %d is active, rejecting", cmd, m_CurrentCMD);
-        return;
-    }
-
-    m_CurrentCMD = cmd;
-    m_CurrentCommandSeq = (m_CurrentCommandSeq + 1) % 256;
-    m_CommandStartTime = osal_systime_get_ms();
-    m_CommandActive = true;
-
-    LOG_INFO("Set command %d (seq %d)", cmd, m_CurrentCommandSeq);
-}
-
-void CommanderGCSModule::reset()
-{
-    m_CurrentCMD = DATALINK_TELEMETRY_CMD_NONE;
-    m_CommandActive = false;
-    m_CommandStartTime = 0;
-
-    LOG_DEBUG("Reset commander state");
-}
-
-void CommanderGCSModule::ack(bool success)
-{
-    reset();
-
-    gcs_ack ack;
-    ack.success = (uint8_t)success;
-
-    datalink_message_t msg;
-    datalink_pack_gcs_ack(&ack, &msg);
-
-    m_SerialPublisher.publish(msg);
-
-    LOG_INFO("Sent %s ACK for command %d", success ? "success" : "failure", m_CurrentCMD);
-}
-
-void CommanderGCSModule::nack()
-{
-    m_CurrentCMD = m_RemoteCommandSeq;
-
-    reset();
-
-    datalink_message_t msg;
-    datalink_pack_gcs_nack(&msg);
-
-    m_SerialPublisher.publish(msg);
-
-    LOG_INFO("Sent NACK for command %d", m_CurrentCMD);
 }

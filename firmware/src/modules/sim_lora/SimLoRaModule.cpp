@@ -4,6 +4,8 @@
 #include <lib/debug/sys_assert.h>
 #include <board_config.h>
 
+#define MOCK_RSSI -50
+
 SimLoRaModule::~SimLoRaModule()
 {
     m_LoRaSocket.close();
@@ -38,7 +40,12 @@ void SimLoRaModule::receive()
     datalink_message_t loraData;
     if (m_LoRaSocket.receive(&loraData))
     {
-        m_LoRaPublisher.publish(loraData);
+        m_LoRaPublisher.publish({
+            .msg = loraData,
+            .rssi = MOCK_RSSI,
+            .sequence = m_Sequence,
+        });
+        m_Sequence = m_Sequence == 255 ? 0 : m_Sequence + 1;
     }
 }
 
@@ -55,10 +62,7 @@ void SimLoRaModule::sendIfAvailable()
     {
         const auto &data = m_LoRaSubscriber.get();
 
-        m_LoRaSocket.send(&data);
-
-        datalink_message_t msg;
-        datalink_pack_radio_module_tx_done(&msg);
-        m_LoRaPublisher.publish(msg);
+        m_LoRaSocket.send(&data.msg);
+        m_AckPublisher.publish({0});
     }
 }

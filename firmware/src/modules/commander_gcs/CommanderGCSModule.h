@@ -1,5 +1,6 @@
 #pragma once
 
+#include "GCSCommandHandler.h"
 #include <datalink.h>
 #include <pubsub/Topics.h>
 #include <pubsub/Publisher.h>
@@ -9,6 +10,8 @@
 class CommanderGCSModule
 {
 public:
+    CommanderGCSModule() : m_CommandHandler(m_SerialPublisher, m_CommandTimeoutPublisher) {}
+
     void init();
     void run();
 
@@ -17,16 +20,13 @@ private:
     PubSub::Publisher<PubSub::Topics::DatalinkMessage> m_SerialPublisher{PUBSUB_ID(serial_tx)};
     PubSub::Subscriber<PubSub::Topics::LoRaRXData> m_RadioSubscriber{PUBSUB_ID(lora_rx)};
     PubSub::Publisher<PubSub::Topics::LoRaTXData> m_RadioPublisher{PUBSUB_ID(lora_tx)};
+
     PubSub::Subscriber<PubSub::Topics::SensorsSimplifiedGPS> m_GPSSubscriber{PUBSUB_ID(sensors_simplified_gps_1)};
+
     PubSub::Publisher<PubSub::Topics::GCSCommanderTimeout> m_CommandTimeoutPublisher{PUBSUB_ID(gcs_commander_timeout)};
     PubSub::Publisher<PubSub::Topics::GCSRadioState> m_RadioStatePublisher{PUBSUB_ID(gcs_radio_state)};
 
-    uint8_t m_CurrentCMD;
-    uint8_t m_CurrentCommandSeq;
-    uint8_t m_RemoteCommandSeq;
-    bool m_CommandActive;
-    uint32_t m_CommandStartTime;
-    uint8_t m_ElapsedTimeSec;
+    GCSCommandHandler m_CommandHandler;
 
     uint8_t m_RXSequence;
     uint8_t m_TXSequence;
@@ -40,13 +40,8 @@ private:
     void processSerialMessage(const datalink_message_t &msg);
     void processRadioMessage(const PubSub::Topics::LoRaRXData &data);
 
-    void handleNewRadioSequence(uint8_t seq, uint8_t status);
-    void handleCommandElapsedTime();
+    void checkPacketLossResetTimeout();
+    void checkTelemetryResponseTimeout();
     void sendTelemetryResponse();
     void updateRadioState();
-
-    void set(uint8_t cmd);
-    void reset();
-    void ack(bool success);
-    void nack();
 };

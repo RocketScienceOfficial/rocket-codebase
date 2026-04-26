@@ -14,5 +14,13 @@
         "modules": [
             "sim_lora"
         ]
+    },
+    {
+        "name": "commander",
+        "rate": 50,
+        "priority": "high",
+        "modules": [
+            "commander_rm"
+        ]
     }
 ]

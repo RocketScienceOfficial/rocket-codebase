@@ -6,9 +6,6 @@
 #include <lib/drivers/radio/RadioLibHALPort.h>
 #include <lib/debug/sys_assert.h>
 
-static RadioLibHALPort g_hal(CFG_LORA_SPI, CFG_LORA_SPI_MISO_PIN, CFG_LORA_SPI_MOSI_PIN, CFG_LORA_SPI_SCK_PIN);
-static Module g_module(&g_hal, CFG_LORA_PIN_CS, CFG_LORA_PIN_DIO1, CFG_LORA_PIN_RESET, CFG_LORA_PIN_BUSY);
-static SX1268 g_radio(&g_module);
 static volatile bool g_radioOpDoneFlag;
 static bool g_radioInitialized = false;
 
@@ -17,21 +14,57 @@ static void _set_radio_flag(void)
     g_radioOpDoneFlag = true;
 }
 
+static RadioLibHALPort g_hal(CFG_LORA_SPI, CFG_LORA_SPI_MISO_PIN, CFG_LORA_SPI_MOSI_PIN, CFG_LORA_SPI_SCK_PIN);
+
+#if defined(CFG_LORA_TYPE_SX1268)
+static Module g_module(&g_hal, CFG_LORA_PIN_CS, CFG_LORA_PIN_DIO1, CFG_LORA_PIN_RESET, CFG_LORA_PIN_BUSY);
+static SX1268 g_radio(&g_module);
+
+static void _radio_init()
+{
+    int state = g_radio.begin(CFG_LORA_FREQ, CFG_LORA_BANDWIDTH, CFG_LORA_SF, 5, 0x12, CFG_LORA_TX_POWER, 8, 3.3f, false);
+
+    SYS_ASSERT_MSG(state == RADIOLIB_ERR_NONE, "Failed to initialize LoRa radio! Code: %d", state);
+
+    g_radio.setDio1Action(_set_radio_flag);
+}
+#elif defined(CFG_LORA_TYPE_SX1278)
+static Module g_module(&g_hal, CFG_LORA_PIN_CS, CFG_LORA_PIN_DIO0, CFG_LORA_PIN_RESET);
+static SX1278 g_radio(&g_module);
+
+static void _radio_init()
+{
+    int state = g_radio.begin(CFG_LORA_FREQ, CFG_LORA_BANDWIDTH, CFG_LORA_SF, 5, 0x12, CFG_LORA_TX_POWER, 8);
+
+    SYS_ASSERT_MSG(state == RADIOLIB_ERR_NONE, "Failed to initialize LoRa radio! Code: %d", state);
+
+    g_radio.setDio0Action(_set_radio_flag, GPIO_IRQ_RISING_EDGE);
+}
+#else
+#error "Unsupported LoRa radio type!"
+#endif
+
+#if defined(CFG_LORA_PIN_TXEN) && defined(CFG_LORA_PIN_RXEN)
+#define LORA_USE_TXRX_PINS
+#endif
+
 void LoRaCommunicationModule::init()
 {
     SYS_ASSERT_MSG(g_radioInitialized == false, "LoRa radio already initialized!");
+
+#ifdef LORA_USE_TXRX_PINS
+    LOG_INFO("Using TX/RX enable pins for LoRa radio...");
 
     hal_gpio_init_pin(CFG_LORA_PIN_TXEN, GPIO_OUTPUT);
     hal_gpio_set_pin_state(CFG_LORA_PIN_TXEN, GPIO_LOW);
 
     hal_gpio_init_pin(CFG_LORA_PIN_RXEN, GPIO_OUTPUT);
     hal_gpio_set_pin_state(CFG_LORA_PIN_RXEN, GPIO_LOW);
+#endif
 
-    int state = g_radio.begin(CFG_LORA_FREQ, CFG_LORA_BANDWIDTH, CFG_LORA_SF, 5, 0x12, CFG_LORA_TX_POWER, 8, 3.3f, false);
+    _radio_init();
 
-    SYS_ASSERT_MSG(state == RADIOLIB_ERR_NONE, "Failed to initialize LoRa radio! Code: %d", state);
-
-    g_radio.setDio1Action(_set_radio_flag);
+    setRX();
 
     LOG_INFO("LoRa radio initialized successfully!");
 
@@ -51,25 +84,11 @@ void LoRaCommunicationModule::checkIncomingMessages()
         const auto &msg = m_Subscriber.get();
         int len = sizeof(m_TransmitBuffer);
 
-        if (datalink_serialize_message_radio(&msg, m_Sequence, CFG_RADIO_SRC_ID, CFG_RADIO_DST_ID, m_TransmitBuffer, &len) == DATALINK_OK)
+        if (datalink_serialize_message_radio(&msg.msg, msg.sequence, CFG_LORA_SRC_ID, CFG_LORA_DST_ID, m_TransmitBuffer, &len) == DATALINK_OK)
         {
             setTX();
 
-            telemetry_data_obc data;
-            int unpackResult = datalink_unpack_telemetry_data_obc(&data, &msg);
-
-            SYS_ASSERT_MSG(unpackResult == DATALINK_OK, "Couldn't unpack telemetry data! Error code: %d", unpackResult);
-
-            if (data.sendResponse == 1)
-            {
-                m_DisableNextTransmit = true;
-
-                LOG_DEBUG("Disabling TX after this transmission");
-            }
-
             g_radio.startTransmit(m_TransmitBuffer, len);
-
-            m_Sequence = m_Sequence == 255 ? 0 : m_Sequence + 1;
 
             LOG_INFO("Started transmitting %d bytes through Radio!", len);
         }
@@ -115,16 +134,9 @@ void LoRaCommunicationModule::handleTX()
 
     LOG_INFO("Finished transmission!");
 
-    if (m_DisableNextTransmit)
-    {
-        m_DisableNextTransmit = false;
+    setRX();
 
-        setRX();
-    }
-
-    datalink_message_t msg;
-    datalink_pack_radio_module_tx_done(&msg);
-    m_Publisher.publish(msg);
+    m_AckPublisher.publish({0});
 }
 
 void LoRaCommunicationModule::handleRX()
@@ -147,50 +159,45 @@ void LoRaCommunicationModule::handleRX()
             return;
         }
 
-        if (srcId != CFG_RADIO_DST_ID || destId != CFG_RADIO_SRC_ID)
+        if (srcId != CFG_LORA_DST_ID || destId != CFG_LORA_SRC_ID)
         {
             LOG_ERROR("Couldn't validate ids! (src: %d, dest: %d)", srcId, destId);
 
             return;
         }
 
-        if (msg.msg_id != DATALINK_MESSAGE_ID_TELEMETRY_RESPONSE)
-        {
-            LOG_ERROR("Invalid message id! Expected %d, got %d", DATALINK_MESSAGE_ID_TELEMETRY_RESPONSE, msg.msg_id);
-
-            return;
-        }
-
         LOG_INFO("Successfully parsed packet! (Sequence: %d)", seq);
 
-        m_Publisher.publish(msg);
+        m_RXPublisher.publish({
+            .msg = msg,
+            .rssi = (int)g_radio.getRSSI(),
+            .sequence = seq,
+        });
     }
 }
 
 void LoRaCommunicationModule::setTX()
 {
-    if (!m_Transmitting)
-    {
-        hal_gpio_set_pin_state(CFG_LORA_PIN_TXEN, GPIO_HIGH);
-        hal_gpio_set_pin_state(CFG_LORA_PIN_RXEN, GPIO_LOW);
+#ifdef LORA_USE_TXRX_PINS
+    hal_gpio_set_pin_state(CFG_LORA_PIN_TXEN, GPIO_HIGH);
+    hal_gpio_set_pin_state(CFG_LORA_PIN_RXEN, GPIO_LOW);
+#endif
 
-        m_Transmitting = true;
+    m_Transmitting = true;
 
-        LOG_INFO("Started transmitting mode...");
-    }
+    LOG_INFO("Started transmitting mode...");
 }
 
 void LoRaCommunicationModule::setRX()
 {
-    if (m_Transmitting)
-    {
-        hal_gpio_set_pin_state(CFG_LORA_PIN_TXEN, GPIO_LOW);
-        hal_gpio_set_pin_state(CFG_LORA_PIN_RXEN, GPIO_HIGH);
+#ifdef LORA_USE_TXRX_PINS
+    hal_gpio_set_pin_state(CFG_LORA_PIN_TXEN, GPIO_LOW);
+    hal_gpio_set_pin_state(CFG_LORA_PIN_RXEN, GPIO_HIGH);
+#endif
 
-        g_radio.startReceive();
+    g_radio.startReceive();
 
-        m_Transmitting = false;
+    m_Transmitting = false;
 
-        LOG_INFO("Started receiving mode...");
-    }
+    LOG_INFO("Started receiving mode...");
 }

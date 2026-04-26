@@ -14,14 +14,13 @@ public:
     void run();
 
 private:
-    PubSub::Publisher<PubSub::Topics::DatalinkMessage> m_Publisher{PUBSUB_ID(uart_tx)};
-    PubSub::Subscriber<PubSub::Topics::DatalinkMessage> m_Subscriber{PUBSUB_ID(uart_rx)};
+    PubSub::Publisher<PubSub::Topics::LoRaRXData> m_RXPublisher{PUBSUB_ID(lora_rx)};
+    PubSub::Publisher<PubSub::Topics::LoRaTXAck> m_AckPublisher{PUBSUB_ID(lora_tx_ack)};
+    PubSub::Subscriber<PubSub::Topics::LoRaTXData> m_Subscriber{PUBSUB_ID(lora_tx)};
 
     bool m_Transmitting;
-    bool m_DisableNextTransmit;
     uint8_t m_ReceiveBuffer[LORA_BUFFER_SIZE];
     uint8_t m_TransmitBuffer[LORA_BUFFER_SIZE];
-    uint8_t m_Sequence;
 
     void checkIncomingMessages();
     void checkRadio();

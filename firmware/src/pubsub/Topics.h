@@ -75,6 +75,12 @@ namespace PubSub
         };
         PUBSUB_REGISTER_TOPIC(LoRaTXData, lora_tx)
 
+        struct LoRaTXAck
+        {
+            uint8_t reserved;
+        };
+        PUBSUB_REGISTER_TOPIC(LoRaTXAck, lora_tx_ack)
+
         struct SensorsIMU
         {
             float dt;

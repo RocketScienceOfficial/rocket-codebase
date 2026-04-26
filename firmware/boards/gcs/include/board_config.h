@@ -2,10 +2,11 @@
 #define _BOARD_CONFIG_H_
 
 // --- DATALINK ---
-#define CFG_GCS_SRC_ID 0xDF
-#define CFG_GCS_DST_ID 0x11
+#define CFG_LORA_SRC_ID 0xDF
+#define CFG_LORA_DST_ID 0x11
 
 // --- LORA ---
+#define CFG_LORA_TYPE_SX1278
 #define CFG_LORA_SPI 2
 #define CFG_LORA_PIN_CS 18
 #define CFG_LORA_SPI_SCK_PIN 5
@@ -13,6 +14,7 @@
 #define CFG_LORA_SPI_MISO_PIN 19
 #define CFG_LORA_PIN_DIO0 26
 #define CFG_LORA_PIN_RESET 23
+
 #define CFG_LORA_FREQ 433
 #define CFG_LORA_BANDWIDTH 250
 #define CFG_LORA_SF 7
