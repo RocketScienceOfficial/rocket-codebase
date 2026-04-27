@@ -8,19 +8,23 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
-#define NATIVE_SOCKET SOCKET
+using native_socket_t = SOCKET;
+
 #define INVALID_SOCKET_HANDLE INVALID_SOCKET
-#define CLOSESOCKET closesocket
+#define CLOSE_SOCKET closesocket
 #else
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <fcntl.h>
 
-#define NATIVE_SOCKET int
+typedef int native_socket_t;
+
 #define INVALID_SOCKET_HANDLE -1
-#define CLOSESOCKET ::close
+#define CLOSE_SOCKET ::close
 #endif
 
-#define GET_NATIVE_SOCKET(x) ((NATIVE_SOCKET)(x))
+#define GET_GENERIC_SOCKET(x) (static_cast<intptr_t>(x))
+#define GET_NATIVE_SOCKET(x) (static_cast<native_socket_t>(x))
 
 #ifdef NETWORK_LOGS_ENABLED
 #define NETWORK_DEBUG(msg, ...) printf("[NETWORK] (debug)  " msg "\n", ##__VA_ARGS__)
@@ -36,7 +40,7 @@
 
 namespace network
 {
-    static void SetNonBlocking(uint64_t sock, bool non_blocking)
+    static void SetNonBlocking(intptr_t sock, bool non_blocking)
     {
         if (!non_blocking)
         {
@@ -52,7 +56,7 @@ namespace network
 #endif
     }
 
-    TCPSocket::TCPSocket() : m_Active(false), m_Blocking(true), m_ServerSocketHandle(INVALID_SOCKET_HANDLE), m_SocketHandle(INVALID_SOCKET_HANDLE), m_ReceiveBufferLength(0), m_SendBufferLength(0)
+    TCPSocket::TCPSocket() : m_Active(false), m_Blocking(true), m_ServerSocketHandle(-1), m_SocketHandle(-1), m_ReceiveBufferLength(0), m_SendBufferLength(0)
     {
 #ifdef _WIN32
         if (GetRefCount()++ == 0)
@@ -79,11 +83,11 @@ namespace network
 
     void TCPSocket::createServer(uint16_t port)
     {
-        SYS_ASSERT(m_SocketHandle == INVALID_SOCKET_HANDLE);
+        SYS_ASSERT(m_SocketHandle == -1);
 
-        NATIVE_SOCKET tmpSocket = socket(AF_INET, SOCK_STREAM, 0);
-        SYS_ASSERT(tmpSocket != INVALID_SOCKET_HANDLE);
-        m_ServerSocketHandle = tmpSocket;
+        native_socket_t sock = socket(AF_INET, SOCK_STREAM, 0);
+        SYS_ASSERT(sock != INVALID_SOCKET_HANDLE);
+        m_ServerSocketHandle = GET_GENERIC_SOCKET(sock);
 
         int opt = 1;
         setsockopt(GET_NATIVE_SOCKET(m_ServerSocketHandle), SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof(opt));
@@ -119,9 +123,9 @@ namespace network
 
         NETWORK_DEBUG("TCP server socket waiting for any client to connect...");
 
-        m_SocketHandle = accept(GET_NATIVE_SOCKET(m_ServerSocketHandle), nullptr, nullptr);
+        native_socket_t clientSock = accept(GET_NATIVE_SOCKET(m_ServerSocketHandle), nullptr, nullptr);
 
-        if (m_SocketHandle == INVALID_SOCKET_HANDLE)
+        if (clientSock == INVALID_SOCKET_HANDLE)
         {
             close();
 
@@ -130,6 +134,8 @@ namespace network
             return;
         }
 
+        m_SocketHandle = GET_GENERIC_SOCKET(clientSock);
+
         NETWORK_DEBUG("Client connected!");
 
         m_Active = true;
@@ -137,12 +143,12 @@ namespace network
 
     void TCPSocket::createClient(const char *ip, uint16_t port)
     {
-        SYS_ASSERT(m_SocketHandle == INVALID_SOCKET_HANDLE);
+        SYS_ASSERT(m_SocketHandle == -1);
         SYS_ASSERT(ip != nullptr);
 
-        NATIVE_SOCKET tmpSocket = socket(AF_INET, SOCK_STREAM, 0);
-        SYS_ASSERT(tmpSocket != INVALID_SOCKET_HANDLE);
-        m_SocketHandle = tmpSocket;
+        native_socket_t sock = socket(AF_INET, SOCK_STREAM, 0);
+        SYS_ASSERT(sock != INVALID_SOCKET_HANDLE);
+        m_SocketHandle = GET_GENERIC_SOCKET(sock);
 
         sockaddr_in addr;
         memset(&addr, 0, sizeof(addr));
@@ -196,7 +202,7 @@ namespace network
     bool TCPSocket::receive(datalink_message_t *msg)
     {
         SYS_ASSERT(msg != nullptr);
-        SYS_ASSERT(m_SocketHandle != INVALID_SOCKET_HANDLE);
+        SYS_ASSERT(m_SocketHandle != -1);
 
         while (true)
         {
@@ -260,7 +266,7 @@ namespace network
     void TCPSocket::send(const datalink_message_t *msg)
     {
         SYS_ASSERT(msg != nullptr);
-        SYS_ASSERT(m_SocketHandle != INVALID_SOCKET_HANDLE);
+        SYS_ASSERT(m_SocketHandle != -1);
 
         int len = sizeof(m_SendBuffer);
         int res = datalink_serialize_message_serial(msg, m_SendBuffer, &len);
@@ -276,7 +282,7 @@ namespace network
             if (sent <= 0)
             {
                 NETWORK_ERROR("Failed to send data over TCP socket");
-                
+
                 close();
 
                 return;
@@ -288,10 +294,10 @@ namespace network
 
     void TCPSocket::closeServerSocket()
     {
-        if (m_ServerSocketHandle != INVALID_SOCKET_HANDLE)
+        if (m_ServerSocketHandle != -1)
         {
-            CLOSESOCKET(GET_NATIVE_SOCKET(m_ServerSocketHandle));
-            m_ServerSocketHandle = INVALID_SOCKET_HANDLE;
+            CLOSE_SOCKET(GET_NATIVE_SOCKET(m_ServerSocketHandle));
+            m_ServerSocketHandle = -1;
 
             NETWORK_DEBUG("TCP server socket closed.");
         }
@@ -299,10 +305,10 @@ namespace network
 
     void TCPSocket::closeSocket()
     {
-        if (m_SocketHandle != INVALID_SOCKET_HANDLE)
+        if (m_SocketHandle != -1)
         {
-            CLOSESOCKET(GET_NATIVE_SOCKET(m_SocketHandle));
-            m_SocketHandle = INVALID_SOCKET_HANDLE;
+            CLOSE_SOCKET(GET_NATIVE_SOCKET(m_SocketHandle));
+            m_SocketHandle = -1;
 
             NETWORK_DEBUG("TCP socket closed.");
         }

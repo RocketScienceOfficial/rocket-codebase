@@ -25,9 +25,9 @@ namespace network
     private:
         bool m_Active;
         bool m_Blocking;
-
-        uint64_t m_ServerSocketHandle;
-        uint64_t m_SocketHandle;
+        
+        intptr_t m_ServerSocketHandle;
+        intptr_t m_SocketHandle;
 
         uint8_t m_ReceiveBuffer[TCP_RECEIVE_BUFFER_SIZE];
         int m_ReceiveBufferLength;
