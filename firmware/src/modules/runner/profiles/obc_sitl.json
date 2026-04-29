@@ -27,7 +27,8 @@
         "modules": [
             "ekf",
             "state_machine",
-            "ign"
+            "ign",
+            "airbrake"
         ]
     },
     {

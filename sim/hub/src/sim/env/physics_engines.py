@@ -13,6 +13,7 @@ MAG_FIELD_NED = np.array([20000.0, 5000.0, 45000.0], dtype=float)
 @dataclass
 class PhysicsEngineInput:
     fin_states: np.ndarray
+    airbrake_angle: float
 
 
 @dataclass
@@ -115,14 +116,22 @@ class SimpleIntegratorPhysicsEngine(PhysicsEngineInterface):
 
 
 class SimulinkPhysicsEngine(PhysicsEngineInterface):
-    def __init__(self, dt: float):
+    def __init__(self, dt: float, model: str):
         super().__init__(dt)
+
+        self.model = model
 
         self.server = TCPSocket(name="simulink", ip="localhost", port=12360, is_server=True, blocking=True)
         self.is_finished = False
 
     def integrate(self, input: PhysicsEngineInput) -> PhysicsEngineOutput:
-        self.server.send_raw(struct.pack("<dd", *input.fin_states))
+        if self.model == "acs":
+            self.server.send_raw(struct.pack("<dd", *input.fin_states[:2]))
+        elif self.model == "airbrake":
+            self.server.send_raw(struct.pack("<d", input.airbrake_angle))
+        else:
+            raise ValueError(f"Unknown model: {self.model}")
+
         data = self.server.receive_raw(128)
 
         if data is None:

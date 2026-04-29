@@ -51,6 +51,12 @@
             <field name="qx" type="float"/>
             <field name="qy" type="float"/>
             <field name="qz" type="float"/>
+            <field name="angle_fin1" type="float"/>
+            <field name="angle_fin2" type="float"/>
+            <field name="angle_fin3" type="float"/>
+            <field name="angle_fin4" type="float"/>
+            <field name="angle_airbrake" type="float"/>
+            <field name="predictedApogee" type="float"/>
             <field name="smState" type="uint8">Based on state_machine_state</field>
             <field name="ignFiredFlags" type="uint8"> Each bit represents whether a specific igniter is fired (1) or not (0)</field>
         </message>

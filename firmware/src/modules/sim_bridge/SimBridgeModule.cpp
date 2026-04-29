@@ -119,6 +119,10 @@ void SimBridgeModule::sendPhysicsResponseData()
             m_responseData.ignFiredFlags |= (ignState.fired[i] ? (1 << i) : 0);
         }
     }
+    if (m_AirbrakeStateSubscriber.poll())
+    {
+        m_responseData.predictedApogee = m_AirbrakeStateSubscriber.get().predictedApogee;
+    }
 
     datalink_message_t msg;
     datalink_pack_sitl_response_data(&m_responseData, &msg);

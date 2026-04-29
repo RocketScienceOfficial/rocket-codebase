@@ -44,6 +44,3 @@ def plot(received_data: list[datalink.sitl_response_data], true_data: list[Physi
 
     axes[-1].set_xlabel("Time (s)")
     fig.tight_layout()
-
-    plt.pause(0.1)
-    plt.show()

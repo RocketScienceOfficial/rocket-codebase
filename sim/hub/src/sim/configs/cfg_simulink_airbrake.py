@@ -5,7 +5,7 @@ from sim.env.sensors import *
 
 def get_environment(dt: float):
     return SyntheticEnvironment(
-        engine=SimulinkPhysicsEngine(dt=dt),
+        engine=SimulinkPhysicsEngine(dt=dt, model="airbrake"),
         imu1=IMUModel(rate=500, noise=GaussianNoiseModel(mean=0, var=0.01)),
         mag1=MagnetometerModel(rate=100, noise=GaussianNoiseModel(mean=0, var=0.1)),
         baro1=BarometerModel(rate=250, noise=GaussianNoiseModel(mean=0, var=0.5)),

@@ -38,6 +38,3 @@ def plot(received_data: list[datalink.sitl_response_data], dt: float):
 
     plt.grid(True, linestyle='--', alpha=0.6)
     plt.legend(loc='upper left')
-
-    plt.pause(0.1)
-    plt.show()

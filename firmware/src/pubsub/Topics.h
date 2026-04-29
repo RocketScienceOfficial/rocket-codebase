@@ -150,6 +150,12 @@ namespace PubSub
         };
         PUBSUB_REGISTER_TOPIC(EKFState, ekf_state)
 
+        struct AirbrakeState
+        {
+            float predictedApogee;
+        };
+        PUBSUB_REGISTER_TOPIC(AirbrakeState, airbrake_state)
+
         struct StateMachineState
         {
             state_machine_state state;

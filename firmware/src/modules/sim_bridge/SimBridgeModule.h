@@ -24,6 +24,7 @@ private:
     PubSub::Subscriber<PubSub::Topics::EKFState> m_EKFStateSubscriber{PUBSUB_ID(ekf_state)};
     PubSub::Subscriber<PubSub::Topics::IgnFired> m_IGNSubscriber{PUBSUB_ID(ign_fired)};
     PubSub::Subscriber<PubSub::Topics::StateMachineState> m_StateMachineStateSubscriber{PUBSUB_ID(sm_state)};
+    PubSub::Subscriber<PubSub::Topics::AirbrakeState> m_AirbrakeStateSubscriber{PUBSUB_ID(airbrake_state)};
 
     sitl_response_data m_responseData;
 

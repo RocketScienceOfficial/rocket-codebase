@@ -1,7 +1,9 @@
 import argparse
+import time
+import matplotlib.pyplot as plt
 from . import datalink
 from sim.connection.network import TCPSocket
-from sim.presentation import axes_plots, errors_plots, main_plot
+from sim.presentation import axes_plots, errors_plots, main_plot, predicted_apogee_plot
 from sim.env.environments import *
 from sim.env.physics_engines import *
 from sim.env.sensors import *
@@ -28,8 +30,10 @@ if args.config == "fm2024":
     from sim.configs.cfg_fm2024 import get_environment
 elif args.config == "or_taipan":
     from sim.configs.cfg_or_taipan import get_environment
-elif args.config == "simulink":
-    from sim.configs.cfg_simulink import get_environment
+elif args.config == "simulink_acs":
+    from sim.configs.cfg_simulink_acs import get_environment
+elif args.config == "simulink_airbrake":
+    from sim.configs.cfg_simulink_airbrake import get_environment
 else:
     raise ValueError(f"Unknown configuration: {args.config}")
 
@@ -51,26 +55,27 @@ if AUTO_ARM:
 print("> Starting simulation...")
 
 tick = 0
+start_time = time.time()
 received_data = []
 true_data = []
 
-env.forward(PhysicsEngineInput(fin_states=np.array([0, 0])))
+env.forward(PhysicsEngineInput(fin_states=np.array([0, 0, 0, 0]), airbrake_angle=0.0))
 
 while not env.finished():
     data = datalink.sitl_response_data.unpack(physx_sock.receive())
     received_data.append(data)
 
-    env.forward(PhysicsEngineInput(fin_states=np.array([0, 0])))
+    env.forward(PhysicsEngineInput(fin_states=np.array([data.angle_fin1, data.angle_fin2, data.angle_fin3, data.angle_fin4]), airbrake_angle=data.angle_airbrake))
     true_data.append(env.get_current_true_data())
 
     physx_sock.send(env.get_current_data().pack())
 
     if tick % 100 == 0:
-        print(f"\r> Running simulation... Time: {tick/1000:.1f}s", end="", flush=True)
+        print(f"\r> Running simulation... Time: {tick/1000:.1f}s (Real: {time.time() - start_time:.1f}s)", end="", flush=True)
 
     tick += 1
 
-print("\n> Simulation complete!")
+print(f"\n> Simulation complete (in {time.time() - start_time:.1f}s)!")
 # ============================================
 
 
@@ -86,4 +91,8 @@ print("> Plotting data...")
 main_plot.plot(received_data, SIM_TICK_DT)
 axes_plots.plot(received_data, true_data, SIM_TICK_DT)
 errors_plots.plot(received_data, true_data, SIM_TICK_DT)
+predicted_apogee_plot.plot(received_data, SIM_TICK_DT)
+
+plt.pause(0.1)
+plt.show()
 # ==============================================
