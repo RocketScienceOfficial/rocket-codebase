@@ -90,22 +90,25 @@ bool EKF::fuseGPSPosition(const EKFGPSPosMeasurement &meas, float gate_threshold
     float innov, innov_var;
 
     gen::gps_fusion_pos_n(m_NominalState.asArray(), P_current, meas.pos.x, meas.var_hor, &innov, &innov_var, _H, _K);
-    if (!applyFusion(innov, innov_var, gate_threshold))
+    if (!shouldFuseMeasurement(innov, innov_var, gate_threshold))
     {
         return false;
     }
+    applyFusion(innov);
 
     gen::gps_fusion_pos_e(m_NominalState.asArray(), P_current, meas.pos.y, meas.var_hor, &innov, &innov_var, _H, _K);
-    if (!applyFusion(innov, innov_var, gate_threshold))
+    if (!shouldFuseMeasurement(innov, innov_var, gate_threshold))
     {
         return false;
     }
+    applyFusion(innov);
 
     gen::gps_fusion_pos_d(m_NominalState.asArray(), P_current, meas.pos.z, meas.var_ver, &innov, &innov_var, _H, _K);
-    if (!applyFusion(innov, innov_var, gate_threshold))
+    if (!shouldFuseMeasurement(innov, innov_var, gate_threshold))
     {
         return false;
     }
+    applyFusion(innov);
 
     return true;
 }
@@ -115,22 +118,25 @@ bool EKF::fuseGPSVelocity(const EKFGPSVelMeasurement &meas, float gate_threshold
     float innov, innov_var;
 
     gen::gps_fusion_vel_n(m_NominalState.asArray(), P_current, meas.vel.x, meas.var, &innov, &innov_var, _H, _K);
-    if (!applyFusion(innov, innov_var, gate_threshold))
+    if (!shouldFuseMeasurement(innov, innov_var, gate_threshold))
     {
         return false;
     }
+    applyFusion(innov);
 
     gen::gps_fusion_vel_e(m_NominalState.asArray(), P_current, meas.vel.y, meas.var, &innov, &innov_var, _H, _K);
-    if (!applyFusion(innov, innov_var, gate_threshold))
+    if (!shouldFuseMeasurement(innov, innov_var, gate_threshold))
     {
         return false;
     }
+    applyFusion(innov);
 
     gen::gps_fusion_vel_d(m_NominalState.asArray(), P_current, meas.vel.z, meas.var, &innov, &innov_var, _H, _K);
-    if (!applyFusion(innov, innov_var, gate_threshold))
+    if (!shouldFuseMeasurement(innov, innov_var, gate_threshold))
     {
         return false;
     }
+    applyFusion(innov);
 
     return true;
 }
@@ -140,24 +146,21 @@ bool EKF::fuseBaroHeight(const EKFBaroMeasurement &meas, float gate_threshold)
     float innov, innov_var;
 
     gen::baro_fusion(m_NominalState.asArray(), P_current, meas.height, meas.var, &innov, &innov_var, _H, _K);
-    return applyFusion(innov, innov_var, gate_threshold);
-}
-
-bool EKF::applyFusion(float innov, float innov_var, float gate_threshold)
-{
-    if (shouldFuseMeasurement(innov, innov_var, gate_threshold))
-    {
-        updateErrorState(innov);
-        updateCovariancePostFusion();
-        injectErrorState();
-        resetErrorState();
-
-        return true;
-    }
-    else
+    if (!shouldFuseMeasurement(innov, innov_var, gate_threshold))
     {
         return false;
     }
+    applyFusion(innov);
+
+    return true;
+}
+
+void EKF::applyFusion(float innov)
+{
+    updateErrorState(innov);
+    updateCovariancePostFusion();
+    injectErrorState();
+    resetErrorState();
 }
 
 void EKF::updateCovariancePostFusion()

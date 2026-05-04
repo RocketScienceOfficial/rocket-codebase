@@ -31,7 +31,7 @@ private:
     float _H[EKF_NUM_ERROR_STATES];
     float _HP[EKF_NUM_ERROR_STATES];
 
-    bool applyFusion(float innov, float innov_var, float gate_threshold);
+    void applyFusion(float innov);
     void updateCovariancePostFusion();
 
     bool shouldFuseMeasurement(float innov, float innov_var, float gate_threshold);
