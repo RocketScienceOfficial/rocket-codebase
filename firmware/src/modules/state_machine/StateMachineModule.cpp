@@ -1,5 +1,6 @@
 #include "StateMachineModule.h"
 #include "modules/common/ModuleLogger.h"
+#include <osal/systime.h>
 #include <lib/maths/math_utils.h>
 #include <lib/geo/physical_constants.h>
 #include <cmath>
@@ -102,7 +103,7 @@ void StateMachineModule::changeState(state_machine_state new_state)
 {
     m_State = new_state;
 
-    LOG_INFO("State changed to %d", m_State);
+    LOG_INFO("State changed to %d (Time = %dms)", m_State, osal_systime_get_ms());
 
     m_FlightStatePublisher.publish({.state = m_State});
 }
