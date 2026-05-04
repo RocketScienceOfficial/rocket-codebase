@@ -106,6 +106,7 @@ namespace PubSub
         struct SensorsGPS
         {
             geo_position_wgs84_t pos;
+            vec3_t vel;
             bool gpsFix;
             bool gpsIs3dFix;
             uint8_t gpsSatellitesCount;

@@ -18,6 +18,7 @@ extern "C"
 typedef struct
 {
     geo_position_wgs84_t position;
+    vec3_t velocity;
     bool fix;
     bool is3dFix;
     uint8_t numSV;
