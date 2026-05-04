@@ -69,10 +69,10 @@ void SimBridgeModule::receivePhysicsData()
     {
         m_GPS1DataPublisher.publish({
             .pos = {physxData.gps1Lat, physxData.gps1Lon, physxData.gps1Alt},
-            .vel = {0, 0, 0},
-            .stddev_horizontal = 0,
-            .stddev_vertical = 0,
-            .stddev_speed = 0,
+            .vel = {physxData.gps1VelN, physxData.gps1VelE, physxData.gps1VelD},
+            .stddev_horizontal = physxData.gps1stddevHorizontal,
+            .stddev_vertical = physxData.gps1stddevVertical,
+            .stddev_speed = physxData.gps1stddevSpeed,
             .gpsFix = physxData.gps1Sats > 0,
             .gpsIs3dFix = physxData.gps1Sats > 3,
             .gpsSatellitesCount = physxData.gps1Sats,

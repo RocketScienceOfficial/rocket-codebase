@@ -34,20 +34,26 @@
             <field name="gps1Lat" type="double"/>
             <field name="gps1Lon" type="double"/>
             <field name="gps1Alt" type="double"/>
+            <field name="gps1VelN" type="float"/>
+            <field name="gps1VelE" type="float"/>
+            <field name="gps1VelD" type="float"/>
+            <field name="gps1stddevHorizontal" type="float"/>
+            <field name="gps1stddevVertical" type="float"/>
+            <field name="gps1stddevSpeed" type="float"/>
             <field name="gps1Sats" type="uint8"/>
         </message>
 
         <message name="sitl_response_data" id="33">
-            <field name="velN" type="float"/>
-            <field name="velE" type="float"/>
-            <field name="velD" type="float"/>
-            <field name="posN" type="float"/>
-            <field name="posE" type="float"/>
-            <field name="posD" type="float"/>
             <field name="qw" type="float"/>
             <field name="qx" type="float"/>
             <field name="qy" type="float"/>
             <field name="qz" type="float"/>
+            <field name="posN" type="float"/>
+            <field name="posE" type="float"/>
+            <field name="posD" type="float"/>
+            <field name="velN" type="float"/>
+            <field name="velE" type="float"/>
+            <field name="velD" type="float"/>
             <field name="angle_fin1" type="float"/>
             <field name="angle_fin2" type="float"/>
             <field name="angle_fin3" type="float"/>

@@ -27,7 +27,7 @@
             <field name="lat" type="double"/>
             <field name="lon" type="double"/>
             <field name="alt" type="double"/>
-            <field name="gpsData" type="uint8">First bit - GPS fix, rest - sats number</field>
+            <field name="gpsData" type="uint8">First bit - GPS fix 3d, rest - sats number</field>
             <field name="pressure" type="int32"/>
             <field name="velN" type="float"/>
             <field name="velE" type="float"/>
@@ -58,7 +58,7 @@
             <field name="lat" type="double"/>
             <field name="lon" type="double"/>
             <field name="alt" type="double"/>
-            <field name="gpsData" type="uint8">First bit - GPS fix, rest - sats number</field>
+            <field name="gpsData" type="uint8">First bit - GPS fix 3d, rest - sats number</field>
             <field name="pressure" type="int32"/>
             <field name="velN" type="float"/>
             <field name="velE" type="float"/>
