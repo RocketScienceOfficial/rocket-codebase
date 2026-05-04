@@ -223,9 +223,6 @@ public class DownloadController : MonoBehaviour
         csv.WriteString("gps_fix");
         csv.WriteString("gps_sats");
         csv.WriteString("pressure");
-        csv.WriteString("acc_N");
-        csv.WriteString("acc_E");
-        csv.WriteString("acc_D");
         csv.WriteString("vel_N");
         csv.WriteString("vel_E");
         csv.WriteString("vel_D");
@@ -265,9 +262,6 @@ public class DownloadController : MonoBehaviour
         csv.WriteString("gps_fix");
         csv.WriteString("gps_sats");
         csv.WriteString("pressure");
-        csv.WriteString("acc_N");
-        csv.WriteString("acc_E");
-        csv.WriteString("acc_D");
         csv.WriteString("vel_N");
         csv.WriteString("vel_E");
         csv.WriteString("vel_D");
@@ -304,9 +298,6 @@ public class DownloadController : MonoBehaviour
         csv.WriteFileValue(payload.gpsData & 0x01);
         csv.WriteFileValue(payload.gpsData >> 1);
         csv.WriteFileValue(payload.pressure);
-        csv.WriteFileValue(payload.accN);
-        csv.WriteFileValue(payload.accE);
-        csv.WriteFileValue(payload.accD);
         csv.WriteFileValue(payload.velN);
         csv.WriteFileValue(payload.velE);
         csv.WriteFileValue(payload.velD);
@@ -347,9 +338,6 @@ public class DownloadController : MonoBehaviour
         csv.WriteFileValue(payload.gpsData & 0x01);
         csv.WriteFileValue(payload.gpsData >> 1);
         csv.WriteFileValue(payload.pressure);
-        csv.WriteFileValue(payload.accN);
-        csv.WriteFileValue(payload.accE);
-        csv.WriteFileValue(payload.accD);
         csv.WriteFileValue(payload.velN);
         csv.WriteFileValue(payload.velE);
         csv.WriteFileValue(payload.velD);
