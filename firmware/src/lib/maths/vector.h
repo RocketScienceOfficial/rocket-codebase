@@ -80,6 +80,15 @@ void vec3_normalize(vec3_t *v);
  */
 float vec3_dot(const vec3_t *a, const vec3_t *b);
 
+/**
+ * @brief Calculate cross product of two vectors (right hand rule)
+ *
+ * @param a Vector A
+ * @param b Vector B
+ * @return Cross product
+ */
+vec3_t vec3_cross(const vec3_t *a, const vec3_t *b);
+
 #ifdef __cplusplus
 }
 #endif

@@ -18,13 +18,16 @@ quat_t quat_mul(const quat_t *a, const quat_t *b)
     };
 }
 
-void quat_conj(quat_t *q)
+quat_t quat_conj(const quat_t *q)
 {
     SYS_ASSERT(q != NULL);
 
-    q->x = -q->x;
-    q->y = -q->y;
-    q->z = -q->z;
+    return (quat_t){
+        .w = q->w,
+        .x = -q->x,
+        .y = -q->y,
+        .z = -q->z,
+    };
 }
 
 void quat_inv(quat_t *q)
@@ -64,6 +67,25 @@ void quat_rotate_vec(vec3_t *v, const quat_t *q)
         .y = v->x * 2.0f * (q->x * q->y + q->z * q->w) + v->y * (1.0f - 2.0f * (q->x * q->x + q->z * q->z)) + v->z * 2.0f * (q->y * q->z - q->x * q->w),
         .z = v->x * 2.0f * (q->x * q->z - q->y * q->w) + v->y * 2.0f * (q->y * q->z + q->x * q->w) + v->z * (1.0f - 2.0f * (q->x * q->x + q->y * q->y)),
     };
+}
+
+quat_t quat_from_vecs(const vec3_t *from, const vec3_t *to)
+{
+    SYS_ASSERT(from != NULL);
+    SYS_ASSERT(to != NULL);
+
+    float dot = vec3_dot(from, to);
+    vec3_t crs = vec3_cross(from, to);
+
+    quat_t result = {
+        .w = 1 + dot,
+        .x = crs.x,
+        .y = crs.y,
+        .z = crs.z,
+    };
+    quat_normalize(&result);
+
+    return result;
 }
 
 quat_t quat_gyro_derivative(const quat_t *q, const vec3_t *gyro)

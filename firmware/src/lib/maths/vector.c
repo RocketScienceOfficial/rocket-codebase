@@ -49,7 +49,8 @@ int vec3_mag_compare(const vec3_t *v, float n)
 
     float r = v->x * v->x + v->y * v->y + v->z * v->z;
 
-    return r > n * n ? 1 : r < n * n ? -1 : 0;
+    return r > n * n ? 1 : r < n * n ? -1
+                                     : 0;
 }
 
 void vec3_normalize(vec3_t *v)
@@ -70,4 +71,16 @@ float vec3_dot(const vec3_t *a, const vec3_t *b)
     SYS_ASSERT(b != NULL);
 
     return a->x * b->x + a->y * b->y + a->z * b->z;
+}
+
+vec3_t vec3_cross(const vec3_t *a, const vec3_t *b)
+{
+    SYS_ASSERT(a != NULL);
+    SYS_ASSERT(b != NULL);
+
+    return (vec3_t){
+        .x = a->y * b->z - a->z * b->y,
+        .y = a->z * b->x - a->x * b->z,
+        .z = a->x * b->y - a->y * b->x,
+    };
 }
