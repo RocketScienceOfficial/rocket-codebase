@@ -118,9 +118,9 @@ namespace PubSub
         {
             geo_position_t pos;
             vec3_t vel;
-            float std_horizontal;
-            float std_vertical;
-            float std_speed;
+            float stddev_horizontal;
+            float stddev_vertical;
+            float stddev_speed;
             bool gpsFix;
             bool gpsIs3dFix;
             uint8_t gpsSatellitesCount;

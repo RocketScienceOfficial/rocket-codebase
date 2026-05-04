@@ -6,7 +6,7 @@
 #include <cmath>
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
-#define STD_TO_VAR(std) ((std) * (std))
+#define _var(std) ((std) * (std))
 
 void EKFModule::init()
 {
@@ -63,8 +63,8 @@ void EKFModule::processIMU(const PubSub::Topics::SensorsIMU &imuData)
         EKFIMUData sample;
         sample.delta_velocity = m_AccelAccum;
         sample.delta_angle = m_GyroAccum;
-        sample.varAcc = (m_IMUClippingFlagsAccum & PubSub::Helpers::ACC_CLIP_X || m_IMUClippingFlagsAccum & PubSub::Helpers::ACC_CLIP_Y || m_IMUClippingFlagsAccum & PubSub::Helpers::ACC_CLIP_Z) ? STD_TO_VAR(EKF_NOISE_ACC_CLIPPING) : STD_TO_VAR(EKF_NOISE_ACC);
-        sample.varGyro = (m_IMUClippingFlagsAccum & PubSub::Helpers::GYRO_CLIP_X || m_IMUClippingFlagsAccum & PubSub::Helpers::GYRO_CLIP_Y || m_IMUClippingFlagsAccum & PubSub::Helpers::GYRO_CLIP_Z) ? STD_TO_VAR(EKF_NOISE_GYRO_CLIPPING) : STD_TO_VAR(EKF_NOISE_GYRO);
+        sample.varAcc = (m_IMUClippingFlagsAccum & PubSub::Helpers::ACC_CLIP_X || m_IMUClippingFlagsAccum & PubSub::Helpers::ACC_CLIP_Y || m_IMUClippingFlagsAccum & PubSub::Helpers::ACC_CLIP_Z) ? _var(EKF_NOISE_ACC_CLIPPING) : _var(EKF_NOISE_ACC);
+        sample.varGyro = (m_IMUClippingFlagsAccum & PubSub::Helpers::GYRO_CLIP_X || m_IMUClippingFlagsAccum & PubSub::Helpers::GYRO_CLIP_Y || m_IMUClippingFlagsAccum & PubSub::Helpers::GYRO_CLIP_Z) ? _var(EKF_NOISE_GYRO_CLIPPING) : _var(EKF_NOISE_GYRO);
         sample.dt = m_IMUDtAccum;
         m_IMUBuffer.push(sample, currentTime);
 
@@ -111,15 +111,15 @@ void EKFModule::processGPS(const PubSub::Topics::SensorsGPS &gpsData)
     {
         EKFGPSPosMeasurement posMeas;
         posMeas.pos = equirect_project_to_ned(&m_Projection, &gpsData.pos);
-        posMeas.var_hor = STD_TO_VAR(MIN(EKF_NOISE_GPS_POS, gpsData.std_horizontal));
-        posMeas.var_ver = STD_TO_VAR(MIN(EKF_NOISE_GPS_POS, gpsData.std_vertical));
+        posMeas.var_hor = _var(gpsData.stddev_horizontal);
+        posMeas.var_ver = _var(gpsData.stddev_vertical);
         m_GPSPosBuffer.push(posMeas, osal_systime_get_ms() - EKF_GPS_DELAY_MS);
 
         if (vec3_mag_compare(&gpsData.vel, EKF_GPS_FUSION_VELOCITY_THRESHOLD) > 0)
         {
             EKFGPSVelMeasurement velMeas;
             velMeas.vel = gpsData.vel;
-            velMeas.var = STD_TO_VAR(MIN(EKF_NOISE_GPS_VEL, gpsData.std_speed));
+            velMeas.var = _var(gpsData.stddev_speed);
             m_GPSVelBuffer.push(velMeas, osal_systime_get_ms() - EKF_GPS_DELAY_MS);
         }
     }
@@ -144,7 +144,7 @@ void EKFModule::processBaro(const PubSub::Topics::SensorsBaro &baroData)
     {
         EKFBaroMeasurement baroMeas;
         baroMeas.height = -(baroData.baroHeight - m_BaroOffset); // Negative because baro height is typically positive upwards, while NED z is positive downwards
-        baroMeas.var = STD_TO_VAR(EKF_NOISE_BARO);
+        baroMeas.var = _var(EKF_NOISE_BARO);
         m_BaroBuffer.push(baroMeas, osal_systime_get_ms() - EKF_BARO_DELAY_MS);
     }
 }
@@ -326,11 +326,11 @@ void EKFModule::addBiasNoiseToCovariance(float dt)
 {
     for (size_t i = 9; i < 12; i++)
     {
-        m_EKF.getCovarianceElement(i, i) += STD_TO_VAR(EKF_NOISE_GYRO_BIAS) * dt;
+        m_EKF.getCovarianceElement(i, i) += _var(EKF_NOISE_GYRO_BIAS) * dt;
     }
 
     for (size_t i = 12; i < 15; i++)
     {
-        m_EKF.getCovarianceElement(i, i) += STD_TO_VAR(EKF_NOISE_ACC_BIAS) * dt;
+        m_EKF.getCovarianceElement(i, i) += _var(EKF_NOISE_ACC_BIAS) * dt;
     }
 }

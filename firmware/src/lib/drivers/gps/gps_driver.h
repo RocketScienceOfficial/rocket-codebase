@@ -19,9 +19,9 @@ typedef struct
 {
     geo_position_t position;
     vec3_t velocity_ned;
-    float std_horizontal;
-    float std_vertical;
-    float std_speed;
+    float stddev_horizontal;
+    float stddev_vertical;
+    float stddev_speed;
     bool fix;
     bool is3dFix;
     uint8_t numSV;

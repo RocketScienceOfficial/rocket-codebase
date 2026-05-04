@@ -35,8 +35,6 @@
 #define EKF_NOISE_GYRO_CLIPPING 0.9f
 #define EKF_NOISE_ACC_BIAS 0.1f
 #define EKF_NOISE_GYRO_BIAS 0.2f
-#define EKF_NOISE_GPS_POS 1.8f
-#define EKF_NOISE_GPS_VEL 0.06f
 #define EKF_NOISE_BARO 0.1f
 
 /** Output Predictor Time Constants */

@@ -70,9 +70,9 @@ void SimBridgeModule::receivePhysicsData()
         m_GPS1DataPublisher.publish({
             .pos = {physxData.gps1Lat, physxData.gps1Lon, physxData.gps1Alt},
             .vel = {0, 0, 0},
-            .std_horizontal = 0,
-            .std_vertical = 0,
-            .std_speed = 0,
+            .stddev_horizontal = 0,
+            .stddev_vertical = 0,
+            .stddev_speed = 0,
             .gpsFix = physxData.gps1Sats > 0,
             .gpsIs3dFix = physxData.gps1Sats > 3,
             .gpsSatellitesCount = physxData.gps1Sats,
