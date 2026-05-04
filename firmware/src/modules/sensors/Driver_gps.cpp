@@ -15,7 +15,10 @@ void Driver_gps::readAndPublish(float dt)
         if (m_Device.data.fix)
         {
             m_CurrentFrame.pos = m_Device.data.position;
-            m_CurrentFrame.vel = m_Device.data.velocity;
+            m_CurrentFrame.vel = m_Device.data.velocity_ned;
+            m_CurrentFrame.std_horizontal = m_Device.data.std_horizontal;
+            m_CurrentFrame.std_vertical = m_Device.data.std_vertical;
+            m_CurrentFrame.std_speed = m_Device.data.std_speed;
             m_CurrentFrame.gpsFix = m_Device.data.fix;
             m_CurrentFrame.gpsIs3dFix = m_Device.data.is3dFix;
             m_CurrentFrame.gpsSatellitesCount = m_Device.data.numSV;

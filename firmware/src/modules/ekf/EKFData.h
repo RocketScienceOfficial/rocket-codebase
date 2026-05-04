@@ -25,7 +25,8 @@ struct EKFBaroMeasurement
 struct EKFGPSPosMeasurement
 {
     vec3_t pos;
-    float var;
+    float var_hor;
+    float var_ver;
 };
 
 struct EKFGPSVelMeasurement

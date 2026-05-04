@@ -1,5 +1,6 @@
 #include "StateMachineModule.h"
 #include "modules/common/ModuleLogger.h"
+#include <lib/maths/math_utils.h>
 #include <lib/geo/physical_constants.h>
 #include <cmath>
 
@@ -76,7 +77,7 @@ void StateMachineModule::updateData()
     {
         const auto &baro_data = m_BaroDataSubscriber.get();
 
-        m_CurrentBaroHeight = baro_data.baroHeight;
+        m_CurrentBaroHeight = exp_smoothing(baro_data.baroHeight, m_CurrentBaroHeight, 0.2f);
         m_BaroHeightChanged = true;
     }
 

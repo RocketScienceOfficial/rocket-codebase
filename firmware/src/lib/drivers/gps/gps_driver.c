@@ -43,7 +43,7 @@ void gps_init_spi(gps_device_t *device, uint8_t spi, uint8_t cs)
 bool gps_read_spi(gps_device_t *device)
 {
     SYS_ASSERT(device != NULL);
-    
+
     bool found = false;
     uint8_t i = 0;
     uint8_t byte;
@@ -60,9 +60,12 @@ bool gps_read_spi(gps_device_t *device)
             device->data.position.lat = device->parser.current_frame.lat * 1e-7;
             device->data.position.lon = device->parser.current_frame.lon * 1e-7;
             device->data.position.alt = device->parser.current_frame.height * 1e-3;
-            device->data.velocity.x = device->parser.current_frame.velN * 1e-3;
-            device->data.velocity.y = device->parser.current_frame.velE * 1e-3;
-            device->data.velocity.z = device->parser.current_frame.velD * 1e-3;
+            device->data.velocity_ned.x = device->parser.current_frame.velN * 1e-3;
+            device->data.velocity_ned.y = device->parser.current_frame.velE * 1e-3;
+            device->data.velocity_ned.z = device->parser.current_frame.velD * 1e-3;
+            device->data.var_horizontal = device->parser.current_frame.hAcc * 1e-3;
+            device->data.var_vertical = device->parser.current_frame.vAcc * 1e-3;
+            device->data.var_speed = device->parser.current_frame.sAcc * 1e-3;
             device->data.fix = device->parser.current_frame.fixType >= 2;
             device->data.is3dFix = device->parser.current_frame.fixType >= 3;
             device->data.numSV = device->parser.current_frame.numSV;

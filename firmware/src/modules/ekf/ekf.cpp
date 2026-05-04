@@ -89,19 +89,19 @@ bool EKF::fuseGPSPosition(const EKFGPSPosMeasurement &meas, float gate_threshold
 {
     float innov, innov_var;
 
-    gen::gps_fusion_pos_n(m_NominalState.asArray(), P_current, meas.pos.x, meas.var, &innov, &innov_var, _H, _K);
+    gen::gps_fusion_pos_n(m_NominalState.asArray(), P_current, meas.pos.x, meas.var_hor, &innov, &innov_var, _H, _K);
     if (!applyFusion(innov, innov_var, gate_threshold))
     {
         return false;
     }
 
-    gen::gps_fusion_pos_e(m_NominalState.asArray(), P_current, meas.pos.y, meas.var, &innov, &innov_var, _H, _K);
+    gen::gps_fusion_pos_e(m_NominalState.asArray(), P_current, meas.pos.y, meas.var_hor, &innov, &innov_var, _H, _K);
     if (!applyFusion(innov, innov_var, gate_threshold))
     {
         return false;
     }
 
-    gen::gps_fusion_pos_d(m_NominalState.asArray(), P_current, meas.pos.z, meas.var, &innov, &innov_var, _H, _K);
+    gen::gps_fusion_pos_d(m_NominalState.asArray(), P_current, meas.pos.z, meas.var_ver, &innov, &innov_var, _H, _K);
     if (!applyFusion(innov, innov_var, gate_threshold))
     {
         return false;

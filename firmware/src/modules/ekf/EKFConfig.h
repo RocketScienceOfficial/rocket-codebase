@@ -29,13 +29,15 @@
 #define EKF_COV_DEFAULT_B_GYRO 0.1f
 
 /** Variances */
-#define EKF_VAR_ACC 0.01f
-#define EKF_VAR_GYRO 0.02f
-#define EKF_VAR_ACC_BIAS 0.05f
-#define EKF_VAR_GYRO_BIAS 0.02f
-#define EKF_VAR_GPS_POS 1.7f
-#define EKF_VAR_GPS_VEL 1.7f
-#define EKF_VAR_BARO 0.25f
+#define EKF_NOISE_ACC 0.055f
+#define EKF_NOISE_ACC_CLIPPING 0.7f
+#define EKF_NOISE_GYRO 0.32f
+#define EKF_NOISE_GYRO_CLIPPING 0.9f
+#define EKF_NOISE_ACC_BIAS 0.1f
+#define EKF_NOISE_GYRO_BIAS 0.2f
+#define EKF_NOISE_GPS_POS 1.8f
+#define EKF_NOISE_GPS_VEL 0.06f
+#define EKF_NOISE_BARO 0.1f
 
 /** Output Predictor Time Constants */
 #define EKF_OUTPUT_PREDICTOR_ATT_TAU 0.10f
@@ -43,3 +45,6 @@
 #define EKF_OUTPUT_PREDICTOR_POS_TAU 0.25f
 #define EKF_OUTPUT_PREDICTOR_B_ACC_TAU 0.20f
 #define EKF_OUTPUT_PREDICTOR_B_GYRO_TAU 0.20f
+
+/** Other */
+#define EKF_GPS_FUSION_VELOCITY_THRESHOLD 1.0f

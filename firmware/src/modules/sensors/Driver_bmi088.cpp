@@ -1,5 +1,10 @@
 #include "Driver_bmi088.h"
+#include <lib/geo/physical_constants.h>
 #include <board_config.h>
+#include <cmath>
+
+static constexpr float ACC_CLIPPING_THRESHOLD = 6.0f * EARTH_GRAVITY * 0.95f;
+static constexpr float GYRO_CLIPPING_THRESHOLD = 500.0f * 0.95f;
 
 void Driver_bmi088::initialize()
 {
@@ -18,6 +23,40 @@ void Driver_bmi088::readAndPublish(float dt)
 
     bmi088_acc_read(&m_AccDevice, &m_CurrentFrame.acc);
     bmi088_gyro_read(&m_GyroDevice, &m_CurrentFrame.gyro);
+
+    // FLU -> FRD conversion (negate y & z)
+    m_CurrentFrame.acc.y *= -1;
+    m_CurrentFrame.acc.z *= -1;
+    m_CurrentFrame.gyro.y *= -1;
+    m_CurrentFrame.gyro.z *= -1;
+
+    // Check for clipping
+    m_CurrentFrame.clippingFlags = 0;
+
+    if (fabsf(m_CurrentFrame.acc.x) >= ACC_CLIPPING_THRESHOLD)
+    {
+        m_CurrentFrame.clippingFlags |= PubSub::Helpers::ACC_CLIP_X;
+    }
+    if (fabsf(m_CurrentFrame.acc.y) >= ACC_CLIPPING_THRESHOLD)
+    {
+        m_CurrentFrame.clippingFlags |= PubSub::Helpers::ACC_CLIP_Y;
+    }
+    if (fabsf(m_CurrentFrame.acc.z) >= ACC_CLIPPING_THRESHOLD)
+    {
+        m_CurrentFrame.clippingFlags |= PubSub::Helpers::ACC_CLIP_Z;
+    }
+    if (fabsf(m_CurrentFrame.gyro.x) >= GYRO_CLIPPING_THRESHOLD)
+    {
+        m_CurrentFrame.clippingFlags |= PubSub::Helpers::GYRO_CLIP_X;
+    }
+    if (fabsf(m_CurrentFrame.gyro.y) >= GYRO_CLIPPING_THRESHOLD)
+    {
+        m_CurrentFrame.clippingFlags |= PubSub::Helpers::GYRO_CLIP_Y;
+    }
+    if (fabsf(m_CurrentFrame.gyro.z) >= GYRO_CLIPPING_THRESHOLD)
+    {
+        m_CurrentFrame.clippingFlags |= PubSub::Helpers::GYRO_CLIP_Z;
+    }
 
     m_Publisher.publish(m_CurrentFrame);
 }

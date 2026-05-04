@@ -48,6 +48,7 @@ void SimBridgeModule::receivePhysicsData()
             .dt = physxData.imu1dt,
             .acc = {physxData.imu1AccX, physxData.imu1AccY, physxData.imu1AccZ},
             .gyro = {physxData.imu1GyroX, physxData.imu1GyroY, physxData.imu1GyroZ},
+            .clippingFlags = 0,
         });
     }
     if (physxData.readFlags & DATALINK_FLAGS_SITL_READ_MAG_1)

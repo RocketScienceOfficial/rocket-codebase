@@ -35,6 +35,7 @@ private:
     // IMU buffer
     vec3_t m_AccelAccum;
     vec3_t m_GyroAccum;
+    uint8_t m_IMUClippingFlagsAccum;
     float m_IMUDtAccum;
     size_t m_IMUSamplesCount;
     RingBuffer<EKFIMUData, EKF_IMU_DELAY_HORIZON_SIZE> m_IMUBuffer;
@@ -68,5 +69,4 @@ private:
     void initState();
     void initCovariance();
     void addBiasNoiseToCovariance(float dt);
-    float gpsVarianceFromSatCount(uint8_t sats);
 };

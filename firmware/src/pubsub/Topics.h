@@ -23,6 +23,16 @@ namespace PubSub
     {
         static constexpr uint8_t IGN_CHANNELS_COUNT = 4;
 
+        enum IMUClippingFlags : uint8_t
+        {
+            ACC_CLIP_X = 1 << 0,
+            ACC_CLIP_Y = 1 << 1,
+            ACC_CLIP_Z = 1 << 2,
+            GYRO_CLIP_X = 1 << 3,
+            GYRO_CLIP_Y = 1 << 4,
+            GYRO_CLIP_Z = 1 << 5,
+        };
+
         enum IgnChannelContinuityFlags : uint8_t
         {
             IGN_PRESENT = 1 << 0,
@@ -86,6 +96,7 @@ namespace PubSub
             float dt;
             vec3_t acc;
             vec3_t gyro;
+            uint8_t clippingFlags; // Based on IMUClippingFlags enum
         };
         PUBSUB_REGISTER_TOPIC(SensorsIMU, sensors_imu_1)
 
@@ -107,6 +118,9 @@ namespace PubSub
         {
             geo_position_wgs84_t pos;
             vec3_t vel;
+            float std_horizontal;
+            float std_vertical;
+            float std_speed;
             bool gpsFix;
             bool gpsIs3dFix;
             uint8_t gpsSatellitesCount;
