@@ -1,0 +1,40 @@
+#pragma once
+
+/* General */
+#define EKF_RATE_HZ 250
+#define EKF_MAX_FUSIONS_PER_UPDATE 10
+#define EKF_INIT_IMU_SAMPLES 200
+
+/** Delay horizon */
+#define EKF_DELAY_HORIZON_MS 200
+#define EKF_IMU_DELAY_HORIZON_SIZE 60
+#define EKF_GPS_DELAY_HORIZON_SIZE 10
+#define EKF_BARO_DELAY_HORIZON_SIZE 20
+
+/** Sensor delays */
+#define EKF_GPS_DELAY_MS 100
+#define EKF_BARO_DELAY_MS 20
+
+/** Covariance */
+#define EKF_COV_DEFAULT_ATT_ROLL_PITCH 0.01f
+#define EKF_COV_DEFAULT_ATT_YAW 10.0f
+#define EKF_COV_DEFAULT_VEL 10.0f
+#define EKF_COV_DEFAULT_POS 100.0f
+#define EKF_COV_DEFAULT_B_ACC 0.5f
+#define EKF_COV_DEFAULT_B_GYRO 0.1f
+
+/** Variances */
+#define EKF_VAR_ACC 0.01f
+#define EKF_VAR_GYRO 0.02f
+#define EKF_VAR_ACC_BIAS 0.05f
+#define EKF_VAR_GYRO_BIAS 0.02f
+#define EKF_VAR_GPS_POS 1.7f
+#define EKF_VAR_GPS_VEL 1.7f
+#define EKF_VAR_BARO 0.25f
+
+/** Output Predictor Time Constants */
+#define EKF_OUTPUT_PREDICTOR_ATT_TAU 0.10f
+#define EKF_OUTPUT_PREDICTOR_VEL_TAU 0.25f
+#define EKF_OUTPUT_PREDICTOR_POS_TAU 0.25f
+#define EKF_OUTPUT_PREDICTOR_B_ACC_TAU 0.20f
+#define EKF_OUTPUT_PREDICTOR_B_GYRO_TAU 0.20f

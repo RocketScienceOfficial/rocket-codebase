@@ -1,142 +1,203 @@
-#include "ekf.h"
-#include <cstddef>
+#include "EKF.h"
+#include "derivation/generated/covariance_prediction.h"
+#include "derivation/generated/baro_fusion.h"
+#include "derivation/generated/gps_fusion_pos_n.h"
+#include "derivation/generated/gps_fusion_pos_e.h"
+#include "derivation/generated/gps_fusion_pos_d.h"
+#include "derivation/generated/gps_fusion_vel_n.h"
+#include "derivation/generated/gps_fusion_vel_e.h"
+#include "derivation/generated/gps_fusion_vel_d.h"
+#include <lib/geo/physical_constants.h>
+#include <lib/debug/sys_assert.h>
 
 void EKF::init()
 {
-    for (size_t i = 0; i < EKF_NUM_STATES; i++)
+    resetErrorState();
+
+    P_current.resetCompletely();
+    P_next.resetCompletely();
+}
+
+void EKF::predictExplicitState(EKFNominalState &state, const EKFErrorState &error, const EKFIMUData &imu)
+{
+    const float &dt = imu.dt;
+
+    state.bias_acc.x += error.bias_acc.x * dt;
+    state.bias_acc.y += error.bias_acc.y * dt;
+    state.bias_acc.z += error.bias_acc.z * dt;
+
+    state.bias_gyro.x += error.bias_gyro.x * dt;
+    state.bias_gyro.y += error.bias_gyro.y * dt;
+    state.bias_gyro.z += error.bias_gyro.z * dt;
+
+    state.pos.x += (state.vel.x + error.pos.x) * dt;
+    state.pos.y += (state.vel.y + error.pos.y) * dt;
+    state.pos.z += (state.vel.z + error.pos.z) * dt;
+
+    vec3_t dv = {
+        .x = imu.delta_velocity.x - state.bias_acc.x * dt,
+        .y = imu.delta_velocity.y - state.bias_acc.y * dt,
+        .z = imu.delta_velocity.z - state.bias_acc.z * dt,
+    };
+    quat_rotate_vec(&dv, &state.attitude);
+
+    state.vel.x += dv.x + error.vel.x * dt;
+    state.vel.y += dv.y + error.vel.y * dt;
+    state.vel.z += dv.z + error.vel.z * dt + EARTH_GRAVITY * dt;
+
+    quat_t dq = {
+        .w = 1.0f,
+        .x = 0.5f * (imu.delta_angle.x + error.theta.x * dt - state.bias_gyro.x * dt),
+        .y = 0.5f * (imu.delta_angle.y + error.theta.y * dt - state.bias_gyro.y * dt),
+        .z = 0.5f * (imu.delta_angle.z + error.theta.z * dt - state.bias_gyro.z * dt),
+    };
+    state.attitude = quat_mul(&state.attitude, &dq);
+    quat_normalize(&state.attitude);
+}
+
+void EKF::predictState(const EKFIMUData &imu)
+{
+    SYS_ASSERT(m_ErrorState.asArray()[0] == 0.0f); // Sanity check that error state is zero
+
+    // Error state is always 0 here
+    predictExplicitState(m_NominalState, m_ErrorState, imu);
+}
+
+void EKF::predictCovariance(const EKFIMUData &imu)
+{
+    float acc_x = imu.delta_velocity.x / imu.dt;
+    float acc_y = imu.delta_velocity.y / imu.dt;
+    float acc_z = imu.delta_velocity.z / imu.dt;
+    float gyro_x = imu.delta_angle.x / imu.dt;
+    float gyro_y = imu.delta_angle.y / imu.dt;
+    float gyro_z = imu.delta_angle.z / imu.dt;
+
+    gen::covariance_prediction(m_NominalState.asArray(), P_current, P_next, imu.varAcc, acc_x, acc_y, acc_z, imu.varGyro, gyro_x, gyro_y, gyro_z, imu.dt);
+
+    // Copy upper triangle of P_next to P_current
+    for (size_t i = 0; i < EKF_NUM_ERROR_STATES; i++)
     {
-        for (size_t j = 0; j < EKF_NUM_STATES; j++)
+        for (size_t j = i; j < EKF_NUM_ERROR_STATES; j++)
         {
-            P[i][j] = i == j ? 10.0f : 0.0f;
-            P_Next[i][j] = 0.0f;
+            P_current(i, j) = P_next(i, j);
         }
     }
 }
 
-void EKF::predictState(const EKFControls &controls, float dt)
+void EKF::fuseGPSPosition(const EKFGPSPosMeasurement &meas)
 {
-    EKFState newState;
-    newState.pos = x.pos + x.vel * dt + 0.5f * controls.acc * dt * dt;
-    newState.vel = x.vel + controls.acc * dt;
+    float innov, innov_var;
 
-    x = newState;
+    gen::gps_fusion_pos_n(m_NominalState.asArray(), P_current, meas.pos.x, meas.var, &innov, &innov_var, _H, _K);
+    applyFusion(innov, innov_var);
+
+    gen::gps_fusion_pos_e(m_NominalState.asArray(), P_current, meas.pos.y, meas.var, &innov, &innov_var, _H, _K);
+    applyFusion(innov, innov_var);
+
+    gen::gps_fusion_pos_d(m_NominalState.asArray(), P_current, meas.pos.z, meas.var, &innov, &innov_var, _H, _K);
+    applyFusion(innov, innov_var);
 }
 
-void EKF::predictCovariance(const EKFControls &controls, float dt)
+void EKF::fuseGPSVelocity(const EKFGPSVelMeasurement &meas)
 {
-    (void)controls;
+    float innov, innov_var;
 
-    const float var_acc = variances.varAcc;
+    gen::gps_fusion_vel_n(m_NominalState.asArray(), P_current, meas.vel.x, meas.var, &innov, &innov_var, _H, _K);
+    applyFusion(innov, innov_var);
 
-    const float PS0 = P[1][1] * dt;
-    const float PS1 = PS0 + P[0][1];
-    const float PS2 = (1.0f / 2.0f) * var_acc * (dt * dt * dt);
+    gen::gps_fusion_vel_e(m_NominalState.asArray(), P_current, meas.vel.y, meas.var, &innov, &innov_var, _H, _K);
+    applyFusion(innov, innov_var);
 
-    P_Next[0][0] = PS1 * dt + P[0][0] + P[1][0] * dt + (1.0f / 4.0f) * var_acc * (dt * dt * dt * dt);
-    P_Next[0][1] = PS1 + PS2;
-    P_Next[1][1] = P[1][1] + var_acc * (dt * dt);
+    gen::gps_fusion_vel_d(m_NominalState.asArray(), P_current, meas.vel.z, meas.var, &innov, &innov_var, _H, _K);
+    applyFusion(innov, innov_var);
+}
 
-    for (size_t i = 0; i < EKF_NUM_STATES; i++)
+void EKF::fuseBaroHeight(const EKFBaroMeasurement &meas)
+{
+    float innov, innov_var;
+
+    gen::baro_fusion(m_NominalState.asArray(), P_current, meas.height, meas.var, &innov, &innov_var, _H, _K);
+    applyFusion(innov, innov_var);
+}
+
+void EKF::applyFusion(float innov, float innov_var)
+{
+    (void)innov_var;
+
+    updateErrorState(innov);
+    updateCovariancePostFusion();
+    injectErrorState();
+    resetErrorState();
+}
+
+void EKF::updateCovariancePostFusion()
+{
+    for (size_t i = 0; i < EKF_NUM_ERROR_STATES; i++)
     {
-        for (size_t j = 0; j < EKF_NUM_STATES; j++)
+        _HP[i] = 0.0f;
+    }
+
+    for (size_t i = 0; i < EKF_NUM_ERROR_STATES; i++)
+    {
+        if (_H[i] != 0.0f)
         {
-            if (j >= i)
+            for (size_t j = 0; j < EKF_NUM_ERROR_STATES; j++)
             {
-                P[i][j] = P_Next[i][j];
-                P[j][i] = P_Next[i][j];
+                _HP[j] += _H[i] * P_current(i, j);
+            }
+        }
+    }
+
+    for (size_t i = 0; i < EKF_NUM_ERROR_STATES; i++)
+    {
+        if (_K[i] != 0.0f)
+        {
+            for (size_t j = i; j < EKF_NUM_ERROR_STATES; j++)
+            {
+                P_current(i, j) -= _K[i] * _HP[j];
             }
         }
     }
 }
 
-void EKF::fusion(const EKFMeasurements &measurements)
+void EKF::injectErrorState()
 {
-    const float var_gps = variances.varGPS;
-    const float var_baro = variances.varBar;
+    quat_t delta_q = {
+        .w = 1.0f,
+        .x = 0.5f * m_ErrorState.theta.x,
+        .y = 0.5f * m_ErrorState.theta.y,
+        .z = 0.5f * m_ErrorState.theta.z,
+    };
+    m_NominalState.attitude = quat_mul(&delta_q, &m_NominalState.attitude);
+    quat_normalize(&m_NominalState.attitude);
 
-    float H[EKF_NUM_MEASUREMENTS][EKF_NUM_STATES];
-
-    H[0][0] = 1;
-    H[0][1] = 0;
-    H[1][0] = 1;
-    H[1][1] = 0;
-
-    float K[EKF_NUM_STATES][EKF_NUM_MEASUREMENTS];
-
-    const float KS0 = 1.0f / (P[0][0] + var_gps);
-    const float KS1 = 1.0f / (P[0][0] + var_baro);
-
-    K[0][0] = KS0 * P[0][0];
-    K[0][1] = KS1 * P[0][0];
-    K[1][0] = KS0 * P[1][0];
-    K[1][1] = KS1 * P[1][0];
-
-    const float *meas_data = (const float *)(&measurements);
-    float *state_data = (float *)(&x);
-
-    float innov[EKF_NUM_MEASUREMENTS];
-    innov[0] = meas_data[0] - state_data[0];
-    innov[1] = meas_data[1] - state_data[0];
-
-    for (size_t i = 0; i < EKF_NUM_STATES; i++)
-    {
-        for (size_t j = 0; j < EKF_NUM_MEASUREMENTS; j++)
-        {
-            state_data[i] += K[i][j] * innov[j];
-        }
-    }
-
-    float I_KH[EKF_NUM_STATES][EKF_NUM_STATES];
-
-    for (size_t i = 0; i < EKF_NUM_STATES; i++)
-    {
-        for (size_t j = 0; j < EKF_NUM_STATES; j++)
-        {
-            float tmp = 0.0f;
-
-            for (size_t k = 0; k < EKF_NUM_MEASUREMENTS; k++)
-            {
-                tmp += K[i][k] * H[k][j];
-            }
-
-            I_KH[i][j] = (i == j ? 1.0f : 0.0f) - tmp;
-        }
-    }
-
-    for (size_t i = 0; i < EKF_NUM_STATES; i++)
-    {
-        for (size_t j = 0; j < EKF_NUM_STATES; j++)
-        {
-            float tmp = 0.0f;
-
-            for (size_t k = 0; k < EKF_NUM_STATES; k++)
-            {
-                tmp += I_KH[i][k] * P[k][j];
-            }
-
-            P_Next[i][j] = tmp;
-        }
-    }
-
-    for (size_t i = 0; i < EKF_NUM_STATES; i++)
-    {
-        for (size_t j = 0; j < EKF_NUM_STATES; j++)
-        {
-            P[i][j] = P_Next[i][j];
-        }
-    }
+    m_NominalState.pos.x += m_ErrorState.pos.x;
+    m_NominalState.pos.y += m_ErrorState.pos.y;
+    m_NominalState.pos.z += m_ErrorState.pos.z;
+    m_NominalState.vel.x += m_ErrorState.vel.x;
+    m_NominalState.vel.y += m_ErrorState.vel.y;
+    m_NominalState.vel.z += m_ErrorState.vel.z;
+    m_NominalState.bias_gyro.x += m_ErrorState.bias_gyro.x;
+    m_NominalState.bias_gyro.y += m_ErrorState.bias_gyro.y;
+    m_NominalState.bias_gyro.z += m_ErrorState.bias_gyro.z;
+    m_NominalState.bias_acc.x += m_ErrorState.bias_acc.x;
+    m_NominalState.bias_acc.y += m_ErrorState.bias_acc.y;
+    m_NominalState.bias_acc.z += m_ErrorState.bias_acc.z;
 }
 
-void EKF::forceSymmetry()
+void EKF::resetErrorState()
 {
-    for (size_t i = 0; i < EKF_NUM_STATES; i++)
-    {
-        for (size_t j = 0; j <= i; j++)
-        {
-            float tmp = (P[i][j] + P[j][i]) / 2.0f;
+    m_ErrorState.theta = {0, 0, 0};
+    m_ErrorState.pos = {0, 0, 0};
+    m_ErrorState.vel = {0, 0, 0};
+    m_ErrorState.bias_gyro = {0, 0, 0};
+    m_ErrorState.bias_acc = {0, 0, 0};
+}
 
-            P[i][j] = tmp;
-            P[j][i] = tmp;
-        }
+void EKF::updateErrorState(float innov)
+{
+    for (size_t i = 0; i < EKF_NUM_ERROR_STATES; i++)
+    {
+        m_ErrorState.asArray()[i] += _K[i] * innov;
     }
 }
