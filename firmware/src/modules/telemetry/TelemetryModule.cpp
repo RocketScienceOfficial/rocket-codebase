@@ -135,7 +135,7 @@ uint8_t TelemetryModule::packetGetCommanderState()
 
 uint16_t TelemetryModule::packetGetAltitude()
 {
-    float tmp = m_EKFStateSubscriber.get().position.z;
+    const float &tmp = -m_EKFStateSubscriber.get().position.z; // NED to ENU conversion and altitude sign change
 
     return tmp > 0 ? (uint16_t)tmp : 0;
 }

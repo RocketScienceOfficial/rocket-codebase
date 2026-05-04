@@ -16,6 +16,9 @@ void covariance_prediction(
     float gyro_z,
     float dt
 ) {
+    (void)gyro_x; // Unused variable
+    (void)gyro_y; // Unused variable
+    (void)gyro_z; // Unused variable
     const float x0 = state[0]*state[2];
     const float x1 = state[1]*state[3];
     const float x2 = x0 + x1;

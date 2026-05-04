@@ -18,8 +18,9 @@ void AirbrakeModule::run()
     {
         const auto &ekfData = m_EKFSubscriber.get();
 
-        float h0 = ekfData.position.z;
-        float v0 = ekfData.velocity.z;
+        // Extract down component of position and velocity
+        const float &h0 = -ekfData.position.z;
+        const float &v0 = -ekfData.velocity.z;
 
         float predictedApogee = h0 + PARAM_M / (2.0f * PARAM_K) * logf(1.0f + (PARAM_K * v0 * v0) / (PARAM_M * EARTH_GRAVITY));
 

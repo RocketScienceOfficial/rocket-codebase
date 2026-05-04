@@ -122,7 +122,6 @@ DatabaseFrame DatabaseModule::getFrame(uint16_t dt_us)
         .gpsPos = m_GPSSubscriber.get().pos,
         .gpsData = (uint8_t)((uint8_t)m_GPSSubscriber.get().gpsIs3dFix | (m_GPSSubscriber.get().gpsSatellitesCount << 1)),
         .pressure = m_BarometerSubscriber.get().press,
-        .accNED = m_EKFSubscriber.get().acceleration,
         .velNED = m_EKFSubscriber.get().velocity,
         .posNED = m_EKFSubscriber.get().position,
         .qNED = m_EKFSubscriber.get().orientation,

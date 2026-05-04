@@ -43,7 +43,7 @@ def predict_covariance(true_state, state, error_state, P, dt):
             error_state_pred[key] = 2 * Matrix([d_q[1], d_q[2], d_q[3]])  # using small angle approximation; the factor of 2 is because of the division by 2 in the quaternion multiplication for the state prediction
         else:
             error_state_pred[key] = true_state_pred[key] - nominal_state_pred[key]
-
+    
     # Optimize error state prediction by removing higher order terms and factoring out the error state variables
     for i in range(len(error_state_pred["theta"])):
         error_state_pred["theta"][i] = expand(error_state_pred["theta"][i]).subs(dt**2, 0)

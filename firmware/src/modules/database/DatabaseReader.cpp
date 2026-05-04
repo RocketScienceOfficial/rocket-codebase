@@ -187,9 +187,6 @@ void DatabaseReader::sendFrame(const DatabaseFrameRaw *rawFrame)
     payload.alt = frame->gpsPos.alt;
     payload.gpsData = frame->gpsData;
     payload.pressure = frame->pressure;
-    payload.accN = frame->accNED.x;
-    payload.accE = frame->accNED.y;
-    payload.accD = frame->accNED.z;
     payload.velN = frame->velNED.x;
     payload.velE = frame->velNED.y;
     payload.velD = frame->velNED.z;

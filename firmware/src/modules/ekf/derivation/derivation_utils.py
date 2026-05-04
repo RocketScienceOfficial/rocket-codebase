@@ -91,6 +91,9 @@ def write_cov_matrix(name, state, P):
     code.append(f"    float gyro_z,")
     code.append(f"    float dt")
     code.append(") {")
+    code.append("    (void)gyro_x; // Unused variable")
+    code.append("    (void)gyro_y; // Unused variable")
+    code.append("    (void)gyro_z; // Unused variable")
 
     def get_next_name(_, idx):
         i = idx // n

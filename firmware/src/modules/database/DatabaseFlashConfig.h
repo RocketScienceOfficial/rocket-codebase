@@ -29,7 +29,6 @@ struct __attribute__((__packed__)) DatabaseFrame
     geo_position_wgs84_t gpsPos;
     uint8_t gpsData;
     int pressure;
-    vec3_t accNED;
     vec3_t velNED;
     vec3_t posNED;
     quat_t qNED;

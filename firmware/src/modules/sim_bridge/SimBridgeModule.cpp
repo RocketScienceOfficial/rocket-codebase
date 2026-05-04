@@ -68,6 +68,7 @@ void SimBridgeModule::receivePhysicsData()
     {
         m_GPS1DataPublisher.publish({
             .pos = {physxData.gps1Lat, physxData.gps1Lon, physxData.gps1Alt},
+            .vel = {0,0,0},
             .gpsFix = physxData.gps1Sats > 0,
             .gpsIs3dFix = physxData.gps1Sats > 3,
             .gpsSatellitesCount = physxData.gps1Sats,
