@@ -94,9 +94,6 @@ void SimBridgeModule::sendPhysicsResponseData()
         m_responseData.velN = ekfState.velocity.x;
         m_responseData.velE = ekfState.velocity.y;
         m_responseData.velD = ekfState.velocity.z;
-        m_responseData.accN = ekfState.acceleration.x;
-        m_responseData.accE = ekfState.acceleration.y;
-        m_responseData.accD = ekfState.acceleration.z;
         m_responseData.qw = ekfState.orientation.w;
         m_responseData.qx = ekfState.orientation.x;
         m_responseData.qy = ekfState.orientation.y;

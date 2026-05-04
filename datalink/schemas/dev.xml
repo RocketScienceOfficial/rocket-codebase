@@ -38,9 +38,6 @@
         </message>
 
         <message name="sitl_response_data" id="33">
-            <field name="accN" type="float"/>
-            <field name="accE" type="float"/>
-            <field name="accD" type="float"/>
             <field name="velN" type="float"/>
             <field name="velE" type="float"/>
             <field name="velD" type="float"/>

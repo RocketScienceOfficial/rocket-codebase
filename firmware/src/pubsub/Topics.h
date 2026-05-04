@@ -146,7 +146,6 @@ namespace PubSub
             quat_t orientation;
             vec3_t position;
             vec3_t velocity;
-            vec3_t acceleration;
         };
         PUBSUB_REGISTER_TOPIC(EKFState, ekf_state)
 
