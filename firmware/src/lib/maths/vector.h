@@ -8,7 +8,7 @@ extern "C" {
 /**
  * @brief 3D Vector
  */
-typedef struct vec3
+typedef struct
 {
     float x, y, z;
 } vec3_t;
@@ -16,7 +16,7 @@ typedef struct vec3
 /**
  * @brief High precision 3D Vector
  */
-typedef struct vec3_prec
+typedef struct
 {
     double x, y, z;
 } vec3_prec_t;
@@ -65,7 +65,7 @@ float vec3_mag(const vec3_t *v);
 int vec3_mag_compare(const vec3_t *v, float n);
 
 /**
- * @brief Normalize vector
+ * @brief Normalize vector (using fast inverse square root)
  *
  * @param v Vector to normalize
  */

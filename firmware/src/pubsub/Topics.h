@@ -3,7 +3,7 @@
 #include "internal/PubSubMeta.h"
 #include <lib/maths/quaternion.h>
 #include <lib/maths/vector.h>
-#include <lib/geo/geo.h>
+#include <lib/geo/wgs84.h>
 #include <datalink.h>
 
 #define PUBSUB_TOPIC_META(name) __##name##_metadata
@@ -116,7 +116,7 @@ namespace PubSub
 
         struct SensorsGPS
         {
-            geo_position_wgs84_t pos;
+            geo_position_t pos;
             vec3_t vel;
             float std_horizontal;
             float std_vertical;
@@ -127,7 +127,7 @@ namespace PubSub
         };
         PUBSUB_REGISTER_TOPIC(SensorsGPS, sensors_gps_1)
 
-        using SensorsSimplifiedGPS = geo_position_wgs84_t;
+        using SensorsSimplifiedGPS = geo_position_t;
         PUBSUB_REGISTER_TOPIC(SensorsSimplifiedGPS, sensors_simplified_gps_1)
 
         struct SensorsBattery

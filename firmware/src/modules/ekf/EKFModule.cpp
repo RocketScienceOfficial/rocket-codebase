@@ -101,20 +101,16 @@ void EKFModule::processGPS(const PubSub::Topics::SensorsGPS &gpsData)
 
     if (!m_GPSOriginSet)
     {
-        m_GPSOrigin = gpsData.pos;
+        equirect_projection_init(&m_Projection, &gpsData.pos);
         m_GPSOriginSet = true;
 
-        LOG_INFO("GPS origin set to lat: %.6f, lon: %.6f, alt: %.2f", m_GPSOrigin.lat, m_GPSOrigin.lon, m_GPSOrigin.alt);
+        LOG_INFO("GPS origin set to lat: %.6f, lon: %.6f, alt: %.2f", gpsData.pos.lat, gpsData.pos.lon, gpsData.pos.alt);
     }
 
     if (m_EKFEnabled)
     {
-        vec3_prec_t nedPos = geo_to_ned(m_GPSOrigin, gpsData.pos);
-
         EKFGPSPosMeasurement posMeas;
-        posMeas.pos.x = (float)nedPos.x;
-        posMeas.pos.y = (float)nedPos.y;
-        posMeas.pos.z = (float)nedPos.z;
+        posMeas.pos = equirect_project_to_ned(&m_Projection, &gpsData.pos);
         posMeas.var_hor = STD_TO_VAR(MIN(EKF_NOISE_GPS_POS, gpsData.std_horizontal));
         posMeas.var_ver = STD_TO_VAR(MIN(EKF_NOISE_GPS_POS, gpsData.std_vertical));
         m_GPSPosBuffer.push(posMeas, osal_systime_get_ms() - EKF_GPS_DELAY_MS);

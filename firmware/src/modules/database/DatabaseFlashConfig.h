@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <lib/maths/vector.h>
 #include <lib/maths/quaternion.h>
-#include <lib/geo/geo.h>
+#include <lib/geo/wgs84.h>
 #include <board_config.h>
 
 #define SECTORS_OFFSET_METADATA 64
@@ -26,7 +26,7 @@ struct __attribute__((__packed__)) DatabaseFrame
     vec3_t accRaw;
     vec3_t gyroRaw;
     vec3_t magRaw;
-    geo_position_wgs84_t gpsPos;
+    geo_position_t gpsPos;
     uint8_t gpsData;
     int pressure;
     vec3_t velNED;

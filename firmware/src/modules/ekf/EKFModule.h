@@ -3,6 +3,7 @@
 #include <pubsub/Topics.h>
 #include <pubsub/Publisher.h>
 #include <pubsub/Subscriber.h>
+#include <lib/geo/projection.h>
 #include "EKF.h"
 #include "EKFData.h"
 #include "EKFConfig.h"
@@ -41,7 +42,7 @@ private:
     RingBuffer<EKFIMUData, EKF_IMU_DELAY_HORIZON_SIZE> m_IMUBuffer;
 
     // GPS origin
-    geo_position_wgs84_t m_GPSOrigin;
+    equirect_projection_t m_Projection;
     bool m_GPSOriginSet;
     RingBuffer<EKFGPSPosMeasurement, EKF_GPS_DELAY_HORIZON_SIZE> m_GPSPosBuffer;
     RingBuffer<EKFGPSVelMeasurement, EKF_GPS_DELAY_HORIZON_SIZE> m_GPSVelBuffer;

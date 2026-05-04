@@ -10,7 +10,7 @@ extern "C" {
 /**
  * @brief Quaternion data structure
  */
-typedef struct quat
+typedef struct
 {
     float w, x, y, z;
 } quat_t;
@@ -33,14 +33,14 @@ quat_t quat_mul(const quat_t *a, const quat_t *b);
 quat_t quat_conj(const quat_t *q);
 
 /**
- * @brief Calculate inverse of a quaternion
+ * @brief Calculate inverse of a quaternion (using fast inverse square root)
  *
  * @param q Quaternion to inverse
  */
 void quat_inv(quat_t *q);
 
 /**
- * @brief Normalize a quaternion
+ * @brief Normalize a quaternion (using fast inverse square root)
  *
  * @param q Quaternion to normalize
  */

@@ -63,9 +63,9 @@ bool gps_read_spi(gps_device_t *device)
             device->data.velocity_ned.x = device->parser.current_frame.velN * 1e-3;
             device->data.velocity_ned.y = device->parser.current_frame.velE * 1e-3;
             device->data.velocity_ned.z = device->parser.current_frame.velD * 1e-3;
-            device->data.var_horizontal = device->parser.current_frame.hAcc * 1e-3;
-            device->data.var_vertical = device->parser.current_frame.vAcc * 1e-3;
-            device->data.var_speed = device->parser.current_frame.sAcc * 1e-3;
+            device->data.std_horizontal = device->parser.current_frame.hAcc * 1e-3;
+            device->data.std_vertical = device->parser.current_frame.vAcc * 1e-3;
+            device->data.std_speed = device->parser.current_frame.sAcc * 1e-3;
             device->data.fix = device->parser.current_frame.fixType >= 2;
             device->data.is3dFix = device->parser.current_frame.fixType >= 3;
             device->data.numSV = device->parser.current_frame.numSV;

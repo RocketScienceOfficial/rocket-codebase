@@ -3,7 +3,7 @@
 
 #include "ubx.h"
 #include "bus_utils.h"
-#include <lib/geo/geo.h>
+#include <lib/geo/wgs84.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -17,7 +17,7 @@ extern "C"
  */
 typedef struct
 {
-    geo_position_wgs84_t position;
+    geo_position_t position;
     vec3_t velocity_ned;
     float std_horizontal;
     float std_vertical;

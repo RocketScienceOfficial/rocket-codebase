@@ -1,14 +1,14 @@
 #ifndef _GEO_MAG_H
 #define _GEO_MAG_H
 
-#include "geo.h"
+#include "wgs84.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * @brief Get magnetic declination at location
+ * @brief Get magnetic declination at location (altitude is ignored)
  *
  * @param pos Coordinates
  * @return Declination in radians
@@ -16,7 +16,7 @@ extern "C" {
 float geo_mag_get_declination(geo_position_t pos);
 
 /**
- * @brief Get magnetic inclination at location
+ * @brief Get magnetic inclination at location (altitude is ignored)
  *
  * @param pos Coordinates
  * @return Inclination in radians
@@ -24,7 +24,7 @@ float geo_mag_get_declination(geo_position_t pos);
 float geo_mag_get_inclination(geo_position_t pos);
 
 /**
- * @brief Get magnetic strength at location
+ * @brief Get magnetic strength at location (altitude is ignored)
  *
  * @param pos Coordinates
  * @return Strength in Gauss

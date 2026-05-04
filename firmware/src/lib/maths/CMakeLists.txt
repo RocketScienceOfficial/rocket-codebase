@@ -16,6 +16,10 @@ target_compile_options(maths PRIVATE
 )
 
 add_sys_test(math_tests
-    SOURCES tests/maths_tests.cpp
-    DEPENDS maths
+    SOURCES
+    tests/fast_math_tests.cpp
+    tests/quaternion_tests.cpp
+    tests/vector_tests.cpp
+    DEPENDS
+    maths
 )

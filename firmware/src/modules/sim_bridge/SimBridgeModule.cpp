@@ -39,7 +39,7 @@ void SimBridgeModule::receivePhysicsData()
 
     sitl_request_data physxData;
     int unpackResult = datalink_unpack_sitl_request_data(&physxData, &physxMsg);
-    
+
     SYS_ASSERT(unpackResult == DATALINK_OK);
 
     if (physxData.readFlags & DATALINK_FLAGS_SITL_READ_IMU_1)
@@ -69,7 +69,10 @@ void SimBridgeModule::receivePhysicsData()
     {
         m_GPS1DataPublisher.publish({
             .pos = {physxData.gps1Lat, physxData.gps1Lon, physxData.gps1Alt},
-            .vel = {0,0,0},
+            .vel = {0, 0, 0},
+            .std_horizontal = 0,
+            .std_vertical = 0,
+            .std_speed = 0,
             .gpsFix = physxData.gps1Sats > 0,
             .gpsIs3dFix = physxData.gps1Sats > 3,
             .gpsSatellitesCount = physxData.gps1Sats,
@@ -82,7 +85,7 @@ void SimBridgeModule::sendPhysicsResponseData()
     if (!m_PhysicsSocket.isActive())
     {
         LOG_ERROR("Cannot send physics response data: No active connection to physics engine.");
-        
+
         return;
     }
 
