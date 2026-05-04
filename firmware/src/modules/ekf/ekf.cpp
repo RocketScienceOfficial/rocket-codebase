@@ -1,4 +1,5 @@
 #include "EKF.h"
+#include "modules/common/ModuleLogger.h"
 #include "derivation/generated/covariance_prediction.h"
 #include "derivation/generated/baro_fusion.h"
 #include "derivation/generated/gps_fusion_pos_n.h"
@@ -84,50 +85,79 @@ void EKF::predictCovariance(const EKFIMUData &imu)
     }
 }
 
-void EKF::fuseGPSPosition(const EKFGPSPosMeasurement &meas)
+bool EKF::fuseGPSPosition(const EKFGPSPosMeasurement &meas, float gate_threshold)
 {
     float innov, innov_var;
 
     gen::gps_fusion_pos_n(m_NominalState.asArray(), P_current, meas.pos.x, meas.var, &innov, &innov_var, _H, _K);
-    applyFusion(innov, innov_var);
+    if (!applyFusion(innov, innov_var, gate_threshold))
+    {
+        return false;
+    }
 
     gen::gps_fusion_pos_e(m_NominalState.asArray(), P_current, meas.pos.y, meas.var, &innov, &innov_var, _H, _K);
-    applyFusion(innov, innov_var);
+    if (!applyFusion(innov, innov_var, gate_threshold))
+    {
+        return false;
+    }
 
     gen::gps_fusion_pos_d(m_NominalState.asArray(), P_current, meas.pos.z, meas.var, &innov, &innov_var, _H, _K);
-    applyFusion(innov, innov_var);
+    if (!applyFusion(innov, innov_var, gate_threshold))
+    {
+        return false;
+    }
+
+    return true;
 }
 
-void EKF::fuseGPSVelocity(const EKFGPSVelMeasurement &meas)
+bool EKF::fuseGPSVelocity(const EKFGPSVelMeasurement &meas, float gate_threshold)
 {
     float innov, innov_var;
 
     gen::gps_fusion_vel_n(m_NominalState.asArray(), P_current, meas.vel.x, meas.var, &innov, &innov_var, _H, _K);
-    applyFusion(innov, innov_var);
+    if (!applyFusion(innov, innov_var, gate_threshold))
+    {
+        return false;
+    }
 
     gen::gps_fusion_vel_e(m_NominalState.asArray(), P_current, meas.vel.y, meas.var, &innov, &innov_var, _H, _K);
-    applyFusion(innov, innov_var);
+    if (!applyFusion(innov, innov_var, gate_threshold))
+    {
+        return false;
+    }
 
     gen::gps_fusion_vel_d(m_NominalState.asArray(), P_current, meas.vel.z, meas.var, &innov, &innov_var, _H, _K);
-    applyFusion(innov, innov_var);
+    if (!applyFusion(innov, innov_var, gate_threshold))
+    {
+        return false;
+    }
+
+    return true;
 }
 
-void EKF::fuseBaroHeight(const EKFBaroMeasurement &meas)
+bool EKF::fuseBaroHeight(const EKFBaroMeasurement &meas, float gate_threshold)
 {
     float innov, innov_var;
 
     gen::baro_fusion(m_NominalState.asArray(), P_current, meas.height, meas.var, &innov, &innov_var, _H, _K);
-    applyFusion(innov, innov_var);
+    return applyFusion(innov, innov_var, gate_threshold);
 }
 
-void EKF::applyFusion(float innov, float innov_var)
+bool EKF::applyFusion(float innov, float innov_var, float gate_threshold)
 {
-    (void)innov_var;
+    if (shouldFuseMeasurement(innov, innov_var, gate_threshold))
+    {
+        updateErrorState(innov);
+        updateCovariancePostFusion();
+        injectErrorState();
+        resetErrorState();
 
-    updateErrorState(innov);
-    updateCovariancePostFusion();
-    injectErrorState();
-    resetErrorState();
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 void EKF::updateCovariancePostFusion()
@@ -158,6 +188,12 @@ void EKF::updateCovariancePostFusion()
             }
         }
     }
+}
+
+bool EKF::shouldFuseMeasurement(float innov, float innov_var, float gate_threshold)
+{
+    // Chi-square gate test for 1 degree of freedom: innov^2 < gate_threshold^2 * innov_var
+    return (innov * innov) < (gate_threshold * gate_threshold * innov_var);
 }
 
 void EKF::injectErrorState()

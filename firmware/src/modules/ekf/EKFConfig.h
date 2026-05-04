@@ -15,6 +15,11 @@
 #define EKF_GPS_DELAY_MS 100
 #define EKF_BARO_DELAY_MS 20
 
+/** Gate thresholds */
+#define EKF_GATE_THRESHOLD_GPS_POS 2.0f
+#define EKF_GATE_THRESHOLD_GPS_VEL 2.0f
+#define EKF_GATE_THRESHOLD_BARO 2.0f
+
 /** Covariance */
 #define EKF_COV_DEFAULT_ATT_ROLL_PITCH 0.01f
 #define EKF_COV_DEFAULT_ATT_YAW 10.0f

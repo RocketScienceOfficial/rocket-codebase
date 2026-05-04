@@ -13,9 +13,9 @@ public:
     void predictState(const EKFIMUData &imu);
     void predictCovariance(const EKFIMUData &imu);
 
-    void fuseGPSPosition(const EKFGPSPosMeasurement &meas);
-    void fuseGPSVelocity(const EKFGPSVelMeasurement &meas);
-    void fuseBaroHeight(const EKFBaroMeasurement &meas);
+    bool fuseGPSPosition(const EKFGPSPosMeasurement &meas, float gate_threshold);
+    bool fuseGPSVelocity(const EKFGPSVelMeasurement &meas, float gate_threshold);
+    bool fuseBaroHeight(const EKFBaroMeasurement &meas, float gate_threshold);
 
     EKFNominalState &getState() { return m_NominalState; }
     float &getCovarianceElement(size_t i, size_t j) { return P_current(i, j); }
@@ -31,8 +31,10 @@ private:
     float _H[EKF_NUM_ERROR_STATES];
     float _HP[EKF_NUM_ERROR_STATES];
 
-    void applyFusion(float innov, float innov_var);
+    bool applyFusion(float innov, float innov_var, float gate_threshold);
     void updateCovariancePostFusion();
+
+    bool shouldFuseMeasurement(float innov, float innov_var, float gate_threshold);
 
     void injectErrorState();
     void resetErrorState();
