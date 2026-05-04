@@ -13,24 +13,20 @@ def plot(received_data: list[datalink.sitl_response_data], true_data: list[Physi
 
     rec_pos = np.array([[d.posN, d.posE, d.posD] for d in received_data[:n]], dtype=float)
     rec_vel = np.array([[d.velN, d.velE, d.velD] for d in received_data[:n]], dtype=float)
-    rec_acc = np.array([[d.accN, d.accE, d.accD] for d in received_data[:n]], dtype=float)
     true_pos = np.array([state.pos for state in true_data[:n]], dtype=float)
     true_vel = np.array([state.vel for state in true_data[:n]], dtype=float)
-    true_acc = np.array([state.acc for state in true_data[:n]], dtype=float)
 
     pos_err = rec_pos - true_pos
     vel_err = rec_vel - true_vel
-    acc_err = rec_acc - true_acc
     time = np.arange(n, dtype=float) * dt
 
-    fig, axes = plt.subplots(3, 1, figsize=(14, 10), sharex=True)
+    fig, axes = plt.subplots(2, 1, figsize=(14, 10), sharex=True)
     axis_labels = ("N", "E", "D")
     colors = ("#d62728", "#1f77b4", "#2ca02c")
 
     plot_specs = [
-        (axes[0], acc_err, "Acceleration Error", "m/s^2"),
-        (axes[1], vel_err, "Velocity Error", "m/s"),
-        (axes[2], pos_err, "Position Error", "m"),
+        (axes[0], vel_err, "Velocity Error", "m/s"),
+        (axes[1], pos_err, "Position Error", "m"),
     ]
 
     for ax, err, title, unit in plot_specs:
