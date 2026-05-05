@@ -2,12 +2,8 @@ import numpy as np
 import pandas as pd
 import struct
 from dataclasses import dataclass
-from sim.utils.quat import quat_multiply
+from sim.utils import quat, geo
 from sim.connection.network import TCPSocket
-
-
-G_STD = np.array([0, 0, -9.80665], dtype=float)
-MAG_FIELD_NED = np.array([20000.0, 5000.0, 45000.0], dtype=float)
 
 
 @dataclass
@@ -18,11 +14,11 @@ class PhysicsEngineInput:
 
 @dataclass
 class PhysicsEngineOutput:
-    acc: np.ndarray
-    vel: np.ndarray
-    pos: np.ndarray
-    w: np.ndarray
-    q: np.ndarray
+    acc: np.ndarray  # NED frame
+    vel: np.ndarray  # NED frame
+    pos: np.ndarray  # NED frame
+    w: np.ndarray  # FRD frame
+    q: np.ndarray  # FRD -> NED rotation quaternion
 
 
 class PhysicsEngineInterface:
@@ -50,33 +46,35 @@ class DummyPhysicsScenario(SimpleIntegratorScenarioInterface):
         if time < 5:
             return np.array([0.0, 0.0, 0.0])
         elif time >= 5 and time < 9:
-            return -4 * G_STD
+            return 4 * geo.g_ned
         else:
             if current_state.pos[2] <= 0:
                 return np.array([0.0, 0.0, 0.0])
             else:
-                return G_STD
+                return geo.g_ned
 
     def finished(self) -> bool:
         return self.time > 60.0
 
 
 class OpenRocketSimScenario(SimpleIntegratorScenarioInterface):
-    def __init__(self, file_path: str):
+    def __init__(self, file_path: str, preferred_time: float | None = None):
         df = pd.read_csv(file_path)
 
         self.times = df[[c for c in df.columns.values if "Time" in c][0]].values
         self.accs = df[[c for c in df.columns.values if "Vertical acceleration" in c][0]].values
 
         self.time = 0.0
+        self.preferred_time = preferred_time
 
     def get_net_acc(self, time: float, current_state: PhysicsEngineOutput, input: PhysicsEngineInput) -> np.ndarray:
         self.time = time
 
-        return np.interp(time, self.times, self.accs) * np.array([0.0, 0.0, 1.0])
+        # Get acc and convert to NED frame
+        return np.interp(time, self.times, self.accs) * np.array([0.0, 0.0, -1.0])
 
     def finished(self) -> bool:
-        return self.time >= self.times[-1]
+        return self.time >= (min(self.preferred_time, self.times[-1]) if self.preferred_time is not None else self.times[-1])
 
 
 class SimpleIntegratorPhysicsEngine(PhysicsEngineInterface):
@@ -99,7 +97,7 @@ class SimpleIntegratorPhysicsEngine(PhysicsEngineInterface):
         self.vel = self.vel + self.acc * self.dt
 
         omega_q = np.array([0.0, self.w[0], self.w[1], self.w[2]])
-        q_dot = 0.5 * quat_multiply(self.q, omega_q)
+        q_dot = 0.5 * quat.quat_multiply(self.q, omega_q)
         self.q = self.q + q_dot * self.dt
         n = np.linalg.norm(self.q)
 
@@ -124,6 +122,12 @@ class SimulinkPhysicsEngine(PhysicsEngineInterface):
         self.server = TCPSocket(name="simulink", ip="localhost", port=12360, is_server=True, blocking=True)
         self.is_finished = False
 
+    def _enu_to_ned_v3(self, vec: np.ndarray) -> np.ndarray:
+        return np.array([vec[1], vec[0], -vec[2]])
+
+    def _enu_to_ned_q(self, q: np.ndarray) -> np.ndarray:
+        return np.array([q[0], q[2], q[1], -q[3]])
+
     def integrate(self, input: PhysicsEngineInput) -> PhysicsEngineOutput:
         if self.model == "acs":
             self.server.send_raw(struct.pack("<dd", *input.fin_states[:2]))
@@ -142,11 +146,11 @@ class SimulinkPhysicsEngine(PhysicsEngineInterface):
             self.time += self.dt
 
             return PhysicsEngineOutput(
-                acc=np.array(struct.unpack("<3d", data[0:24])),
-                vel=np.array(struct.unpack("<3d", data[24:48])),
-                pos=np.array(struct.unpack("<3d", data[48:72])),
-                w=np.array(struct.unpack("<3d", data[72:96])),
-                q=np.array(struct.unpack("<4d", data[96:128]))
+                acc=self._enu_to_ned_v3(np.array(struct.unpack("<3d", data[0:24]))),
+                vel=self._enu_to_ned_v3(np.array(struct.unpack("<3d", data[24:48]))),
+                pos=self._enu_to_ned_v3(np.array(struct.unpack("<3d", data[48:72]))),
+                w=self._enu_to_ned_v3(np.array(struct.unpack("<3d", data[72:96]))),
+                q=self._enu_to_ned_q(np.array(struct.unpack("<4d", data[96:128])))
             )
 
     def finished(self) -> bool:

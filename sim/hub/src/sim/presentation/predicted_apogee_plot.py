@@ -4,14 +4,10 @@ from sim import datalink
 
 
 def plot(received_data: list[datalink.sitl_response_data], dt: float):
-    if len(received_data) == 0:
-        print("No predicted apogee data to plot.")
-        return
-
     fig, (ax_top, ax_bottom) = plt.subplots(2, 1, figsize=(14, 10), sharex=True)
 
     time = np.arange(len(received_data), dtype=float) * dt
-    height = np.array([data.posD for data in received_data], dtype=float)
+    height = np.array([-data.posD for data in received_data], dtype=float)
     predicted_apogee = np.array([data.predictedApogee for data in received_data], dtype=float)
 
     transition_time = None

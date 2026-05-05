@@ -7,7 +7,7 @@ def plot(received_data: list[datalink.sitl_response_data], dt: float):
     plt.figure(figsize=(20, 12))
 
     time = np.arange(0, len(received_data) * dt, dt)
-    height = np.array([data.posD for data in received_data])
+    height = np.array([-data.posD for data in received_data])
 
     standing_data = (datalink.state_machine_state.DATALINK_SM_STATE_STANDING, "Standing", "#3967e6")
     armed_data = (datalink.state_machine_state.DATALINK_SM_STATE_ARMED, "Armed", "#398ae6")

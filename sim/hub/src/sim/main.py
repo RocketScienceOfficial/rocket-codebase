@@ -3,13 +3,14 @@ import time
 import matplotlib.pyplot as plt
 from . import datalink
 from sim.connection.network import TCPSocket
-from sim.presentation import axes_plots, errors_plots, main_plot, predicted_apogee_plot
+from sim.presentation import axes_plots, errors_plots, main_plot, predicted_apogee_plot, attitude_anim
 from sim.env.environments import *
 from sim.env.physics_engines import *
-from sim.env.sensors import *
 
 
 # ============ SIMULATION CONFIGURATION ============
+np.random.seed(42)
+
 AUTO_ARM = True
 SIM_TICK_DT = 0.001
 # ==================================================
@@ -62,7 +63,13 @@ true_data = []
 env.forward(PhysicsEngineInput(fin_states=np.array([0, 0, 0, 0]), airbrake_angle=0.0))
 
 while not env.finished():
-    data = datalink.sitl_response_data.unpack(physx_sock.receive())
+    recv_data = physx_sock.receive()
+
+    if recv_data is None:
+        print("\n> Simulation ended unexpectedly (no data received from physics engine)!")
+        exit(0)
+
+    data = datalink.sitl_response_data.unpack(recv_data)
     received_data.append(data)
 
     env.forward(PhysicsEngineInput(fin_states=np.array([data.angle_fin1, data.angle_fin2, data.angle_fin3, data.angle_fin4]), airbrake_angle=data.angle_airbrake))
@@ -95,4 +102,6 @@ predicted_apogee_plot.plot(received_data, SIM_TICK_DT)
 
 plt.pause(0.1)
 plt.show()
+
+attitude_anim.animate_quaternions(received_data, true_data, SIM_TICK_DT, target_fps=30, speedup_factor=5.0)
 # ==============================================

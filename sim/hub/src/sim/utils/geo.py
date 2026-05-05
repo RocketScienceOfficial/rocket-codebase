@@ -7,6 +7,7 @@ Resources:
 """
 
 from math import pi, sin, cos, sqrt, atan, atan2, radians, degrees
+import numpy as np
 
 
 a = 6378137.0
@@ -15,6 +16,10 @@ r = 6371000.0
 e = 0.081819190842622
 e2 = 0.00669437999014
 f = 1 / 298.257223563
+
+g = 9.80665
+g_ned = np.array([0, 0, g], dtype=float)
+mag_ned = np.array([20000.0, 5000.0, 45000.0], dtype=float)
 
 
 # ================== UTILS ==================
