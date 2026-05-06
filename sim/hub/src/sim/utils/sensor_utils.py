@@ -28,3 +28,20 @@ def get_values_interp(time, times, vals):
         new_data.append(np.interp(time, times, vals[:, col]))
 
     return new_data
+
+
+class SensorDelayedBuffer:
+    def __init__(self, delay_ms, initial_value):
+        self.delay_ms = delay_ms
+        self.initial_value = initial_value
+        self.buffer = []
+
+    def update(self, current_time_sec, new_value):
+        self.buffer.append((current_time_sec + self.delay_ms / 1000 - 1e-5, new_value))
+
+        last_val = self.initial_value
+
+        while self.buffer and self.buffer[0][0] <= current_time_sec:
+            last_val = self.buffer.pop(0)[1]
+
+        return last_val

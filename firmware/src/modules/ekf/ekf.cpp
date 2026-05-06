@@ -94,13 +94,13 @@ bool EKF::fuseGPSVelocity(const EKFGPSVelMeasurement &meas, float gate_threshold
     bool hadErrors = false;
     float innov, innov_var;
 
-    gen::gps_fusion_vel_n(m_NominalState.asArray(), P_current, meas.vel.x, meas.var, &innov, &innov_var, _H, _K);
+    gen::gps_fusion_vel_n(m_NominalState.asArray(), P_current, meas.vel.x, meas.var_hor, &innov, &innov_var, _H, _K);
     hadErrors |= shouldFuseMeasurement(innov, innov_var, gate_threshold) ? (applyFusion(innov), false) : true;
 
-    gen::gps_fusion_vel_e(m_NominalState.asArray(), P_current, meas.vel.y, meas.var, &innov, &innov_var, _H, _K);
+    gen::gps_fusion_vel_e(m_NominalState.asArray(), P_current, meas.vel.y, meas.var_hor, &innov, &innov_var, _H, _K);
     hadErrors |= shouldFuseMeasurement(innov, innov_var, gate_threshold) ? (applyFusion(innov), false) : true;
 
-    gen::gps_fusion_vel_d(m_NominalState.asArray(), P_current, meas.vel.z, meas.var, &innov, &innov_var, _H, _K);
+    gen::gps_fusion_vel_d(m_NominalState.asArray(), P_current, meas.vel.z, meas.var_ver, &innov, &innov_var, _H, _K);
     hadErrors |= shouldFuseMeasurement(innov, innov_var, gate_threshold) ? (applyFusion(innov), false) : true;
 
     return !hadErrors;

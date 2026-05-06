@@ -31,10 +31,6 @@ private:
     // Output predictor state and buffer
     EKFNominalState m_CurrentOPState;
     vec3_t m_AttitudeCorrection;
-    vec3_t m_PosCorrection;
-    vec3_t m_PosCorrectionIntegral;
-    vec3_t m_VelCorrection;
-    vec3_t m_VelCorrectionIntegral;
     TimestampedRingBuffer<EKFNominalState, EKF_IMU_DELAY_HORIZON_SIZE> m_OutputPredictorBuffer;
 
     // IMU buffer

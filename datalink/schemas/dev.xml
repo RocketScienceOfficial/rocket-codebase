@@ -15,6 +15,10 @@
             <value name="IMU_CLIP_GYRO_Y"/>
             <value name="IMU_CLIP_GYRO_Z"/>
         </enum>
+
+        <enum name="sitl_response_flags" type="flags">
+            <value name="SITL_RESP_EKF"/>
+        </enum>
     </enums>
 
     <messages>
@@ -54,6 +58,7 @@
         </message>
 
         <message name="sitl_response_data" id="33">
+            <field name="responseFlags" type="uint8">Based on sitl_response_flags</field>
             <field name="qw" type="float"/>
             <field name="qx" type="float"/>
             <field name="qy" type="float"/>

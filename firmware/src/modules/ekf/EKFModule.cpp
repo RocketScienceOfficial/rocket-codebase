@@ -121,7 +121,8 @@ void EKFModule::processGPS(const PubSub::Topics::SensorsGPS &gpsData)
         {
             EKFGPSVelMeasurement velMeas;
             velMeas.vel = gpsData.vel;
-            velMeas.var = _var(gpsData.stddev_speed);
+            velMeas.var_hor = _var(gpsData.stddev_speed);
+            velMeas.var_ver = _var(gpsData.stddev_speed * EKF_GPS_VEL_D_NOISE_SCALE);
             m_GPSVelBuffer.push(velMeas, osal_systime_get_ms() - EKF_GPS_DELAY_MS);
         }
         else
@@ -172,18 +173,24 @@ void EKFModule::outputPredictorCalculateState(const EKFIMUData &sample)
 {
     const float &dt = sample.dt;
 
-    // Attitude prediction (with correction)
+    // Attitude prediction (with complementary filter correction)
     float attFactor = dt / EKF_OUTPUT_PREDICTOR_ATT_TAU;
 
-    m_AttitudeCorrection.x *= attFactor;
-    m_AttitudeCorrection.y *= attFactor;
-    m_AttitudeCorrection.z *= attFactor;
+    // Apply fraction of stored correction this step, then decay the residual
+    vec3_t attCorrThisStep = {
+        .x = m_AttitudeCorrection.x * attFactor,
+        .y = m_AttitudeCorrection.y * attFactor,
+        .z = m_AttitudeCorrection.z * attFactor,
+    };
+    m_AttitudeCorrection.x -= attCorrThisStep.x;
+    m_AttitudeCorrection.y -= attCorrThisStep.y;
+    m_AttitudeCorrection.z -= attCorrThisStep.z;
 
     quat_t dq = {
         .w = 1.0f,
-        .x = 0.5f * (sample.delta_angle.x + m_AttitudeCorrection.x - m_EKF.getState().bias_gyro.x * dt),
-        .y = 0.5f * (sample.delta_angle.y + m_AttitudeCorrection.y - m_EKF.getState().bias_gyro.y * dt),
-        .z = 0.5f * (sample.delta_angle.z + m_AttitudeCorrection.z - m_EKF.getState().bias_gyro.z * dt),
+        .x = 0.5f * (sample.delta_angle.x + attCorrThisStep.x - m_EKF.getState().bias_gyro.x * dt),
+        .y = 0.5f * (sample.delta_angle.y + attCorrThisStep.y - m_EKF.getState().bias_gyro.y * dt),
+        .z = 0.5f * (sample.delta_angle.z + attCorrThisStep.z - m_EKF.getState().bias_gyro.z * dt),
     };
     m_CurrentOPState.attitude = quat_mul(&m_CurrentOPState.attitude, &dq);
     quat_normalize(&m_CurrentOPState.attitude);
@@ -216,56 +223,40 @@ void EKFModule::outputPredictorCalculateCorrection(float dt)
     quat_t q_op_inv = quat_conj(&opState.attitude);
     quat_t q_err = quat_mul(&q_op_inv, &ekfState.attitude);
     float sign = (q_err.w >= 0) ? 1.0f : -1.0f;
+    
+    m_AttitudeCorrection.x = 2.0f * sign * q_err.x;
+    m_AttitudeCorrection.y = 2.0f * sign * q_err.y;
+    m_AttitudeCorrection.z = 2.0f * sign * q_err.z;
 
-    m_AttitudeCorrection.x = 2 * sign * q_err.x;
-    m_AttitudeCorrection.y = 2 * sign * q_err.y;
-    m_AttitudeCorrection.z = 2 * sign * q_err.z;
+    float posAlpha = dt / EKF_OUTPUT_PREDICTOR_POS_TAU;
+    float velAlpha = dt / EKF_OUTPUT_PREDICTOR_VEL_TAU;
 
-    float posFactor = dt / EKF_OUTPUT_PREDICTOR_POS_TAU;
-
-    m_PosCorrection.x = ekfState.pos.x - opState.pos.x;
-    m_PosCorrection.y = ekfState.pos.y - opState.pos.y;
-    m_PosCorrection.z = ekfState.pos.z - opState.pos.z;
-
-    m_PosCorrectionIntegral.x = m_PosCorrection.x + m_PosCorrectionIntegral.x * (1.0f - posFactor);
-    m_PosCorrectionIntegral.y = m_PosCorrection.y + m_PosCorrectionIntegral.y * (1.0f - posFactor);
-    m_PosCorrectionIntegral.z = m_PosCorrection.z + m_PosCorrectionIntegral.z * (1.0f - posFactor);
-
-    vec3_t currentPosCorrection = {
-        .x = m_PosCorrection.x * posFactor + m_PosCorrectionIntegral.x * posFactor,
-        .y = m_PosCorrection.y * posFactor + m_PosCorrectionIntegral.y * posFactor,
-        .z = m_PosCorrection.z * posFactor + m_PosCorrectionIntegral.z * posFactor,
+    vec3_t posCorr = {
+        .x = (ekfState.pos.x - opState.pos.x) * posAlpha,
+        .y = (ekfState.pos.y - opState.pos.y) * posAlpha,
+        .z = (ekfState.pos.z - opState.pos.z) * posAlpha,
+    };
+    vec3_t velCorr = {
+        .x = (ekfState.vel.x - opState.vel.x) * velAlpha,
+        .y = (ekfState.vel.y - opState.vel.y) * velAlpha,
+        .z = (ekfState.vel.z - opState.vel.z) * velAlpha,
     };
 
-    float velFactor = dt / EKF_OUTPUT_PREDICTOR_VEL_TAU;
-
-    m_VelCorrection.x = ekfState.vel.x - opState.vel.x;
-    m_VelCorrection.y = ekfState.vel.y - opState.vel.y;
-    m_VelCorrection.z = ekfState.vel.z - opState.vel.z;
-
-    m_VelCorrectionIntegral.x = m_VelCorrection.x + m_VelCorrectionIntegral.x * (1.0f - velFactor);
-    m_VelCorrectionIntegral.y = m_VelCorrection.y + m_VelCorrectionIntegral.y * (1.0f - velFactor);
-    m_VelCorrectionIntegral.z = m_VelCorrection.z + m_VelCorrectionIntegral.z * (1.0f - velFactor);
-
-    vec3_t currentVelCorrection = {
-        .x = m_VelCorrection.x * velFactor + m_VelCorrectionIntegral.x * velFactor,
-        .y = m_VelCorrection.y * velFactor + m_VelCorrectionIntegral.y * velFactor,
-        .z = m_VelCorrection.z * velFactor + m_VelCorrectionIntegral.z * velFactor,
-    };
-
-    // Apply corrections to output predictor buffer and current OP state
     for (size_t i = 0; i < m_OutputPredictorBuffer.size(); i++)
     {
-        m_OutputPredictorBuffer.get(i).vel.x += currentVelCorrection.x;
-        m_OutputPredictorBuffer.get(i).vel.y += currentVelCorrection.y;
-        m_OutputPredictorBuffer.get(i).vel.z += currentVelCorrection.z;
-        m_OutputPredictorBuffer.get(i).pos.x += currentPosCorrection.x;
-        m_OutputPredictorBuffer.get(i).pos.y += currentPosCorrection.y;
-        m_OutputPredictorBuffer.get(i).pos.z += currentPosCorrection.z;
+        m_OutputPredictorBuffer.get(i).pos.x += posCorr.x;
+        m_OutputPredictorBuffer.get(i).pos.y += posCorr.y;
+        m_OutputPredictorBuffer.get(i).pos.z += posCorr.z;
+        m_OutputPredictorBuffer.get(i).vel.x += velCorr.x;
+        m_OutputPredictorBuffer.get(i).vel.y += velCorr.y;
+        m_OutputPredictorBuffer.get(i).vel.z += velCorr.z;
     }
 
-    // Also apply to current OP state to prevent discontinuities
     m_CurrentOPState = m_OutputPredictorBuffer.getNewest();
+
+    // Copy biases
+    m_CurrentOPState.bias_acc = ekfState.bias_acc;
+    m_CurrentOPState.bias_gyro = ekfState.bias_gyro;
 }
 
 uint32_t EKFModule::getMinMeasurementTimestamp() const
@@ -337,11 +328,14 @@ void EKFModule::updateEKF()
 
         if (!cleanFusion)
         {
-            LOG_WARN("Measurement fusion failed due to gate check, skipping remaining fusions for this update");
+            LOG_WARN("Measurement fusion failed gate check");
         }
     }
 
-    SYS_ASSERT(measCount < EKF_MAX_FUSIONS_PER_UPDATE);
+    if (measCount >= EKF_MAX_FUSIONS_PER_UPDATE)
+    {
+        LOG_ERROR("EKF hit max fusions per update - measurement backlog detected");
+    }
 }
 
 bool EKFModule::initState()
@@ -413,11 +407,11 @@ void EKFModule::addBiasNoiseToCovariance(float dt)
 {
     for (size_t i = 9; i < 12; i++)
     {
-        m_EKF.getCovarianceElement(i, i) += _var(EKF_NOISE_GYRO_BIAS) * dt * dt;
+        m_EKF.getCovarianceElement(i, i) += _var(EKF_NOISE_GYRO_BIAS) * dt;
     }
 
     for (size_t i = 12; i < 15; i++)
     {
-        m_EKF.getCovarianceElement(i, i) += _var(EKF_NOISE_ACC_BIAS) * dt * dt;
+        m_EKF.getCovarianceElement(i, i) += _var(EKF_NOISE_ACC_BIAS) * dt;
     }
 }

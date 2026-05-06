@@ -183,6 +183,7 @@ class SyntheticGPSModel(GPSModelInterface):
         self.base_lat = lat
         self.base_lon = lon
         self.base_alt = alt
+        self.buffer = sensor_utils.SensorDelayedBuffer(delay_ms=100, initial_value=GPSModelOutput(pos=np.array([lat, lon, alt]), vel=np.zeros(3), stddevs=self._get_stddevs(), sats=0))
 
     def set_state(self, state: PhysicsEngineOutput):
         self.state = state
@@ -196,12 +197,17 @@ class SyntheticGPSModel(GPSModelInterface):
         pos = self.state.pos + pos_noise
         vel = self.state.vel + vel_noise
         lat, lon, alt = geo.ned_to_geo(self.base_lat, self.base_lon, self.base_alt, pos[0], pos[1], pos[2])
+        sats = 14
+
+        meas = self.buffer.update(time, GPSModelOutput(pos=np.array([lat, lon, alt]), vel=vel, stddevs=self._get_stddevs(), sats=sats))
+
+        return meas
+
+    def _get_stddevs(self):
         stddev_hor = self.noise_hor.get_standard_deviation()
         stddev_ver = self.noise_ver.get_standard_deviation()
         stddev_vel = self.noise_vel.get_standard_deviation()
-        sats = 14
-
-        return GPSModelOutput(pos=np.array([lat, lon, alt]), vel=vel, stddevs=np.array([stddev_hor, stddev_ver, stddev_vel]), sats=sats)
+        return np.array([stddev_hor, stddev_ver, stddev_vel])
 
 
 class ReplayGPSModel(GPSModelInterface):
@@ -283,6 +289,7 @@ class SyntheticBarometerModel(BarometerModelInterface):
         super().__init__(rate)
 
         self.noise = noise
+        self.buffer = sensor_utils.SensorDelayedBuffer(delay_ms=20, initial_value=BarometerModelOutput(height=0.0, pressure=101325, temperature=15.0))
 
     def set_state(self, state: PhysicsEngineOutput):
         self.state = state
@@ -298,7 +305,9 @@ class SyntheticBarometerModel(BarometerModelInterface):
         pressure = int(pressure + self.noise.get_noise(1)[0])  # Pressure should be int
         temperature = temperature + self.noise.get_noise(1)[0]
 
-        return BarometerModelOutput(height=height, pressure=pressure, temperature=temperature)
+        meas = self.buffer.update(time, BarometerModelOutput(height=height, pressure=pressure, temperature=temperature))
+
+        return meas
 
 
 class ReplayBarometerModel(BarometerModelInterface):

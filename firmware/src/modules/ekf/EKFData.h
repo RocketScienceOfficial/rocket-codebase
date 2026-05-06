@@ -32,7 +32,8 @@ struct EKFGPSPosMeasurement
 struct EKFGPSVelMeasurement
 {
     vec3_t vel;
-    float var;
+    float var_hor;
+    float var_ver;
 };
 
 struct EKFNominalState

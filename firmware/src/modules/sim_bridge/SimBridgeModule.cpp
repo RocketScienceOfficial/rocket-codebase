@@ -89,10 +89,13 @@ void SimBridgeModule::sendPhysicsResponseData()
         return;
     }
 
+    m_responseData.responseFlags = 0;
+
     if (m_EKFStateSubscriber.poll())
     {
         const auto &ekfState = m_EKFStateSubscriber.get();
 
+        m_responseData.responseFlags |= DATALINK_FLAGS_SITL_RESP_EKF;
         m_responseData.posN = ekfState.position.x;
         m_responseData.posE = ekfState.position.y;
         m_responseData.posD = ekfState.position.z;
