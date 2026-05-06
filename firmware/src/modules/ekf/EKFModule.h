@@ -7,7 +7,7 @@
 #include "EKF.h"
 #include "EKFData.h"
 #include "EKFConfig.h"
-#include "utils/RingBuffer.h"
+#include "utils/TimestampedRingBuffer.h"
 
 class EKFModule
 {
@@ -30,8 +30,12 @@ private:
 
     // Output predictor state and buffer
     EKFNominalState m_CurrentOPState;
-    EKFErrorState m_OPNextCorrection;
-    RingBuffer<EKFNominalState, EKF_IMU_DELAY_HORIZON_SIZE> m_OutputPredictorBuffer;
+    vec3_t m_AttitudeCorrection;
+    vec3_t m_PosCorrection;
+    vec3_t m_PosCorrectionIntegral;
+    vec3_t m_VelCorrection;
+    vec3_t m_VelCorrectionIntegral;
+    TimestampedRingBuffer<EKFNominalState, EKF_IMU_DELAY_HORIZON_SIZE> m_OutputPredictorBuffer;
 
     // IMU buffer
     vec3_t m_AccelAccum;
@@ -39,18 +43,18 @@ private:
     uint8_t m_IMUClippingFlagsAccum;
     float m_IMUDtAccum;
     size_t m_IMUSamplesCount;
-    RingBuffer<EKFIMUData, EKF_IMU_DELAY_HORIZON_SIZE> m_IMUBuffer;
+    TimestampedRingBuffer<EKFIMUData, EKF_IMU_DELAY_HORIZON_SIZE> m_IMUBuffer;
 
     // GPS origin
     equirect_projection_t m_Projection;
     bool m_GPSOriginSet;
-    RingBuffer<EKFGPSPosMeasurement, EKF_GPS_DELAY_HORIZON_SIZE> m_GPSPosBuffer;
-    RingBuffer<EKFGPSVelMeasurement, EKF_GPS_DELAY_HORIZON_SIZE> m_GPSVelBuffer;
+    TimestampedRingBuffer<EKFGPSPosMeasurement, EKF_GPS_DELAY_HORIZON_SIZE> m_GPSPosBuffer;
+    TimestampedRingBuffer<EKFGPSVelMeasurement, EKF_GPS_DELAY_HORIZON_SIZE> m_GPSVelBuffer;
 
     // Barometer offset
     float m_BaroOffset;
     bool m_BaroOffsetSet;
-    RingBuffer<EKFBaroMeasurement, EKF_BARO_DELAY_HORIZON_SIZE> m_BaroBuffer;
+    TimestampedRingBuffer<EKFBaroMeasurement, EKF_BARO_DELAY_HORIZON_SIZE> m_BaroBuffer;
 
     // Processing functions
     void processIMU(const PubSub::Topics::SensorsIMU &imuData);
@@ -58,16 +62,16 @@ private:
     void processBaro(const PubSub::Topics::SensorsBaro &baroData);
 
     // Output predictor functions
-    void outputPredictorIntegrate(const EKFIMUData &sample, uint32_t currentTime);
-    void outputPredictorPublishState();
-    void outputPredictorCalculateCorrection();
+    void outputPredictorForward(const EKFIMUData &sample, uint32_t currentTime);
+    void outputPredictorCalculateState(const EKFIMUData &sample);
+    void outputPredictorCalculateCorrection(float dt);
 
     // EKF update and fusion functions
     uint32_t getMinMeasurementTimestamp() const;
     void updateEKF();
 
     // Utility functions
-    void initState();
+    bool initState();
     void initCovariance();
     void addBiasNoiseToCovariance(float dt);
 };

@@ -6,6 +6,15 @@
             <value name="SITL_READ_BARO_1"/>
             <value name="SITL_READ_GPS_1"/>
         </enum>
+
+        <enum name="imu_clipping_flags" type="flags"> // The same as PubSub::Helpers::IMUClippingFlags
+            <value name="IMU_CLIP_ACC_X"/>
+            <value name="IMU_CLIP_ACC_Y"/>
+            <value name="IMU_CLIP_ACC_Z"/>
+            <value name="IMU_CLIP_GYRO_X"/>
+            <value name="IMU_CLIP_GYRO_Y"/>
+            <value name="IMU_CLIP_GYRO_Z"/>
+        </enum>
     </enums>
 
     <messages>
@@ -25,6 +34,7 @@
             <field name="imu1GyroX" type="float"/>
             <field name="imu1GyroY" type="float"/>
             <field name="imu1GyroZ" type="float"/>
+            <field name="imu1ClippingFlags" type="uint8">Based on imu_clipping_flags</field>
             <field name="mag1X" type="float"/>
             <field name="mag1Y" type="float"/>
             <field name="mag1Z" type="float"/>

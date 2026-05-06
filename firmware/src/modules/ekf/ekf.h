@@ -8,8 +8,6 @@ class EKF
 public:
     void init();
 
-    static void predictExplicitState(EKFNominalState &state, const EKFErrorState &error, const EKFIMUData &imu);
-
     void predictState(const EKFIMUData &imu);
     void predictCovariance(const EKFIMUData &imu);
 

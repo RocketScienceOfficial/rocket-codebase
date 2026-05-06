@@ -4,7 +4,7 @@
 #include <lib/debug/sys_assert.h>
 
 template <typename T, size_t N>
-class RingBuffer
+class TimestampedRingBuffer
 {
 public:
     void push(const T &data, uint32_t timestamp)
@@ -19,11 +19,11 @@ public:
 
     const T &pop()
     {
+        SYS_ASSERT(!empty());
         SYS_ASSERT_MSG(m_TailSeq < m_HeadSeq, "Buffer underflow");
-        SYS_ASSERT_MSG(m_TailSeq >= m_HeadSeq - N, "Buffer overflow");
+        SYS_ASSERT_MSG(m_TailSeq + N >= m_HeadSeq, "Buffer overflow");
 
         size_t idx = m_TailSeq % N;
-        SYS_ASSERT_MSG(m_TimestampsBuffer[idx] != 0, "No data at tail");
 
         m_TailSeq++;
 
@@ -40,11 +40,29 @@ public:
         return m_HeadSeq - m_TailSeq;
     }
 
+    T &get(size_t index)
+    {
+        SYS_ASSERT_MSG(index < size(), "Index out of bounds");
+
+        size_t idx = (m_TailSeq + index) % N;
+
+        SYS_ASSERT_MSG(m_TimestampsBuffer[idx] != 0, "No data at index");
+
+        return m_Buffer[idx];
+    }
+
+    const T &getNewest() const
+    {
+        SYS_ASSERT(!empty());
+
+        return m_Buffer[(m_HeadSeq - 1) % N];
+    }
+
     uint32_t peekTimestamp() const
     {
-        size_t idx = m_TailSeq % N;
-        SYS_ASSERT_MSG(m_TimestampsBuffer[idx] != 0, "No data at tail");
-        return m_TimestampsBuffer[idx];
+        SYS_ASSERT(!empty());
+
+        return m_TimestampsBuffer[m_TailSeq % N];
     }
 
 private:

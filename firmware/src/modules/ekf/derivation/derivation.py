@@ -15,8 +15,8 @@ def predict_covariance(true_state, state, error_state, P, dt):
     }
 
     input_true = {
-        "accel": accel - state["bias_accel"] - noise["accel"],
-        "gyro": gyro - state["bias_gyro"] - noise["gyro"]
+        "accel": accel - true_state["bias_accel"] - noise["accel"],
+        "gyro": gyro - true_state["bias_gyro"] - noise["gyro"]
     }
     rot_true_state = quaternion_rot_matrix(true_state["q"])
     true_state_pred = true_state.copy()
@@ -43,7 +43,7 @@ def predict_covariance(true_state, state, error_state, P, dt):
             error_state_pred[key] = 2 * Matrix([d_q[1], d_q[2], d_q[3]])  # using small angle approximation; the factor of 2 is because of the division by 2 in the quaternion multiplication for the state prediction
         else:
             error_state_pred[key] = true_state_pred[key] - nominal_state_pred[key]
-    
+
     # Optimize error state prediction by removing higher order terms and factoring out the error state variables
     for i in range(len(error_state_pred["theta"])):
         error_state_pred["theta"][i] = expand(error_state_pred["theta"][i]).subs(dt**2, 0)
@@ -59,10 +59,8 @@ def predict_covariance(true_state, state, error_state, P, dt):
     A = error_state_pred_vector.jacobian(Matrix(list(error_state.values()))).subs(zero_state_error).subs(zero_noise)
     G = error_state_pred_vector.jacobian(Matrix(list(noise.values()))).subs(zero_state_error).subs(zero_noise)
 
-    var_acc = symbols("var_acc")
-    var_gyro = symbols("var_gyro")
+    var_acc, var_gyro = symbols("var_acc var_gyro")
     var_u = Matrix.diag([var_acc, var_acc, var_acc, var_gyro, var_gyro, var_gyro])
-
     P_new = A * P * A.T + G * var_u * G.T
 
     # Since the covariance matrix is symmetric, we can set the lower triangular part to 0 to optimize the generated code

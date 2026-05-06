@@ -11,6 +11,8 @@
 void EKFModule::init()
 {
     m_EKF.init();
+
+    initCovariance();
 }
 
 void EKFModule::run()
@@ -45,18 +47,18 @@ void EKFModule::processIMU(const PubSub::Topics::SensorsIMU &imuData)
 
     if (!m_EKFInitialized && m_IMUSamplesCount >= EKF_INIT_IMU_SAMPLES)
     {
-        initState();
-        initCovariance();
+        if (initState())
+        {
+            m_EKFInitialized = true;
+
+            LOG_INFO("EKF initialized");
+        }
 
         m_AccelAccum = {0, 0, 0};
         m_GyroAccum = {0, 0, 0};
         m_IMUClippingFlagsAccum = 0;
         m_IMUDtAccum = 0.0f;
         m_IMUSamplesCount = 0;
-
-        m_EKFInitialized = true;
-
-        LOG_INFO("EKF initialized");
     }
     else if (m_EKFInitialized && m_IMUDtAccum >= 1.0f / EKF_RATE_HZ)
     {
@@ -75,7 +77,7 @@ void EKFModule::processIMU(const PubSub::Topics::SensorsIMU &imuData)
         m_IMUSamplesCount = 0;
         m_LastUpdateTime = currentTime;
 
-        outputPredictorIntegrate(sample, currentTime);
+        outputPredictorForward(sample, currentTime);
 
         if (!m_EKFEnabled && !m_IMUBuffer.empty() && currentTime - m_IMUBuffer.peekTimestamp() >= EKF_DELAY_HORIZON_MS)
         {
@@ -86,9 +88,9 @@ void EKFModule::processIMU(const PubSub::Topics::SensorsIMU &imuData)
         if (m_EKFEnabled)
         {
             updateEKF();
-        }
 
-        outputPredictorCalculateCorrection();
+            outputPredictorCalculateCorrection(sample.dt);
+        }
     }
 }
 
@@ -122,6 +124,10 @@ void EKFModule::processGPS(const PubSub::Topics::SensorsGPS &gpsData)
             velMeas.var = _var(gpsData.stddev_speed);
             m_GPSVelBuffer.push(velMeas, osal_systime_get_ms() - EKF_GPS_DELAY_MS);
         }
+        else
+        {
+            LOG_WARN("GPS velocity below fusion threshold, skipping velocity fusion");
+        }
     }
 }
 
@@ -132,7 +138,7 @@ void EKFModule::processBaro(const PubSub::Topics::SensorsBaro &baroData)
         return;
     }
 
-    if (m_BaroOffsetSet)
+    if (!m_BaroOffsetSet)
     {
         m_BaroOffset = baroData.baroHeight;
         m_BaroOffsetSet = true;
@@ -149,17 +155,12 @@ void EKFModule::processBaro(const PubSub::Topics::SensorsBaro &baroData)
     }
 }
 
-void EKFModule::outputPredictorIntegrate(const EKFIMUData &sample, uint32_t currentTime)
+void EKFModule::outputPredictorForward(const EKFIMUData &sample, uint32_t currentTime)
 {
-    EKF::predictExplicitState(m_CurrentOPState, m_OPNextCorrection, sample);
+    outputPredictorCalculateState(sample);
 
     m_OutputPredictorBuffer.push(m_CurrentOPState, currentTime);
 
-    outputPredictorPublishState();
-}
-
-void EKFModule::outputPredictorPublishState()
-{
     m_EKFPublisher.publish({
         .orientation = m_CurrentOPState.attitude,
         .position = m_CurrentOPState.pos,
@@ -167,7 +168,47 @@ void EKFModule::outputPredictorPublishState()
     });
 }
 
-void EKFModule::outputPredictorCalculateCorrection()
+void EKFModule::outputPredictorCalculateState(const EKFIMUData &sample)
+{
+    const float &dt = sample.dt;
+
+    // Attitude prediction (with correction)
+    float attFactor = dt / EKF_OUTPUT_PREDICTOR_ATT_TAU;
+
+    m_AttitudeCorrection.x *= attFactor;
+    m_AttitudeCorrection.y *= attFactor;
+    m_AttitudeCorrection.z *= attFactor;
+
+    quat_t dq = {
+        .w = 1.0f,
+        .x = 0.5f * (sample.delta_angle.x + m_AttitudeCorrection.x - m_EKF.getState().bias_gyro.x * dt),
+        .y = 0.5f * (sample.delta_angle.y + m_AttitudeCorrection.y - m_EKF.getState().bias_gyro.y * dt),
+        .z = 0.5f * (sample.delta_angle.z + m_AttitudeCorrection.z - m_EKF.getState().bias_gyro.z * dt),
+    };
+    m_CurrentOPState.attitude = quat_mul(&m_CurrentOPState.attitude, &dq);
+    quat_normalize(&m_CurrentOPState.attitude);
+
+    // Velocity prediction
+    vec3_t dv = {
+        .x = sample.delta_velocity.x - m_EKF.getState().bias_acc.x * dt,
+        .y = sample.delta_velocity.y - m_EKF.getState().bias_acc.y * dt,
+        .z = sample.delta_velocity.z - m_EKF.getState().bias_acc.z * dt,
+    };
+    quat_rotate_vec(&dv, &m_CurrentOPState.attitude);
+
+    vec3_t oldVel = m_CurrentOPState.vel;
+
+    m_CurrentOPState.vel.x += dv.x;
+    m_CurrentOPState.vel.y += dv.y;
+    m_CurrentOPState.vel.z += dv.z + EARTH_GRAVITY * dt;
+
+    // Position prediction (trapezoidal integration)
+    m_CurrentOPState.pos.x += (oldVel.x + m_CurrentOPState.vel.x) * dt * 0.5f;
+    m_CurrentOPState.pos.y += (oldVel.y + m_CurrentOPState.vel.y) * dt * 0.5f;
+    m_CurrentOPState.pos.z += (oldVel.z + m_CurrentOPState.vel.z) * dt * 0.5f;
+}
+
+void EKFModule::outputPredictorCalculateCorrection(float dt)
 {
     const EKFNominalState &opState = m_OutputPredictorBuffer.pop();
     const EKFNominalState &ekfState = m_EKF.getState();
@@ -176,31 +217,55 @@ void EKFModule::outputPredictorCalculateCorrection()
     quat_t q_err = quat_mul(&q_op_inv, &ekfState.attitude);
     float sign = (q_err.w >= 0) ? 1.0f : -1.0f;
 
-    m_OPNextCorrection.theta = {
-        .x = 2 * sign * q_err.x / EKF_OUTPUT_PREDICTOR_ATT_TAU,
-        .y = 2 * sign * q_err.y / EKF_OUTPUT_PREDICTOR_ATT_TAU,
-        .z = 2 * sign * q_err.z / EKF_OUTPUT_PREDICTOR_ATT_TAU,
+    m_AttitudeCorrection.x = 2 * sign * q_err.x;
+    m_AttitudeCorrection.y = 2 * sign * q_err.y;
+    m_AttitudeCorrection.z = 2 * sign * q_err.z;
+
+    float posFactor = dt / EKF_OUTPUT_PREDICTOR_POS_TAU;
+
+    m_PosCorrection.x = ekfState.pos.x - opState.pos.x;
+    m_PosCorrection.y = ekfState.pos.y - opState.pos.y;
+    m_PosCorrection.z = ekfState.pos.z - opState.pos.z;
+
+    m_PosCorrectionIntegral.x = m_PosCorrection.x + m_PosCorrectionIntegral.x * (1.0f - posFactor);
+    m_PosCorrectionIntegral.y = m_PosCorrection.y + m_PosCorrectionIntegral.y * (1.0f - posFactor);
+    m_PosCorrectionIntegral.z = m_PosCorrection.z + m_PosCorrectionIntegral.z * (1.0f - posFactor);
+
+    vec3_t currentPosCorrection = {
+        .x = m_PosCorrection.x * posFactor + m_PosCorrectionIntegral.x * posFactor,
+        .y = m_PosCorrection.y * posFactor + m_PosCorrectionIntegral.y * posFactor,
+        .z = m_PosCorrection.z * posFactor + m_PosCorrectionIntegral.z * posFactor,
     };
-    m_OPNextCorrection.pos = {
-        .x = (ekfState.pos.x - opState.pos.x) / EKF_OUTPUT_PREDICTOR_POS_TAU,
-        .y = (ekfState.pos.y - opState.pos.y) / EKF_OUTPUT_PREDICTOR_POS_TAU,
-        .z = (ekfState.pos.z - opState.pos.z) / EKF_OUTPUT_PREDICTOR_POS_TAU,
+
+    float velFactor = dt / EKF_OUTPUT_PREDICTOR_VEL_TAU;
+
+    m_VelCorrection.x = ekfState.vel.x - opState.vel.x;
+    m_VelCorrection.y = ekfState.vel.y - opState.vel.y;
+    m_VelCorrection.z = ekfState.vel.z - opState.vel.z;
+
+    m_VelCorrectionIntegral.x = m_VelCorrection.x + m_VelCorrectionIntegral.x * (1.0f - velFactor);
+    m_VelCorrectionIntegral.y = m_VelCorrection.y + m_VelCorrectionIntegral.y * (1.0f - velFactor);
+    m_VelCorrectionIntegral.z = m_VelCorrection.z + m_VelCorrectionIntegral.z * (1.0f - velFactor);
+
+    vec3_t currentVelCorrection = {
+        .x = m_VelCorrection.x * velFactor + m_VelCorrectionIntegral.x * velFactor,
+        .y = m_VelCorrection.y * velFactor + m_VelCorrectionIntegral.y * velFactor,
+        .z = m_VelCorrection.z * velFactor + m_VelCorrectionIntegral.z * velFactor,
     };
-    m_OPNextCorrection.vel = {
-        .x = (ekfState.vel.x - opState.vel.x) / EKF_OUTPUT_PREDICTOR_VEL_TAU,
-        .y = (ekfState.vel.y - opState.vel.y) / EKF_OUTPUT_PREDICTOR_VEL_TAU,
-        .z = (ekfState.vel.z - opState.vel.z) / EKF_OUTPUT_PREDICTOR_VEL_TAU,
-    };
-    m_OPNextCorrection.bias_acc = {
-        .x = (ekfState.bias_acc.x - opState.bias_acc.x) / EKF_OUTPUT_PREDICTOR_B_ACC_TAU,
-        .y = (ekfState.bias_acc.y - opState.bias_acc.y) / EKF_OUTPUT_PREDICTOR_B_ACC_TAU,
-        .z = (ekfState.bias_acc.z - opState.bias_acc.z) / EKF_OUTPUT_PREDICTOR_B_ACC_TAU,
-    };
-    m_OPNextCorrection.bias_gyro = {
-        .x = (ekfState.bias_gyro.x - opState.bias_gyro.x) / EKF_OUTPUT_PREDICTOR_B_GYRO_TAU,
-        .y = (ekfState.bias_gyro.y - opState.bias_gyro.y) / EKF_OUTPUT_PREDICTOR_B_GYRO_TAU,
-        .z = (ekfState.bias_gyro.z - opState.bias_gyro.z) / EKF_OUTPUT_PREDICTOR_B_GYRO_TAU,
-    };
+
+    // Apply corrections to output predictor buffer and current OP state
+    for (size_t i = 0; i < m_OutputPredictorBuffer.size(); i++)
+    {
+        m_OutputPredictorBuffer.get(i).vel.x += currentVelCorrection.x;
+        m_OutputPredictorBuffer.get(i).vel.y += currentVelCorrection.y;
+        m_OutputPredictorBuffer.get(i).vel.z += currentVelCorrection.z;
+        m_OutputPredictorBuffer.get(i).pos.x += currentPosCorrection.x;
+        m_OutputPredictorBuffer.get(i).pos.y += currentPosCorrection.y;
+        m_OutputPredictorBuffer.get(i).pos.z += currentPosCorrection.z;
+    }
+
+    // Also apply to current OP state to prevent discontinuities
+    m_CurrentOPState = m_OutputPredictorBuffer.getNewest();
 }
 
 uint32_t EKFModule::getMinMeasurementTimestamp() const
@@ -251,55 +316,70 @@ void EKFModule::updateEKF()
             break;
         }
 
-        bool wasFused = false;
+        bool cleanFusion = false;
 
         if (!m_GPSPosBuffer.empty() && m_GPSPosBuffer.peekTimestamp() <= minMeasTimestamp)
         {
-            wasFused = m_EKF.fuseGPSPosition(m_GPSPosBuffer.pop(), EKF_GATE_THRESHOLD_GPS_POS);
+            cleanFusion = m_EKF.fuseGPSPosition(m_GPSPosBuffer.pop(), EKF_GATE_THRESHOLD_GPS_POS);
         }
         else if (!m_GPSVelBuffer.empty() && m_GPSVelBuffer.peekTimestamp() <= minMeasTimestamp)
         {
-            wasFused = m_EKF.fuseGPSVelocity(m_GPSVelBuffer.pop(), EKF_GATE_THRESHOLD_GPS_VEL);
+            cleanFusion = m_EKF.fuseGPSVelocity(m_GPSVelBuffer.pop(), EKF_GATE_THRESHOLD_GPS_VEL);
         }
         else if (!m_BaroBuffer.empty() && m_BaroBuffer.peekTimestamp() <= minMeasTimestamp)
         {
-            wasFused = m_EKF.fuseBaroHeight(m_BaroBuffer.pop(), EKF_GATE_THRESHOLD_BARO);
+            cleanFusion = m_EKF.fuseBaroHeight(m_BaroBuffer.pop(), EKF_GATE_THRESHOLD_BARO);
         }
         else
         {
             break;
         }
 
-        if (!wasFused)
+        if (!cleanFusion)
         {
-            LOG_WARN("Measurement at timestamp %u failed fusion consistency check and was rejected", minMeasTimestamp);
+            LOG_WARN("Measurement fusion failed due to gate check, skipping remaining fusions for this update");
         }
     }
 
     SYS_ASSERT(measCount < EKF_MAX_FUSIONS_PER_UPDATE);
 }
 
-void EKFModule::initState()
+bool EKFModule::initState()
 {
     vec3_t g_vec_norm = {
         .x = 0,
         .y = 0,
-        .z = 1,
+        .z = -1,
     };
+
     vec3_t avgAcc = {
         .x = m_AccelAccum.x / m_IMUDtAccum,
         .y = m_AccelAccum.y / m_IMUDtAccum,
         .z = m_AccelAccum.z / m_IMUDtAccum,
     };
+
+    float acc_len = vec3_mag(&avgAcc);
+
+    if (fabsf(acc_len - EARTH_GRAVITY) > EKF_INIT_ACC_MAG_ERROR_THRESHOLD)
+    {
+        LOG_ERROR("Average acceleration magnitude is too low for reliable attitude initialization");
+
+        return false;
+    }
+
     vec3_normalize(&avgAcc);
 
     quat_t initialAttitude = quat_from_vecs(&avgAcc, &g_vec_norm);
 
-    m_EKF.getState().attitude = initialAttitude;
-    m_EKF.getState().pos = {0, 0, 0};
-    m_EKF.getState().vel = {0, 0, 0};
-    m_EKF.getState().bias_acc = {0, 0, 0};
-    m_EKF.getState().bias_gyro = {0, 0, 0};
+    m_CurrentOPState.attitude = initialAttitude;
+    m_CurrentOPState.pos = {0, 0, 0};
+    m_CurrentOPState.vel = {0, 0, 0};
+    m_CurrentOPState.bias_acc = {0, 0, 0};
+    m_CurrentOPState.bias_gyro = {0, 0, 0};
+
+    m_EKF.getState() = m_CurrentOPState;
+
+    return true;
 }
 
 void EKFModule::initCovariance()
@@ -333,11 +413,11 @@ void EKFModule::addBiasNoiseToCovariance(float dt)
 {
     for (size_t i = 9; i < 12; i++)
     {
-        m_EKF.getCovarianceElement(i, i) += _var(EKF_NOISE_GYRO_BIAS) * dt;
+        m_EKF.getCovarianceElement(i, i) += _var(EKF_NOISE_GYRO_BIAS) * dt * dt;
     }
 
     for (size_t i = 12; i < 15; i++)
     {
-        m_EKF.getCovarianceElement(i, i) += _var(EKF_NOISE_ACC_BIAS) * dt;
+        m_EKF.getCovarianceElement(i, i) += _var(EKF_NOISE_ACC_BIAS) * dt * dt;
     }
 }

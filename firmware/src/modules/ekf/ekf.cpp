@@ -8,7 +8,6 @@
 #include "derivation/generated/gps_fusion_vel_e.h"
 #include "derivation/generated/gps_fusion_vel_d.h"
 #include <lib/geo/physical_constants.h>
-#include <lib/debug/sys_assert.h>
 
 void EKF::init()
 {
@@ -18,49 +17,38 @@ void EKF::init()
     P_next.resetCompletely();
 }
 
-void EKF::predictExplicitState(EKFNominalState &state, const EKFErrorState &error, const EKFIMUData &imu)
+void EKF::predictState(const EKFIMUData &imu)
 {
     const float &dt = imu.dt;
 
-    state.bias_acc.x += error.bias_acc.x * dt;
-    state.bias_acc.y += error.bias_acc.y * dt;
-    state.bias_acc.z += error.bias_acc.z * dt;
-
-    state.bias_gyro.x += error.bias_gyro.x * dt;
-    state.bias_gyro.y += error.bias_gyro.y * dt;
-    state.bias_gyro.z += error.bias_gyro.z * dt;
-
-    state.pos.x += (state.vel.x + error.pos.x) * dt;
-    state.pos.y += (state.vel.y + error.pos.y) * dt;
-    state.pos.z += (state.vel.z + error.pos.z) * dt;
-
-    vec3_t dv = {
-        .x = imu.delta_velocity.x - state.bias_acc.x * dt,
-        .y = imu.delta_velocity.y - state.bias_acc.y * dt,
-        .z = imu.delta_velocity.z - state.bias_acc.z * dt,
-    };
-    quat_rotate_vec(&dv, &state.attitude);
-
-    state.vel.x += dv.x + error.vel.x * dt;
-    state.vel.y += dv.y + error.vel.y * dt;
-    state.vel.z += dv.z + error.vel.z * dt + EARTH_GRAVITY * dt;
-
+    // Attitude prediction
     quat_t dq = {
         .w = 1.0f,
-        .x = 0.5f * (imu.delta_angle.x + error.theta.x * dt - state.bias_gyro.x * dt),
-        .y = 0.5f * (imu.delta_angle.y + error.theta.y * dt - state.bias_gyro.y * dt),
-        .z = 0.5f * (imu.delta_angle.z + error.theta.z * dt - state.bias_gyro.z * dt),
+        .x = 0.5f * (imu.delta_angle.x - m_NominalState.bias_gyro.x * dt),
+        .y = 0.5f * (imu.delta_angle.y - m_NominalState.bias_gyro.y * dt),
+        .z = 0.5f * (imu.delta_angle.z - m_NominalState.bias_gyro.z * dt),
     };
-    state.attitude = quat_mul(&state.attitude, &dq);
-    quat_normalize(&state.attitude);
-}
+    m_NominalState.attitude = quat_mul(&m_NominalState.attitude, &dq);
+    quat_normalize(&m_NominalState.attitude);
 
-void EKF::predictState(const EKFIMUData &imu)
-{
-    SYS_ASSERT(m_ErrorState.asArray()[0] == 0.0f); // Sanity check that error state is zero
+    // Velocity prediction
+    vec3_t dv = {
+        .x = imu.delta_velocity.x - m_NominalState.bias_acc.x * dt,
+        .y = imu.delta_velocity.y - m_NominalState.bias_acc.y * dt,
+        .z = imu.delta_velocity.z - m_NominalState.bias_acc.z * dt,
+    };
+    quat_rotate_vec(&dv, &m_NominalState.attitude);
 
-    // Error state is always 0 here
-    predictExplicitState(m_NominalState, m_ErrorState, imu);
+    vec3_t oldVel = m_NominalState.vel;
+
+    m_NominalState.vel.x += dv.x;
+    m_NominalState.vel.y += dv.y;
+    m_NominalState.vel.z += dv.z + EARTH_GRAVITY * dt;
+
+    // Trapezoidal integration for position
+    m_NominalState.pos.x += (oldVel.x + m_NominalState.vel.x) * dt * 0.5f;
+    m_NominalState.pos.y += (oldVel.y + m_NominalState.vel.y) * dt * 0.5f;
+    m_NominalState.pos.z += (oldVel.z + m_NominalState.vel.z) * dt * 0.5f;
 }
 
 void EKF::predictCovariance(const EKFIMUData &imu)
@@ -86,72 +74,47 @@ void EKF::predictCovariance(const EKFIMUData &imu)
 
 bool EKF::fuseGPSPosition(const EKFGPSPosMeasurement &meas, float gate_threshold)
 {
+    bool hadErrors = false;
     float innov, innov_var;
 
     gen::gps_fusion_pos_n(m_NominalState.asArray(), P_current, meas.pos.x, meas.var_hor, &innov, &innov_var, _H, _K);
-    if (!shouldFuseMeasurement(innov, innov_var, gate_threshold))
-    {
-        return false;
-    }
-    applyFusion(innov);
+    hadErrors |= shouldFuseMeasurement(innov, innov_var, gate_threshold) ? (applyFusion(innov), false) : true;
 
     gen::gps_fusion_pos_e(m_NominalState.asArray(), P_current, meas.pos.y, meas.var_hor, &innov, &innov_var, _H, _K);
-    if (!shouldFuseMeasurement(innov, innov_var, gate_threshold))
-    {
-        return false;
-    }
-    applyFusion(innov);
+    hadErrors |= shouldFuseMeasurement(innov, innov_var, gate_threshold) ? (applyFusion(innov), false) : true;
 
     gen::gps_fusion_pos_d(m_NominalState.asArray(), P_current, meas.pos.z, meas.var_ver, &innov, &innov_var, _H, _K);
-    if (!shouldFuseMeasurement(innov, innov_var, gate_threshold))
-    {
-        return false;
-    }
-    applyFusion(innov);
+    hadErrors |= shouldFuseMeasurement(innov, innov_var, gate_threshold) ? (applyFusion(innov), false) : true;
 
-    return true;
+    return !hadErrors;
 }
 
 bool EKF::fuseGPSVelocity(const EKFGPSVelMeasurement &meas, float gate_threshold)
 {
+    bool hadErrors = false;
     float innov, innov_var;
 
     gen::gps_fusion_vel_n(m_NominalState.asArray(), P_current, meas.vel.x, meas.var, &innov, &innov_var, _H, _K);
-    if (!shouldFuseMeasurement(innov, innov_var, gate_threshold))
-    {
-        return false;
-    }
-    applyFusion(innov);
+    hadErrors |= shouldFuseMeasurement(innov, innov_var, gate_threshold) ? (applyFusion(innov), false) : true;
 
     gen::gps_fusion_vel_e(m_NominalState.asArray(), P_current, meas.vel.y, meas.var, &innov, &innov_var, _H, _K);
-    if (!shouldFuseMeasurement(innov, innov_var, gate_threshold))
-    {
-        return false;
-    }
-    applyFusion(innov);
+    hadErrors |= shouldFuseMeasurement(innov, innov_var, gate_threshold) ? (applyFusion(innov), false) : true;
 
     gen::gps_fusion_vel_d(m_NominalState.asArray(), P_current, meas.vel.z, meas.var, &innov, &innov_var, _H, _K);
-    if (!shouldFuseMeasurement(innov, innov_var, gate_threshold))
-    {
-        return false;
-    }
-    applyFusion(innov);
+    hadErrors |= shouldFuseMeasurement(innov, innov_var, gate_threshold) ? (applyFusion(innov), false) : true;
 
-    return true;
+    return !hadErrors;
 }
 
 bool EKF::fuseBaroHeight(const EKFBaroMeasurement &meas, float gate_threshold)
 {
+    bool hadErrors = false;
     float innov, innov_var;
 
     gen::baro_fusion(m_NominalState.asArray(), P_current, meas.height, meas.var, &innov, &innov_var, _H, _K);
-    if (!shouldFuseMeasurement(innov, innov_var, gate_threshold))
-    {
-        return false;
-    }
-    applyFusion(innov);
+    hadErrors |= shouldFuseMeasurement(innov, innov_var, gate_threshold) ? (applyFusion(innov), false) : true;
 
-    return true;
+    return !hadErrors;
 }
 
 void EKF::applyFusion(float innov)
