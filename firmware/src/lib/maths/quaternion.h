@@ -64,6 +64,15 @@ void quat_rotate_vec(vec3_t *v, const quat_t *q);
 quat_t quat_from_vecs(const vec3_t *from, const vec3_t *to);
 
 /**
+ * @brief Calculate quaternion representing orientation from accelerometer and magnetometer readings. "acc" should represent the gravity vector, and "mag" should represent the magnetic field vector in the body frame.
+ * 
+ * @param acc Accelerometer vector (FRD frame)
+ * @param mag Magnetometer vector (FRD frame)
+ * @return Quaternion representing orientation (normalized)
+ */
+quat_t quat_from_acc_mag(const vec3_t *acc, const vec3_t *mag);
+
+/**
  * @brief Calculate derivative of quaternion
  *
  * @param q Quaternion

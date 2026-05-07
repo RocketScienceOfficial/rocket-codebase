@@ -48,6 +48,30 @@ TEST(Quaternion, quat_rotate_vec_test)
     EXPECT_NEAR(v.z, 1.0f, 1e-4f);
 }
 
+TEST(Quaternion, quat_from_vecs_test)
+{
+    vec3_t from = {1.0f, 0.0f, 0.0f};
+    vec3_t to = {0.0f, 1.0f, 0.0f};
+    quat_t q = quat_from_vecs(&from, &to);
+
+    EXPECT_NEAR(q.w, 0.7071f, 1e-4f);
+    EXPECT_NEAR(q.x, 0.0f, 1e-4f);
+    EXPECT_NEAR(q.y, 0.0f, 1e-4f);
+    EXPECT_NEAR(q.z, 0.7071f, 1e-4f);
+}
+
+TEST(Quaternion, quat_from_acc_mag_test)
+{
+    vec3_t acc = {0.0f, 0.0f, -9.81f}; // Gravity (normal force) pointing up (FRD)
+    vec3_t mag = {1.0f, 0.0f, 0.0f}; // Magnetic field pointing north (FRD)
+    quat_t q = quat_from_acc_mag(&acc, &mag);
+
+    EXPECT_NEAR(q.w, 1.0f, 1e-4f);
+    EXPECT_NEAR(q.x, 0.0f, 1e-4f);
+    EXPECT_NEAR(q.y, 0.0f, 1e-4f);
+    EXPECT_NEAR(q.z, 0.0f, 1e-4f);
+}
+
 TEST(Quaternion, quat_gyro_derivative_test)
 {
     quat_t q = {0.7071f, 0.0f, 0.0f, 0.7071f};

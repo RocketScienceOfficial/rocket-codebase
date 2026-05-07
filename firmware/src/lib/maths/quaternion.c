@@ -88,6 +88,84 @@ quat_t quat_from_vecs(const vec3_t *from, const vec3_t *to)
     return result;
 }
 
+quat_t quat_from_acc_mag(const vec3_t *acc, const vec3_t *mag)
+{
+    SYS_ASSERT(acc != NULL);
+    SYS_ASSERT(mag != NULL);
+
+    vec3_t acc_norm = {.x = -acc->x, .y = -acc->y, .z = -acc->z}; // Negate accelerometer to get gravity vector
+    vec3_normalize(&acc_norm);
+
+    vec3_t mag_norm = *mag;
+    vec3_normalize(&mag_norm);
+
+    /*   Build orthonormal NED frame in body coordinates
+     *   D = gravity direction (Down)
+     *   E = D x m  (East, perpendicular to both)
+     *   N = E x D  (North, completes right-hand frame)
+     */
+
+    vec3_t down = acc_norm;
+    vec3_t east = vec3_cross(&down, &mag_norm);
+    vec3_normalize(&east);
+    vec3_t north = vec3_cross(&east, &down);
+
+    /*  Rotation matrix R (columns = N, E, D) ---
+     *
+     *   R = | Nx  Ex  Dx |
+     *       | Ny  Ey  Dy |
+     *       | Nz  Ez  Dz |
+     *
+     *  R[row][col] mapping used below:
+     *   R00=Nx  R01=Ex  R02=Dx
+     *   R10=Ny  R11=Ey  R12=Dy
+     *   R20=Nz  R21=Ez  R22=Dz
+     */
+
+    float R00 = north.x, R01 = east.x, R02 = down.x;
+    float R10 = north.y, R11 = east.y, R12 = down.y;
+    float R20 = north.z, R21 = east.z, R22 = down.z;
+
+    float trace = R00 + R11 + R22;
+    float s;
+    quat_t q;
+
+    if (trace > 0.0f)
+    {
+        s = 0.5f / sqrtf(trace + 1.0f);
+        q.w = 0.25f / s;
+        q.x = (R21 - R12) * s;
+        q.y = (R02 - R20) * s;
+        q.z = (R10 - R01) * s;
+    }
+    else if (R00 > R11 && R00 > R22)
+    {
+        s = 2.0f * sqrtf(1.0f + R00 - R11 - R22);
+        q.w = (R21 - R12) / s;
+        q.x = 0.25f * s;
+        q.y = (R01 + R10) / s;
+        q.z = (R02 + R20) / s;
+    }
+    else if (R11 > R22)
+    {
+        s = 2.0f * sqrtf(1.0f + R11 - R00 - R22);
+        q.w = (R02 - R20) / s;
+        q.x = (R01 + R10) / s;
+        q.y = 0.25f * s;
+        q.z = (R12 + R21) / s;
+    }
+    else
+    {
+        s = 2.0f * sqrtf(1.0f + R22 - R00 - R11);
+        q.w = (R10 - R01) / s;
+        q.x = (R02 + R20) / s;
+        q.y = (R12 + R21) / s;
+        q.z = 0.25f * s;
+    }
+
+    return q;
+}
+
 quat_t quat_gyro_derivative(const quat_t *q, const vec3_t *gyro)
 {
     SYS_ASSERT(q != NULL);
