@@ -70,7 +70,7 @@ void mmc5983ma_read(const mmc5983ma_device_t *device, vec3_t *mag)
     uint32_t rawY = (uint32_t)((buffer[2] << MMC5983MA_OUT0_SHIFT) | (buffer[3] << MMC5983MA_OUT1_SHIFT) | ((buffer[6] & MMC5983MA_XYZOUT2_Y_MASK) >> MMC5983MA_XYZOUT2_Y_SHIFT));
     uint32_t rawZ = (uint32_t)((buffer[4] << MMC5983MA_OUT0_SHIFT) | (buffer[5] << MMC5983MA_OUT1_SHIFT) | ((buffer[6] & MMC5983MA_XYZOUT2_Z_MASK) >> MMC5983MA_XYZOUT2_Z_SHIFT));
 
-    mag->x = ((float)rawX / (1 << 14) - 8) * 1000;
-    mag->y = ((float)rawY / (1 << 14) - 8) * 1000;
-    mag->z = ((float)rawZ / (1 << 14) - 8) * 1000;
+    mag->x = (float)rawX / (1 << 14) - 8;
+    mag->y = (float)rawY / (1 << 14) - 8;
+    mag->z = (float)rawZ / (1 << 14) - 8;
 }

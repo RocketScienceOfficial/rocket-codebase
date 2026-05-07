@@ -8,7 +8,7 @@
 class Driver_mmc5983ma : public DriverBase<Driver_mmc5983ma, PubSub::Topics::SensorsMag>
 {
 public:
-    Driver_mmc5983ma() : DriverBase(PUBSUB_ID(sensors_mag_1), 500) {}
+    Driver_mmc5983ma() : DriverBase(PUBSUB_ID(sensors_mag_1), 100) {}
 
     void initialize();
     void readAndPublish(float dt);

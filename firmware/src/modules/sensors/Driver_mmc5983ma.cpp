@@ -4,7 +4,7 @@
 void Driver_mmc5983ma::initialize()
 {
     mmc5983ma_init_spi(&m_Device, CFG_SPI, CFG_PIN_CS_MMC);
-    mmc5983ma_set_continuous_mode_odr(&m_Device, MMC5983MA_ODR_1000HZ);
+    mmc5983ma_set_continuous_mode_odr(&m_Device, MMC5983MA_ODR_100HZ);
 }
 
 void Driver_mmc5983ma::readAndPublish(float dt)
@@ -13,13 +13,8 @@ void Driver_mmc5983ma::readAndPublish(float dt)
 
     mmc5983ma_read(&m_Device, &m_CurrentFrame.mag);
 
-    m_CurrentFrame.mag.x += +98;
-    m_CurrentFrame.mag.y += +373;
-    m_CurrentFrame.mag.z += -194;
-
-    m_CurrentFrame.mag.x *= -1;
+    // FRD conversion
     m_CurrentFrame.mag.y *= -1;
-    m_CurrentFrame.mag.z *= -1;
 
     m_Publisher.publish(m_CurrentFrame);
 }

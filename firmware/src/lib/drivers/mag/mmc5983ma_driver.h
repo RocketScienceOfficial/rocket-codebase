@@ -75,7 +75,7 @@ void mmc5983ma_set_continuous_mode_odr(const mmc5983ma_device_t *device, mmc5983
  * @brief Read data from magnetometer
  *
  * @param device MMC5983MA device
- * @param mag Magnetic field in miliGauss
+ * @param mag Magnetic field in Gauss
  */
 void mmc5983ma_read(const mmc5983ma_device_t *device, vec3_t *mag);
 
