@@ -132,6 +132,7 @@ class SyntheticMagnetometerModel(MagnetometerModelInterface):
 
         self.noise = noise
         self.field_ned = geo.mag_ned if field_ned is None else np.asarray(field_ned, dtype=float)
+        self.buffer = sensor_utils.SensorDelayedBuffer(delay_ms=10, initial_value=MagnetometerModelOutput(mag=self.field_ned))
 
     def set_state(self, state: PhysicsEngineOutput):
         self.state = state
@@ -139,10 +140,13 @@ class SyntheticMagnetometerModel(MagnetometerModelInterface):
     def get_measurement(self, time: float) -> MagnetometerModelOutput:
         super().get_measurement(time)
 
-        b_body = quat.quat_rotate_vector(quat.quat_conj(self.state.q), self.field_ned)
-        meas = b_body + self.noise.get_noise(3)
+        q_ned_to_frd = quat.quat_conj(self.state.q)
+        b_body = quat.quat_rotate_vector(q_ned_to_frd, self.field_ned)
+        mag = b_body + self.noise.get_noise(3)
 
-        return MagnetometerModelOutput(mag=meas)
+        meas = self.buffer.update(time, MagnetometerModelOutput(mag=mag))
+
+        return meas
 
 
 class ReplayMagnetometerModel(MagnetometerModelInterface):

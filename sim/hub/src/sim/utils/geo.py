@@ -19,7 +19,7 @@ f = 1 / 298.257223563
 
 g = 9.80665
 g_ned = np.array([0, 0, g], dtype=float)
-mag_ned = np.array([20000.0, 5000.0, 45000.0], dtype=float)
+mag_ned = np.array([0.191, 0.019, 0.462], dtype=float)
 
 
 # ================== UTILS ==================

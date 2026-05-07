@@ -1,6 +1,7 @@
 #include "EKFModule.h"
 #include "modules/common/ModuleLogger.h"
 #include <lib/geo/physical_constants.h>
+#include <lib/geo/geo_mag.h>
 #include <lib/debug/sys_assert.h>
 #include <osal/systime.h>
 #include <cmath>
@@ -28,6 +29,10 @@ void EKFModule::run()
     if (m_BaroSubscriber.poll())
     {
         processBaro(m_BaroSubscriber.get());
+    }
+    if (m_MagSubscriber.poll())
+    {
+        processMag(m_MagSubscriber.get());
     }
 }
 
@@ -156,6 +161,28 @@ void EKFModule::processBaro(const PubSub::Topics::SensorsBaro &baroData)
     }
 }
 
+void EKFModule::processMag(const PubSub::Topics::SensorsMag &magData)
+{
+#if EKF_USE_MAG
+    if (m_EKFEnabled)
+    {
+        EKFMagMeasurement magMeas;
+        magMeas.mag = magData.mag;
+        magMeas.var = _var(EKF_NOISE_MAG);
+        m_MagBuffer.push(magMeas, osal_systime_get_ms() - EKF_MAG_DELAY_MS);
+    }
+    else
+    {
+        m_MagAccum.x += magData.mag.x;
+        m_MagAccum.y += magData.mag.y;
+        m_MagAccum.z += magData.mag.z;
+        m_MagSamplesCount++;
+    }
+#else
+    (void)magData;
+#endif
+}
+
 void EKFModule::outputPredictorForward(const EKFIMUData &sample, uint32_t currentTime)
 {
     outputPredictorCalculateState(sample);
@@ -223,7 +250,7 @@ void EKFModule::outputPredictorCalculateCorrection(float dt)
     quat_t q_op_inv = quat_conj(&opState.attitude);
     quat_t q_err = quat_mul(&q_op_inv, &ekfState.attitude);
     float sign = (q_err.w >= 0) ? 1.0f : -1.0f;
-    
+
     m_AttitudeCorrection.x = 2.0f * sign * q_err.x;
     m_AttitudeCorrection.y = 2.0f * sign * q_err.y;
     m_AttitudeCorrection.z = 2.0f * sign * q_err.z;
@@ -254,9 +281,11 @@ void EKFModule::outputPredictorCalculateCorrection(float dt)
 
     m_CurrentOPState = m_OutputPredictorBuffer.getNewest();
 
-    // Copy biases
+    // Copy static fields
+    m_CurrentOPState.mag = ekfState.mag;
     m_CurrentOPState.bias_acc = ekfState.bias_acc;
     m_CurrentOPState.bias_gyro = ekfState.bias_gyro;
+    m_CurrentOPState.bias_mag = ekfState.bias_mag;
 }
 
 uint32_t EKFModule::getMinMeasurementTimestamp() const
@@ -274,6 +303,10 @@ uint32_t EKFModule::getMinMeasurementTimestamp() const
     if (!m_BaroBuffer.empty())
     {
         minTimestamp = MIN(minTimestamp, m_BaroBuffer.peekTimestamp());
+    }
+    if (!m_MagBuffer.empty())
+    {
+        minTimestamp = MIN(minTimestamp, m_MagBuffer.peekTimestamp());
     }
 
     return minTimestamp;
@@ -321,6 +354,10 @@ void EKFModule::updateEKF()
         {
             cleanFusion = m_EKF.fuseBaroHeight(m_BaroBuffer.pop(), EKF_GATE_THRESHOLD_BARO);
         }
+        else if (!m_MagBuffer.empty() && m_MagBuffer.peekTimestamp() <= minMeasTimestamp)
+        {
+            cleanFusion = m_EKF.fuseMag(m_MagBuffer.pop(), EKF_GATE_THRESHOLD_MAG);
+        }
         else
         {
             break;
@@ -340,12 +377,6 @@ void EKFModule::updateEKF()
 
 bool EKFModule::initState()
 {
-    vec3_t g_vec_norm = {
-        .x = 0,
-        .y = 0,
-        .z = -1,
-    };
-
     vec3_t avgAcc = {
         .x = m_AccelAccum.x / m_IMUDtAccum,
         .y = m_AccelAccum.y / m_IMUDtAccum,
@@ -361,15 +392,39 @@ bool EKFModule::initState()
         return false;
     }
 
+    // TODO: Perform real init sequence
+#if EKF_USE_MAG
+    // vec3_t avgMag = {
+    //     .x = m_MagAccum.x / m_MagSamplesCount,
+    //     .y = m_MagAccum.y / m_MagSamplesCount,
+    //     .z = m_MagAccum.z / m_MagSamplesCount,
+    // };
+
+    vec3_t avgMag = {0.191f, 0.019f, 0.462f};
+
+    quat_t initialAttitude = quat_from_acc_mag(&avgAcc, &avgMag);
+
+    // vec3_t initialMagField = geo_mag_field_vector({});
+    vec3_t initialMagField = avgMag;
+
+    LOG_DEBUG("Initial mag field: x=%.4f, y=%.4f, z=%.4f", initialMagField.x, initialMagField.y, initialMagField.z);
+#else
     vec3_normalize(&avgAcc);
 
+    vec3_t g_vec_norm = {0, 0, -1};
     quat_t initialAttitude = quat_from_vecs(&avgAcc, &g_vec_norm);
+    vec3_t initialMagField = {0, 0, 0};
+#endif
+
+    LOG_DEBUG("Initial attitude: w=%.4f, x=%.4f, y=%.4f, z=%.4f", initialAttitude.w, initialAttitude.x, initialAttitude.y, initialAttitude.z);
 
     m_CurrentOPState.attitude = initialAttitude;
     m_CurrentOPState.pos = {0, 0, 0};
     m_CurrentOPState.vel = {0, 0, 0};
+    m_CurrentOPState.mag = initialMagField;
     m_CurrentOPState.bias_acc = {0, 0, 0};
     m_CurrentOPState.bias_gyro = {0, 0, 0};
+    m_CurrentOPState.bias_mag = {0, 0, 0};
 
     m_EKF.getState() = m_CurrentOPState;
 
@@ -394,24 +449,39 @@ void EKFModule::initCovariance()
 
     for (size_t i = 9; i < 12; i++)
     {
-        m_EKF.getCovarianceElement(i, i) = EKF_COV_DEFAULT_B_GYRO;
+        m_EKF.getCovarianceElement(i, i) = EKF_COV_DEFAULT_MAG;
     }
 
     for (size_t i = 12; i < 15; i++)
     {
+        m_EKF.getCovarianceElement(i, i) = EKF_COV_DEFAULT_B_GYRO;
+    }
+
+    for (size_t i = 15; i < 18; i++)
+    {
         m_EKF.getCovarianceElement(i, i) = EKF_COV_DEFAULT_B_ACC;
+    }
+
+    for (size_t i = 18; i < 21; i++)
+    {
+        m_EKF.getCovarianceElement(i, i) = EKF_COV_DEFAULT_B_MAG;
     }
 }
 
 void EKFModule::addBiasNoiseToCovariance(float dt)
 {
-    for (size_t i = 9; i < 12; i++)
+    for (size_t i = 12; i < 15; i++)
     {
         m_EKF.getCovarianceElement(i, i) += _var(EKF_NOISE_GYRO_BIAS) * dt;
     }
 
-    for (size_t i = 12; i < 15; i++)
+    for (size_t i = 15; i < 18; i++)
     {
         m_EKF.getCovarianceElement(i, i) += _var(EKF_NOISE_ACC_BIAS) * dt;
+    }
+
+    for (size_t i = 18; i < 21; i++)
+    {
+        m_EKF.getCovarianceElement(i, i) += _var(EKF_NOISE_MAG_BIAS) * dt;
     }
 }

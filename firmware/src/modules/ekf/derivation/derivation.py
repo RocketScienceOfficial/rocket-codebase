@@ -130,27 +130,46 @@ def baro_fusion(true_state, state, err_state, P):
     gen_obs_eq("baro_fusion", P, true_state, state, err_state, h[0, :], var_baro)
 
 
+def mag_fusion(true_state, state, err_state, P):
+    rot = quaternion_rot_matrix(state["q"]).T  # we rotate the magnetic field from the global frame to the body frame because the magnetometer measures the magnetic field in the body frame
+    h = Matrix([
+        rot * (state["mag"] + state["bias_mag"]),
+    ])
+
+    var_mag = symbols("var_mag")
+
+    gen_obs_eq("mag_fusion_mag_n", P, true_state, state, err_state, h[0, :], var_mag)
+    gen_obs_eq("mag_fusion_mag_e", P, true_state, state, err_state, h[1, :], var_mag)
+    gen_obs_eq("mag_fusion_mag_d", P, true_state, state, err_state, h[2, :], var_mag)
+
+
 # States definitions
 state = {
     "q": Matrix(symbols("q_w q_x q_y q_z")),  # q represents the rotation from the body frame (FRD) to the global frame (NED)
     "pos": Matrix(symbols("pos_n pos_e pos_d")),
     "vel": Matrix(symbols("vel_n vel_e vel_d")),
+    "mag": Matrix(symbols("mag_n mag_e mag_d")),
     "bias_gyro": Matrix(symbols("bias_gyro_x bias_gyro_y bias_gyro_z")),
     "bias_accel": Matrix(symbols("bias_accel_x bias_accel_y bias_accel_z")),
+    "bias_mag": Matrix(symbols("bias_mag_x bias_mag_y bias_mag_z")),
 }
 error_state = {
     "theta": Matrix(symbols("d_theta_x d_theta_y d_theta_z")),
     "pos": Matrix(symbols("d_pos_n d_pos_e d_pos_d")),
     "vel": Matrix(symbols("d_vel_n d_vel_e d_vel_d")),
+    "mag": Matrix(symbols("d_mag_n d_mag_e d_mag_d")),
     "bias_gyro": Matrix(symbols("d_bias_gyro_x d_bias_gyro_y d_bias_gyro_z")),
     "bias_accel": Matrix(symbols("d_bias_accel_x d_bias_accel_y d_bias_accel_z")),
+    "bias_mag": Matrix(symbols("d_bias_mag_x d_bias_mag_y d_bias_mag_z")),
 }
 true_state = {
     "q": quaternion_multiply([1, error_state["theta"][0] / 2, error_state["theta"][1] / 2, error_state["theta"][2] / 2], state["q"]),  # we define error state "theta" in global frame (left hand multiplication); using small angle approximation
     "pos": state["pos"] + error_state["pos"],
     "vel": state["vel"] + error_state["vel"],
+    "mag": state["mag"] + error_state["mag"],
     "bias_gyro": state["bias_gyro"] + error_state["bias_gyro"],
     "bias_accel": state["bias_accel"] + error_state["bias_accel"],
+    "bias_mag": state["bias_mag"] + error_state["bias_mag"],
 }
 
 # dt
@@ -164,5 +183,6 @@ P = Matrix(dim, dim, lambda i, j: Symbol("P(" + str(i) + ", " + str(j) + ")", re
 predict_covariance(true_state, state, error_state, P, dt)
 gps_fusion(true_state, state, error_state, P)
 baro_fusion(true_state, state, error_state, P)
+mag_fusion(true_state, state, error_state, P)
 
 print("Derivation completed")

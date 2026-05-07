@@ -20,6 +20,7 @@ private:
     PubSub::Subscriber<PubSub::Topics::SensorsIMU> m_IMUSubscriber{PUBSUB_ID(sensors_imu_1)};
     PubSub::Subscriber<PubSub::Topics::SensorsBaro> m_BaroSubscriber{PUBSUB_ID(sensors_baro_1)};
     PubSub::Subscriber<PubSub::Topics::SensorsGPS> m_GPSSubscriber{PUBSUB_ID(sensors_gps_1)};
+    PubSub::Subscriber<PubSub::Topics::SensorsMag> m_MagSubscriber{PUBSUB_ID(sensors_mag_1)};
     PubSub::Publisher<PubSub::Topics::EKFState> m_EKFPublisher{PUBSUB_ID(ekf_state)};
 
     // EKF instance
@@ -28,12 +29,12 @@ private:
     bool m_EKFEnabled;
     uint32_t m_LastUpdateTime;
 
-    // Output predictor state and buffer
+    // Output Predictor
     EKFNominalState m_CurrentOPState;
     vec3_t m_AttitudeCorrection;
     TimestampedRingBuffer<EKFNominalState, EKF_IMU_DELAY_HORIZON_SIZE> m_OutputPredictorBuffer;
 
-    // IMU buffer
+    // IMU
     vec3_t m_AccelAccum;
     vec3_t m_GyroAccum;
     uint8_t m_IMUClippingFlagsAccum;
@@ -41,21 +42,27 @@ private:
     size_t m_IMUSamplesCount;
     TimestampedRingBuffer<EKFIMUData, EKF_IMU_DELAY_HORIZON_SIZE> m_IMUBuffer;
 
-    // GPS origin
+    // GPS
     equirect_projection_t m_Projection;
     bool m_GPSOriginSet;
     TimestampedRingBuffer<EKFGPSPosMeasurement, EKF_GPS_DELAY_HORIZON_SIZE> m_GPSPosBuffer;
     TimestampedRingBuffer<EKFGPSVelMeasurement, EKF_GPS_DELAY_HORIZON_SIZE> m_GPSVelBuffer;
 
-    // Barometer offset
+    // Barometer
     float m_BaroOffset;
     bool m_BaroOffsetSet;
     TimestampedRingBuffer<EKFBaroMeasurement, EKF_BARO_DELAY_HORIZON_SIZE> m_BaroBuffer;
+
+    // Magnetometer
+    vec3_t m_MagAccum;
+    size_t m_MagSamplesCount;
+    TimestampedRingBuffer<EKFMagMeasurement, EKF_MAG_DELAY_HORIZON_SIZE> m_MagBuffer;
 
     // Processing functions
     void processIMU(const PubSub::Topics::SensorsIMU &imuData);
     void processGPS(const PubSub::Topics::SensorsGPS &gpsData);
     void processBaro(const PubSub::Topics::SensorsBaro &baroData);
+    void processMag(const PubSub::Topics::SensorsMag &magData);
 
     // Output predictor functions
     void outputPredictorForward(const EKFIMUData &sample, uint32_t currentTime);

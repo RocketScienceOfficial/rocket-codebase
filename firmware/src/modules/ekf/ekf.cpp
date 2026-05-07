@@ -7,6 +7,9 @@
 #include "derivation/generated/gps_fusion_vel_n.h"
 #include "derivation/generated/gps_fusion_vel_e.h"
 #include "derivation/generated/gps_fusion_vel_d.h"
+#include "derivation/generated/mag_fusion_mag_n.h"
+#include "derivation/generated/mag_fusion_mag_e.h"
+#include "derivation/generated/mag_fusion_mag_d.h"
 #include <lib/geo/physical_constants.h>
 
 void EKF::init()
@@ -117,6 +120,23 @@ bool EKF::fuseBaroHeight(const EKFBaroMeasurement &meas, float gate_threshold)
     return !hadErrors;
 }
 
+bool EKF::fuseMag(const EKFMagMeasurement &meas, float gate_threshold)
+{
+    bool hadErrors = false;
+    float innov, innov_var;
+
+    gen::mag_fusion_mag_n(m_NominalState.asArray(), P_current, meas.mag.x, meas.var, &innov, &innov_var, _H, _K);
+    hadErrors |= shouldFuseMeasurement(innov, innov_var, gate_threshold) ? (applyFusion(innov), false) : true;
+
+    gen::mag_fusion_mag_e(m_NominalState.asArray(), P_current, meas.mag.y, meas.var, &innov, &innov_var, _H, _K);
+    hadErrors |= shouldFuseMeasurement(innov, innov_var, gate_threshold) ? (applyFusion(innov), false) : true;
+
+    gen::mag_fusion_mag_d(m_NominalState.asArray(), P_current, meas.mag.z, meas.var, &innov, &innov_var, _H, _K);
+    hadErrors |= shouldFuseMeasurement(innov, innov_var, gate_threshold) ? (applyFusion(innov), false) : true;
+
+    return !hadErrors;
+}
+
 void EKF::applyFusion(float innov)
 {
     updateErrorState(innov);
@@ -178,12 +198,18 @@ void EKF::injectErrorState()
     m_NominalState.vel.x += m_ErrorState.vel.x;
     m_NominalState.vel.y += m_ErrorState.vel.y;
     m_NominalState.vel.z += m_ErrorState.vel.z;
+    m_NominalState.mag.x += m_ErrorState.mag.x;
+    m_NominalState.mag.y += m_ErrorState.mag.y;
+    m_NominalState.mag.z += m_ErrorState.mag.z;
     m_NominalState.bias_gyro.x += m_ErrorState.bias_gyro.x;
     m_NominalState.bias_gyro.y += m_ErrorState.bias_gyro.y;
     m_NominalState.bias_gyro.z += m_ErrorState.bias_gyro.z;
     m_NominalState.bias_acc.x += m_ErrorState.bias_acc.x;
     m_NominalState.bias_acc.y += m_ErrorState.bias_acc.y;
     m_NominalState.bias_acc.z += m_ErrorState.bias_acc.z;
+    m_NominalState.bias_mag.x += m_ErrorState.bias_mag.x;
+    m_NominalState.bias_mag.y += m_ErrorState.bias_mag.y;
+    m_NominalState.bias_mag.z += m_ErrorState.bias_mag.z;
 }
 
 void EKF::resetErrorState()
@@ -191,8 +217,10 @@ void EKF::resetErrorState()
     m_ErrorState.theta = {0, 0, 0};
     m_ErrorState.pos = {0, 0, 0};
     m_ErrorState.vel = {0, 0, 0};
+    m_ErrorState.mag = {0, 0, 0};
     m_ErrorState.bias_gyro = {0, 0, 0};
     m_ErrorState.bias_acc = {0, 0, 0};
+    m_ErrorState.bias_mag = {0, 0, 0};
 }
 
 void EKF::updateErrorState(float innov)

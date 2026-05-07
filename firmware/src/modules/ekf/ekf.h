@@ -14,6 +14,7 @@ public:
     bool fuseGPSPosition(const EKFGPSPosMeasurement &meas, float gate_threshold);
     bool fuseGPSVelocity(const EKFGPSVelMeasurement &meas, float gate_threshold);
     bool fuseBaroHeight(const EKFBaroMeasurement &meas, float gate_threshold);
+    bool fuseMag(const EKFMagMeasurement &meas, float gate_threshold);
 
     EKFNominalState &getState() { return m_NominalState; }
     float &getCovarianceElement(size_t i, size_t j) { return P_current(i, j); }

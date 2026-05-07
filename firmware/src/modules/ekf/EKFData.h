@@ -3,8 +3,8 @@
 #include <lib/maths/vector.h>
 #include <lib/maths/quaternion.h>
 
-#define EKF_NUM_NOMINAL_STATES 16
-#define EKF_NUM_ERROR_STATES 15
+#define EKF_NUM_NOMINAL_STATES 22
+#define EKF_NUM_ERROR_STATES 21
 #define EKF_NUM_INPUTS 6
 
 struct EKFIMUData
@@ -36,13 +36,21 @@ struct EKFGPSVelMeasurement
     float var_ver;
 };
 
+struct EKFMagMeasurement
+{
+    vec3_t mag;
+    float var;
+};
+
 struct EKFNominalState
 {
     quat_t attitude;
     vec3_t pos;
     vec3_t vel;
+    vec3_t mag;
     vec3_t bias_gyro;
     vec3_t bias_acc;
+    vec3_t bias_mag;
 
     float *asArray() { return reinterpret_cast<float *>(this); }
     const float *asArray() const { return reinterpret_cast<const float *>(this); }
@@ -55,8 +63,10 @@ struct EKFErrorState
     vec3_t theta;
     vec3_t pos;
     vec3_t vel;
+    vec3_t mag;
     vec3_t bias_gyro;
     vec3_t bias_acc;
+    vec3_t bias_mag;
 
     float *asArray() { return reinterpret_cast<float *>(this); }
     const float *asArray() const { return reinterpret_cast<const float *>(this); }
