@@ -46,15 +46,27 @@ void SimBridgeModule::receivePhysicsData()
     {
         m_IMU1DataPublisher.publish({
             .dt = physxData.imu1dt,
-            .acc = {physxData.imu1AccX, physxData.imu1AccY, physxData.imu1AccZ},
-            .gyro = {physxData.imu1GyroX, physxData.imu1GyroY, physxData.imu1GyroZ},
+            .acc = {
+                .x = physxData.imu1AccX,
+                .y = physxData.imu1AccY,
+                .z = physxData.imu1AccZ,
+            },
+            .gyro = {
+                .x = physxData.imu1GyroX,
+                .y = physxData.imu1GyroY,
+                .z = physxData.imu1GyroZ,
+            },
             .clippingFlags = physxData.imu1ClippingFlags,
         });
     }
     if (physxData.readFlags & DATALINK_FLAGS_SITL_READ_MAG_1)
     {
         m_Mag1DataPublisher.publish({
-            .mag = {physxData.mag1X, physxData.mag1Y, physxData.mag1Z},
+            .mag = {
+                .x = physxData.mag1X,
+                .y = physxData.mag1Y,
+                .z = physxData.mag1Z,
+            },
         });
     }
     if (physxData.readFlags & DATALINK_FLAGS_SITL_READ_BARO_1)
@@ -68,8 +80,16 @@ void SimBridgeModule::receivePhysicsData()
     if (physxData.readFlags & DATALINK_FLAGS_SITL_READ_GPS_1)
     {
         m_GPS1DataPublisher.publish({
-            .pos = {physxData.gps1Lat, physxData.gps1Lon, physxData.gps1Alt},
-            .vel = {physxData.gps1VelN, physxData.gps1VelE, physxData.gps1VelD},
+            .pos = {
+                .lat = physxData.gps1Lat,
+                .lon = physxData.gps1Lon,
+                .alt = physxData.gps1Alt,
+            },
+            .vel = {
+                .x = physxData.gps1VelN,
+                .y = physxData.gps1VelE,
+                .z = physxData.gps1VelD,
+            },
             .stddev_horizontal = physxData.gps1stddevHorizontal,
             .stddev_vertical = physxData.gps1stddevVertical,
             .stddev_speed = physxData.gps1stddevSpeed,
