@@ -2,6 +2,7 @@
 Resources:
     - https://github.com/PX4/PX4-ECL/blob/master/geo_lookup/fetch_noaa_table.py
     - https://github.com/PX4/PX4-Autopilot/blob/main/src/lib/world_magnetic_model/fetch_noaa_table.py
+    - https://www.ngdc.noaa.gov/geomag/CalcSurveyFin.shtml
 """
 
 import math

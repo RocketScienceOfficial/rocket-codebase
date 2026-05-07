@@ -127,3 +127,13 @@ TEST(Projection, vs_geo_to_ned_medium_range)
     EXPECT_NEAR(eq.y, (float)precise.y, 100.0f);
     EXPECT_NEAR(eq.z, (float)precise.z, 250.0f);
 }
+
+TEST(Mag, field_vector)
+{
+    geo_position_t pos = {51.486150, 15.732828, 0.0};
+    vec3_t magField = geo_mag_field_vector(&pos);
+
+    EXPECT_NEAR(magField.x, 0.19073f, 0.002f);
+    EXPECT_NEAR(magField.y, 0.01869f, 0.002f);
+    EXPECT_NEAR(magField.z, 0.46160f, 0.002f);
+}
