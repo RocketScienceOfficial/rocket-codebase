@@ -35,6 +35,8 @@ elif args.config == "simulink_acs":
     from sim.configs.cfg_simulink_acs import get_environment
 elif args.config == "simulink_airbrake":
     from sim.configs.cfg_simulink_airbrake import get_environment
+elif args.config == "rotating":
+    from sim.configs.cfg_rotating import get_environment
 else:
     raise ValueError(f"Unknown configuration: {args.config}")
 
@@ -95,13 +97,13 @@ radio_sock.close()
 # ================== PLOTTING ==================
 print("> Plotting data...")
 
-main_plot.plot(received_data, SIM_TICK_DT)
-axes_plots.plot(received_data, true_data, SIM_TICK_DT)
-errors_plots.plot(received_data, true_data, SIM_TICK_DT)
-predicted_apogee_plot.plot(received_data, SIM_TICK_DT)
+# main_plot.plot(received_data, SIM_TICK_DT)
+# axes_plots.plot(received_data, true_data, SIM_TICK_DT)
+# errors_plots.plot(received_data, true_data, SIM_TICK_DT)
+# predicted_apogee_plot.plot(received_data, SIM_TICK_DT)
 
-plt.pause(0.1)
-plt.show()
+# plt.pause(0.1)
+# plt.show()
 
-attitude_anim.animate_quaternions(received_data, true_data, SIM_TICK_DT, target_fps=30, speedup_factor=5.0)
+attitude_anim.animate_quaternions(received_data, true_data, SIM_TICK_DT, target_fps=30, speedup_factor=1.0)
 # ==============================================

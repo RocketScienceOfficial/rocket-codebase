@@ -387,7 +387,7 @@ bool EKFModule::initState()
 
     if (fabsf(acc_len - EARTH_GRAVITY) > EKF_INIT_ACC_MAG_ERROR_THRESHOLD)
     {
-        LOG_ERROR("Average acceleration magnitude is too low for reliable attitude initialization");
+        LOG_ERROR("Average acceleration (%f) magnitude is invalid for reliable attitude initialization", acc_len);
 
         return false;
     }
@@ -400,12 +400,13 @@ bool EKFModule::initState()
     //     .z = m_MagAccum.z / m_MagSamplesCount,
     // };
 
-    vec3_t avgMag = {0.191f, 0.019f, 0.462f};
+    // vec3_t avgMag = {0.191f, 0.019f, 0.462f};
+    vec3_t avgMag = {1.0f, 0.0f, 0.0f};
 
     quat_t initialAttitude = quat_from_acc_mag(&avgAcc, &avgMag);
 
     // vec3_t initialMagField = geo_mag_field_vector({});
-    vec3_t initialMagField = avgMag;
+    vec3_t initialMagField = {0.191f, 0.019f, 0.462f};
 
     LOG_DEBUG("Initial mag field: x=%.4f, y=%.4f, z=%.4f", initialMagField.x, initialMagField.y, initialMagField.z);
 #else

@@ -55,13 +55,9 @@ def animate_quaternions(received_data: list[datalink.sitl_response_data], true_d
             v_y = rot[:, 1]
             v_z = rot[:, 2]
 
-            # 1. Draw the main lines of the axes (linewidth controls thickness)
+            # Draw the main lines of the axes (linewidth controls thickness)
             for v, color in zip([v_x, v_y, v_z], colors):
                 ax.plot([0, v[0]], [0, v[1]], [0, v[2]], color=color, linestyle=linestyle, linewidth=3)
-
-            # 2. Draw a dot at the tip of each axis so you know which way it's pointing
-            # for v, color in zip([v_x, v_y, v_z], colors):
-            #     ax.plot([v[0]], [v[1]], [v[2]], color=color, marker='o', markersize=10)
 
     ani = animation.FuncAnimation(fig, update, frames=num_frames, interval=interval_ms, blit=False, repeat=True)
 

@@ -33,6 +33,37 @@ class PhysicsEngineInterface:
         pass
 
 
+class RotatingBodyPhysicsEngine(PhysicsEngineInterface):
+    def __init__(self, dt: float, speed: float | None = None, max_time: float | None = None):
+        super().__init__(dt)
+
+        self.acc = np.array([0.0, 0.0, 0.0])
+        self.vel = np.array([0.0, 0.0, 0.0])
+        self.pos = np.array([0.0, 0.0, 0.0])
+        self.w = np.array([0.0, 0.0, speed if speed is not None else 0.5])
+        self.q = np.array([1.0, 0.0, 0.0, 0.0])
+
+        self.current_state = PhysicsEngineOutput(acc=self.acc, vel=self.vel, pos=self.pos, w=self.w, q=self.q)
+        self.max_time = max_time if max_time is not None else 60.0
+
+    def integrate(self, input: PhysicsEngineInput) -> PhysicsEngineOutput:
+        omega_q = np.array([0.0, self.w[0], self.w[1], self.w[2]])
+        q_dot = 0.5 * quat.quat_multiply(self.q, omega_q)
+        self.q = self.q + q_dot * self.dt
+        n = np.linalg.norm(self.q)
+
+        if n > 0.0:
+            self.q = self.q / n
+
+        self.time += self.dt
+        self.current_state = PhysicsEngineOutput(acc=self.acc, vel=self.vel, pos=self.pos, w=self.w, q=self.q)
+
+        return self.current_state
+
+    def finished(self) -> bool:
+        return self.time >= self.max_time
+
+
 class SimpleIntegratorScenarioInterface:
     def get_net_acc(self, time: float, current_state: PhysicsEngineOutput, input: PhysicsEngineInput) -> np.ndarray:
         pass
