@@ -1,4 +1,4 @@
-.PHONY: obc obc_sitl obc_sitl_freerun run_obc_sitl radio_module radio_module_sitl run_radio_module_sitl gcs gcs_flash gcs_sitl run_gcs_sitl test audit clean
+.PHONY: obc obc_sitl obc_sitl_freerun obc_sitl_run radio_module radio_module_sitl radio_module_sitl_run gcs gcs_flash gcs_sitl gcs_sitl_run test audit clean
 .SILENT:
 
 
