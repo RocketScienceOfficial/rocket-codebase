@@ -201,7 +201,7 @@ void EKFModule::outputPredictorCalculateState(const EKFIMUData &sample)
     const float &dt = sample.dt;
 
     // Attitude prediction (with complementary filter correction)
-    float attFactor = dt / EKF_OUTPUT_PREDICTOR_ATT_TAU;
+    float attFactor = 0.5f * dt / (float)EKF_DELAY_HORIZON_MS * 1000.0f;
 
     // Apply fraction of stored correction this step, then decay the residual
     vec3_t attCorrThisStep = {
@@ -259,6 +259,7 @@ void EKFModule::outputPredictorCalculateCorrection(float dt)
 
     quat_t q_op_inv = quat_conj(&opState.attitude);
     // Calculate error in global frame. If we calculated error in body frame, then as the body rotates the correction would become less and less valid, especially at high angular rates. By calculating in global frame, the correction remains valid regardless of body rotation.
+    // q_ekf = q_err * q_op
     quat_t q_err = quat_mul(&ekfState.attitude, &q_op_inv);
     float sign = (q_err.w >= 0) ? 1.0f : -1.0f;
 

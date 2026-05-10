@@ -53,7 +53,6 @@
 #define EKF_NOISE_MAG_BIAS 0.000000001f
 
 /** Output Predictor Time Constants */
-#define EKF_OUTPUT_PREDICTOR_ATT_TAU 0.3f
 #define EKF_OUTPUT_PREDICTOR_VEL_TAU 0.25f
 #define EKF_OUTPUT_PREDICTOR_POS_TAU 0.25f
 
