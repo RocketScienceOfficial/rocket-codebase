@@ -213,13 +213,23 @@ void EKFModule::outputPredictorCalculateState(const EKFIMUData &sample)
     m_AttitudeCorrection.y -= attCorrThisStep.y;
     m_AttitudeCorrection.z -= attCorrThisStep.z;
 
+    // Gyro integration: body-frame rotation, applied from the right.
     quat_t dq = {
         .w = 1.0f,
-        .x = 0.5f * (sample.delta_angle.x + attCorrThisStep.x - m_EKF.getState().bias_gyro.x * dt),
-        .y = 0.5f * (sample.delta_angle.y + attCorrThisStep.y - m_EKF.getState().bias_gyro.y * dt),
-        .z = 0.5f * (sample.delta_angle.z + attCorrThisStep.z - m_EKF.getState().bias_gyro.z * dt),
+        .x = 0.5f * (sample.delta_angle.x - m_EKF.getState().bias_gyro.x * dt),
+        .y = 0.5f * (sample.delta_angle.y - m_EKF.getState().bias_gyro.y * dt),
+        .z = 0.5f * (sample.delta_angle.z - m_EKF.getState().bias_gyro.z * dt),
     };
     m_CurrentOPState.attitude = quat_mul(&m_CurrentOPState.attitude, &dq);
+
+    // Attitude correction: global-frame rotation, applied from the left.
+    quat_t dq_corr = {
+        .w = 1.0f,
+        .x = 0.5f * attCorrThisStep.x,
+        .y = 0.5f * attCorrThisStep.y,
+        .z = 0.5f * attCorrThisStep.z,
+    };
+    m_CurrentOPState.attitude = quat_mul(&dq_corr, &m_CurrentOPState.attitude);
     quat_normalize(&m_CurrentOPState.attitude);
 
     // Velocity prediction
@@ -248,7 +258,8 @@ void EKFModule::outputPredictorCalculateCorrection(float dt)
     const EKFNominalState &ekfState = m_EKF.getState();
 
     quat_t q_op_inv = quat_conj(&opState.attitude);
-    quat_t q_err = quat_mul(&q_op_inv, &ekfState.attitude);
+    // Calculate error in global frame. If we calculated error in body frame, then as the body rotates the correction would become less and less valid, especially at high angular rates. By calculating in global frame, the correction remains valid regardless of body rotation.
+    quat_t q_err = quat_mul(&ekfState.attitude, &q_op_inv);
     float sign = (q_err.w >= 0) ? 1.0f : -1.0f;
 
     m_AttitudeCorrection.x = 2.0f * sign * q_err.x;
