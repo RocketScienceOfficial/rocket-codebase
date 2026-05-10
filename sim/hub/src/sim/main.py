@@ -1,4 +1,5 @@
 import argparse
+import importlib
 import time
 import matplotlib.pyplot as plt
 from . import datalink
@@ -27,19 +28,12 @@ parser = argparse.ArgumentParser(description="Python Rocket Simulation")
 parser.add_argument("--config", type=str, required=True, help="Path to the configuration file")
 args = parser.parse_args()
 
-if args.config == "fm2024":
-    from sim.configs.cfg_fm2024 import get_environment
-elif args.config == "or_taipan":
-    from sim.configs.cfg_or_taipan import get_environment
-elif args.config == "simulink_acs":
-    from sim.configs.cfg_simulink_acs import get_environment
-elif args.config == "simulink_airbrake":
-    from sim.configs.cfg_simulink_airbrake import get_environment
-elif args.config == "rotating":
-    from sim.configs.cfg_rotating import get_environment
-elif args.config == "spiral":
-    from sim.configs.cfg_spiral import get_environment
-else:
+config_module_name = f"sim.configs.cfg_{args.config}"
+
+try:
+    config_module = importlib.import_module(config_module_name)
+    get_environment = config_module.get_environment
+except (ModuleNotFoundError, AttributeError):
     raise ValueError(f"Unknown configuration: {args.config}")
 
 env = get_environment(SIM_TICK_DT)
