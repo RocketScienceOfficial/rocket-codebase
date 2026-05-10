@@ -37,6 +37,8 @@ elif args.config == "simulink_airbrake":
     from sim.configs.cfg_simulink_airbrake import get_environment
 elif args.config == "rotating":
     from sim.configs.cfg_rotating import get_environment
+elif args.config == "spiral":
+    from sim.configs.cfg_spiral import get_environment
 else:
     raise ValueError(f"Unknown configuration: {args.config}")
 
