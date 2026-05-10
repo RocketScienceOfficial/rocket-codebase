@@ -41,22 +41,6 @@ class SimpleIntegratorScenarioInterface:
         pass
 
 
-class DummyPhysicsScenario(SimpleIntegratorScenarioInterface):
-    def get_net_acc(self, time: float, current_state: PhysicsEngineOutput, input: PhysicsEngineInput) -> np.ndarray:
-        if time < 5:
-            return np.array([0.0, 0.0, 0.0])
-        elif time >= 5 and time < 9:
-            return 4 * geo.g_ned
-        else:
-            if current_state.pos[2] <= 0:
-                return np.array([0.0, 0.0, 0.0])
-            else:
-                return geo.g_ned
-
-    def finished(self) -> bool:
-        return self.time > 60.0
-
-
 class OpenRocketSimScenario(SimpleIntegratorScenarioInterface):
     def __init__(self, file_path: str, preferred_time: float | None = None):
         df = pd.read_csv(file_path)
