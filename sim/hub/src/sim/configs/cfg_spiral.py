@@ -1,5 +1,6 @@
 from sim.env.environments import *
 from sim.env.physics_engines import *
+import numpy as np
 
 
 class CircularSpiralPhysicsEngine(PhysicsEngineInterface):
@@ -16,6 +17,7 @@ class CircularSpiralPhysicsEngine(PhysicsEngineInterface):
         vertical_phase: float = 0.0,
         spin_phase: float = 0.0,
         max_time: float | None = None,
+        relative_to_first: bool = True,
     ):
         super().__init__(dt)
 
@@ -28,6 +30,9 @@ class CircularSpiralPhysicsEngine(PhysicsEngineInterface):
         self.orbit_phase = orbit_phase
         self.vertical_phase = vertical_phase
         self.spin_phase = spin_phase
+        # If True, returned positions will be offset so the first sample is the origin
+        self.relative_to_first = relative_to_first
+        self._first_true_pos = None
 
         self.acc = np.zeros(3)
         self.vel = np.zeros(3)
@@ -38,42 +43,49 @@ class CircularSpiralPhysicsEngine(PhysicsEngineInterface):
         self.current_state = PhysicsEngineOutput(acc=self.acc, vel=self.vel, pos=self.pos, w=self.w, q=self.q)
         self.max_time = max_time if max_time is not None else 60.0
 
-    def _state_at_time(self, time: float) -> PhysicsEngineOutput:
-        orbit_angle = self.orbit_omega * time + self.orbit_phase
-        vertical_angle = self.vertical_omega * time + self.vertical_phase
-        spin_angle = self.spin_w * time + self.spin_phase
+    def integrate(self, input: PhysicsEngineInput) -> PhysicsEngineOutput:
+        self.time += self.dt
+
+        orbit_angle = self.orbit_omega * self.time + self.orbit_phase
+        vertical_angle = self.vertical_omega * self.time + self.vertical_phase
+        spin_angle = self.spin_w * self.time + self.spin_phase
 
         cos_orbit = np.cos(orbit_angle)
         sin_orbit = np.sin(orbit_angle)
         cos_vertical = np.cos(vertical_angle)
         sin_vertical = np.sin(vertical_angle)
 
-        self.pos = self.center + np.array([
-            self.radius * cos_orbit,
-            self.radius * sin_orbit,
-            self.vertical_amplitude * sin_vertical,
-        ])
+        # NED frame: [north, east, down]
+        north = self.radius * cos_orbit
+        east = self.radius * sin_orbit
+        down = self.vertical_amplitude * sin_vertical
+        self.pos = self.center + np.array([north, east, down])
 
-        self.vel = np.array([
-            -self.radius * self.orbit_omega * sin_orbit,
-            self.radius * self.orbit_omega * cos_orbit,
-            self.vertical_amplitude * self.vertical_omega * cos_vertical,
-        ])
+        vel_north = -self.radius * self.orbit_omega * sin_orbit
+        vel_east = self.radius * self.orbit_omega * cos_orbit
+        vel_down = self.vertical_amplitude * self.vertical_omega * cos_vertical
+        self.vel = np.array([vel_north, vel_east, vel_down])
 
-        self.acc = np.array([
-            -self.radius * self.orbit_omega**2 * cos_orbit,
-            -self.radius * self.orbit_omega**2 * sin_orbit,
-            -self.vertical_amplitude * self.vertical_omega**2 * sin_vertical,
-        ])
+        acc_north = -self.radius * self.orbit_omega**2 * cos_orbit
+        acc_east = -self.radius * self.orbit_omega**2 * sin_orbit
+        acc_down = -self.vertical_amplitude * self.vertical_omega**2 * sin_vertical
+        self.acc = np.array([acc_north, acc_east, acc_down])
 
+        # FRD body rates: positive wz is rotation about body down axis.
         self.w = np.array([0.0, 0.0, self.spin_w])
+        # Quaternion is FRD -> NED, representing yaw about +Down axis.
         self.q = np.array([np.cos(0.5 * spin_angle), 0.0, 0.0, np.sin(0.5 * spin_angle)])
 
-        return PhysicsEngineOutput(acc=self.acc, vel=self.vel, pos=self.pos, w=self.w, q=self.q)
+        # If configured, make the returned position relative to the first true sample
+        if self.relative_to_first:
+            if self._first_true_pos is None:
+                self._first_true_pos = self.pos.copy()
 
-    def integrate(self, input: PhysicsEngineInput) -> PhysicsEngineOutput:
-        self.time += self.dt
-        self.current_state = self._state_at_time(self.time)
+            ret_pos = self.pos - self._first_true_pos
+        else:
+            ret_pos = self.pos
+
+        self.current_state = PhysicsEngineOutput(acc=self.acc, vel=self.vel, pos=ret_pos, w=self.w, q=self.q)
 
         return self.current_state
 
