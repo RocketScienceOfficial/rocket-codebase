@@ -1,5 +1,6 @@
 #include "network/TCPSocket.h"
 #include <lib/debug/sys_assert.h>
+#include <lib/debug/sys_log.h>
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
@@ -27,10 +28,10 @@ typedef int native_socket_t;
 #define GET_NATIVE_SOCKET(x) (static_cast<native_socket_t>(x))
 
 #ifdef NETWORK_LOGS_ENABLED
-#define NETWORK_DEBUG(msg, ...) printf("[NETWORK] (debug)  " msg "\n", ##__VA_ARGS__)
-#define NETWORK_INFO(msg, ...) printf("[NETWORK] (info)   " msg "\n", ##__VA_ARGS__)
-#define NETWORK_WARN(msg, ...) printf("[NETWORK] (warn)   " msg "\n", ##__VA_ARGS__)
-#define NETWORK_ERROR(msg, ...) printf("[NETWORK] (error)  " msg "\n", ##__VA_ARGS__)
+#define NETWORK_DEBUG(msg, ...) __sys_log("DEBUG", "network", msg, ##__VA_ARGS__)
+#define NETWORK_INFO(msg, ...) __sys_log("INFO", "network", msg, ##__VA_ARGS__)
+#define NETWORK_WARN(msg, ...) __sys_log("WARN", "network", msg, ##__VA_ARGS__)
+#define NETWORK_ERROR(msg, ...) __sys_log("ERROR", "network", msg, ##__VA_ARGS__)
 #else
 #define NETWORK_DEBUG(msg, ...) (void)0
 #define NETWORK_INFO(msg, ...) (void)0

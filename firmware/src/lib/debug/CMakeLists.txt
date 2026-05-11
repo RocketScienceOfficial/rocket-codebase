@@ -1,6 +1,7 @@
 add_library(sys_debug STATIC
     sys_assert.c
     sys_benchmark.c
+    sys_log.c
 )
 
 target_link_libraries(sys_debug PUBLIC
