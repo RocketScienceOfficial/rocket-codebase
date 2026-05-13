@@ -51,7 +51,7 @@
 #define EKF_NOISE_MAG 0.0004f
 #define EKF_NOISE_MAG_INIT 0.001f
 #define EKF_NOISE_MAG_BIAS 0.000000001f
-#define EKF_NOISE_GPS_POS_HOR_INIT 0.9f
+#define EKF_NOISE_GPS_POS_HOR_INIT 2.1f
 #define EKF_NOISE_GPS_POS_VER_INIT 3.0f
 
 /** Output Predictor Time Constants */

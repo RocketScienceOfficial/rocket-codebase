@@ -46,9 +46,10 @@ private:
     // GPS
     equirect_projection_t m_Projection;
     bool m_GPSOriginSet;
-    RunningStats<double> m_GPSLatStats;
-    RunningStats<double> m_GPSLonStats;
-    RunningStats<double> m_GPSAltStats;
+    RunningStats<double> m_GPSNStats;
+    RunningStats<double> m_GPSEStats;
+    RunningStats<double> m_GPSDStats;
+    bool m_GPSInitialized;
     TimestampedRingBuffer<EKFGPSPosMeasurement, EKF_DELAY_HORIZON_SIZE_GPS> m_GPSPosBuffer;
     TimestampedRingBuffer<EKFGPSVelMeasurement, EKF_DELAY_HORIZON_SIZE_GPS> m_GPSVelBuffer;
 

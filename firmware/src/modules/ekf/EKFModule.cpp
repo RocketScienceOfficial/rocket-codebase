@@ -106,44 +106,51 @@ void EKFModule::processGPS(const PubSub::Topics::SensorsGPS &gpsData)
     {
         LOG_ERROR("Invalid GPS fix, skipping");
 
-        if (!m_GPSOriginSet)
+        if (!m_GPSInitialized)
         {
-            m_GPSLatStats.reset();
-            m_GPSLonStats.reset();
-            m_GPSAltStats.reset();
+            m_GPSNStats.reset();
+            m_GPSEStats.reset();
+            m_GPSDStats.reset();
         }
 
         return;
     }
 
-    if (!m_GPSOriginSet)
+    if (!m_GPSInitialized)
     {
-        m_GPSLatStats.push(gpsData.pos.lat);
-        m_GPSLonStats.push(gpsData.pos.lon);
-        m_GPSAltStats.push(gpsData.pos.alt);
-
-        if (m_GPSLatStats.count() >= EKF_INIT_GPS_SAMPLES && m_GPSLonStats.count() >= EKF_INIT_GPS_SAMPLES && m_GPSAltStats.count() >= EKF_INIT_GPS_SAMPLES)
+        if (!m_GPSOriginSet)
         {
-            if (m_GPSLatStats.stddev() < EKF_NOISE_GPS_POS_HOR_INIT && m_GPSLonStats.stddev() < EKF_NOISE_GPS_POS_HOR_INIT && m_GPSAltStats.stddev() < EKF_NOISE_GPS_POS_VER_INIT)
-            {
-                LOG_INFO("GPS origin lat/lon/alt stddev: %.6f / %.6f / %.2f m - origin will be set", m_GPSLatStats.stddev(), m_GPSLonStats.stddev(), m_GPSAltStats.stddev());
+            equirect_projection_init(&m_Projection, &gpsData.pos);
 
-                geo_position_t origin = {
-                    .lat = m_GPSLatStats.getMean(),
-                    .lon = m_GPSLonStats.getMean(),
-                    .alt = m_GPSAltStats.getMean(),
-                };
-                equirect_projection_init(&m_Projection, &origin);
-                m_GPSOriginSet = true;
+            m_GPSOriginSet = true;
+
+            LOG_INFO("Temporary GPS origin set to lat=%.6f, lon=%.6f, alt=%.2f m", m_Projection.ref.lat, m_Projection.ref.lon, m_Projection.ref.alt);
+        }
+
+        vec3_t proj_pos = equirect_project_to_ned(&m_Projection, &gpsData.pos);
+
+        m_GPSNStats.push(proj_pos.x);
+        m_GPSEStats.push(proj_pos.y);
+        m_GPSDStats.push(proj_pos.z);
+
+        if (m_GPSNStats.count() >= EKF_INIT_GPS_SAMPLES && m_GPSEStats.count() >= EKF_INIT_GPS_SAMPLES && m_GPSDStats.count() >= EKF_INIT_GPS_SAMPLES)
+        {
+            if (m_GPSNStats.stddev() < EKF_NOISE_GPS_POS_HOR_INIT && m_GPSEStats.stddev() < EKF_NOISE_GPS_POS_HOR_INIT && m_GPSDStats.stddev() < EKF_NOISE_GPS_POS_VER_INIT)
+            {
+                LOG_INFO("GPS origin lat/lon/alt stddev: %.6f / %.6f / %.2f m - origin will be set", m_GPSNStats.stddev(), m_GPSEStats.stddev(), m_GPSDStats.stddev());
+
+                m_GPSInitialized = true;
             }
             else
             {
-                LOG_ERROR("GPS origin lat/lon/alt readings too noisy for reliable origin initialization (stddev: %.6f / %.6f / %.2f m), retrying origin initialization", m_GPSLatStats.stddev(), m_GPSLonStats.stddev(), m_GPSAltStats.stddev());
+                LOG_ERROR("GPS origin lat/lon/alt readings too noisy for reliable origin initialization (stddev: %.6f / %.6f / %.2f m), retrying origin initialization", m_GPSNStats.stddev(), m_GPSEStats.stddev(), m_GPSDStats.stddev());
+
+                m_GPSOriginSet = false;
             }
 
-            m_GPSLatStats.reset();
-            m_GPSLonStats.reset();
-            m_GPSAltStats.reset();
+            m_GPSNStats.reset();
+            m_GPSEStats.reset();
+            m_GPSDStats.reset();
         }
 
         return;
@@ -610,4 +617,6 @@ void EKFModule::yawReset()
 
     // Set high initial yaw uncertainty since we don't know the initial yaw
     m_EKF.getCovarianceElement(2, 2) = EKF_COV_DEFAULT_ATT_UNKNOWN;
+
+    LOG_INFO("EKF yaw reset performed");
 }
