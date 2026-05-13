@@ -77,7 +77,7 @@ class SimpleIntegratorPhysicsEngine(PhysicsEngineInterface):
 
     def integrate(self, input: PhysicsEngineInput) -> PhysicsEngineOutput:
         if self.time > self.init_time:
-            self.acc = self.scenario.get_net_acc(self.time, self.current_state, input)
+            self.acc = self.scenario.get_net_acc(self.time - self.init_time, self.current_state, input)
 
             self.pos = self.pos + self.vel * self.dt + self.acc * 0.5 * self.dt**2
             self.vel = self.vel + self.acc * self.dt
