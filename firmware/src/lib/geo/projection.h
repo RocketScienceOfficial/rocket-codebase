@@ -14,6 +14,7 @@ extern "C"
  */
 typedef struct
 {
+    geo_position_t ref;
     double ref_lat_rad;
     double ref_lon_rad;
     double ref_alt;

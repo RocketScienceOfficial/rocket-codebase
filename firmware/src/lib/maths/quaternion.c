@@ -69,6 +69,49 @@ void quat_rotate_vec(vec3_t *v, const quat_t *q)
     };
 }
 
+vec3_t quat_to_euler(const quat_t *q)
+{
+    SYS_ASSERT(q != NULL);
+
+    vec3_t euler;
+
+    // Roll (x-axis rotation)
+    float sinr_cosp = 2.0f * (q->w * q->x + q->y * q->z);
+    float cosr_cosp = 1.0f - 2.0f * (q->x * q->x + q->y * q->y);
+    euler.x = atan2f(sinr_cosp, cosr_cosp);
+
+    // Pitch (y-axis rotation)
+    float sinp = 2.0f * (q->w * q->y - q->z * q->x);
+    euler.y = fabsf(sinp) >= 1.0f ? PI / 2.0f * fabsf(sinp) : asinf(sinp);
+
+    // Yaw (z-axis rotation)
+    float siny_cosp = 2.0f * (q->w * q->z + q->x * q->y);
+    float cosy_cosp = 1.0f - 2.0f * (q->y * q->y + q->z * q->z);
+    euler.z = atan2f(siny_cosp, cosy_cosp);
+
+    return euler;
+}
+
+quat_t quat_from_euler(float roll, float pitch, float yaw)
+{
+    float cy = cosf(yaw * 0.5f);
+    float sy = sinf(yaw * 0.5f);
+    float cp = cosf(pitch * 0.5f);
+    float sp = sinf(pitch * 0.5f);
+    float cr = cosf(roll * 0.5f);
+    float sr = sinf(roll * 0.5f);
+
+    quat_t q;
+    q.w = cr * cp * cy + sr * sp * sy;
+    q.x = sr * cp * cy - cr * sp * sy;
+    q.y = cr * sp * cy + sr * cp * sy;
+    q.z = cr * cp * sy - sr * sp * cy;
+
+    quat_normalize(&q);
+
+    return q;
+}
+
 quat_t quat_from_vecs(const vec3_t *from, const vec3_t *to)
 {
     SYS_ASSERT(from != NULL);

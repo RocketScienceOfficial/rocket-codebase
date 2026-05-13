@@ -55,6 +55,24 @@ void quat_normalize(quat_t *q);
 void quat_rotate_vec(vec3_t *v, const quat_t *q);
 
 /**
+ * @brief Convert quaternion to Euler angles (roll, pitch, yaw)
+ * 
+ * @param q Quaternion to convert
+ * @return Euler angles in radians (x=roll, y=pitch, z=yaw)
+ */
+vec3_t quat_to_euler(const quat_t *q);
+
+/**
+ * @brief Convert Euler angles (roll, pitch, yaw) to quaternion
+ * 
+ * @param roll Roll angle in radians
+ * @param pitch Pitch angle in radians
+ * @param yaw Yaw angle in radians
+ * @return Quaternion representing the given Euler angles (normalized)
+ */
+quat_t quat_from_euler(float roll, float pitch, float yaw);
+
+/**
  * @brief Calculate quaternion representing rotation from one vector to another
  * 
  * @param from Starting vector

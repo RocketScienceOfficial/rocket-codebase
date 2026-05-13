@@ -48,6 +48,29 @@ TEST(Quaternion, quat_rotate_vec_test)
     EXPECT_NEAR(v.z, 1.0f, 1e-4f);
 }
 
+TEST(Quaternion, quat_to_euler_test)
+{
+    quat_t q = {0.7071f, 0.7071f, 0.0f, 0.0f}; // 90 degree rotation around x-axis
+    vec3_t euler = quat_to_euler(&q);
+
+    EXPECT_NEAR(euler.x, M_PI / 2.0f, 1e-4f);
+    EXPECT_NEAR(euler.y, 0.0f, 1e-4f);
+    EXPECT_NEAR(euler.z, 0.0f, 1e-4f);
+}
+
+TEST(Quaternion, quat_from_euler_test)
+{
+    float roll = M_PI / 2.0f; // 90 degree rotation around x-axis
+    float pitch = 0.0f;
+    float yaw = 0.0f;
+    quat_t q = quat_from_euler(roll, pitch, yaw);
+
+    EXPECT_NEAR(q.w, 0.7071f, 1e-4f);
+    EXPECT_NEAR(q.x, 0.7071f, 1e-4f);
+    EXPECT_NEAR(q.y, 0.0f, 1e-4f);
+    EXPECT_NEAR(q.z, 0.0f, 1e-4f);
+}
+
 TEST(Quaternion, quat_from_vecs_test)
 {
     vec3_t from = {1.0f, 0.0f, 0.0f};
@@ -63,7 +86,7 @@ TEST(Quaternion, quat_from_vecs_test)
 TEST(Quaternion, quat_from_acc_mag_test)
 {
     vec3_t acc = {0.0f, 0.0f, -9.81f}; // Gravity (normal force) pointing up (FRD)
-    vec3_t mag = {1.0f, 0.0f, 0.0f}; // Magnetic field pointing north (FRD)
+    vec3_t mag = {1.0f, 0.0f, 0.0f};   // Magnetic field pointing north (FRD)
     quat_t q = quat_from_acc_mag(&acc, &mag);
 
     EXPECT_NEAR(q.w, 1.0f, 1e-4f);

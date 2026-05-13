@@ -5,6 +5,7 @@
 
 void equirect_projection_init(equirect_projection_t *proj, const geo_position_t *ref)
 {
+    proj->ref = *ref;
     proj->ref_lat_rad = DEG_2_RAD(ref->lat);
     proj->ref_lon_rad = DEG_2_RAD(ref->lon);
     proj->ref_alt = ref->alt;
