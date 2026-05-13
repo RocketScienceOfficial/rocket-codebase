@@ -5,13 +5,20 @@
 #include <lib/geo/physical_constants.h>
 #include <cmath>
 
-#define START_ACC_THRESHOLD (3.5f * EARTH_GRAVITY)
+#define BARO_RATE 50
+
+#define START_ACC_THRESHOLD (2.5f * EARTH_GRAVITY)
 #define START_ALT_THRESHOLD 3
-#define START_ALT_VERIFICATION_COUNT 300
-#define APOGEE_MAX_DELTA 2
-#define LAND_MAX_DELTA 2
-#define LAST_ALT_APOGEE_VERIFICATION_COUNT 200
-#define LAST_ALT_LAND_VERIFICATION_COUNT 300
+#define START_ALT_VERIFICATION_TIME_MS 200
+#define APOGEE_MAX_DELTA 1
+#define LAND_MAX_DELTA 1
+#define LAST_ALT_APOGEE_TIME_MS 200
+#define LAST_ALT_LAND_VERIFICATION_TIME_MS 4000
+
+static constexpr size_t _getVerificationCount(size_t time_ms)
+{
+    return time_ms / (1000 / BARO_RATE);
+}
 
 void StateMachineModule::init()
 {
@@ -121,6 +128,8 @@ void StateMachineModule::handle_state_armed()
             if (vec3_mag_compare(&m_CurrentIMUAcc, START_ACC_THRESHOLD) >= 0)
             {
                 m_Verifing_StandingAlt = true;
+
+                LOG_INFO("Acceleration threshold exceeded. Starting standing altitude verification.");
             }
         }
     }
@@ -141,11 +150,13 @@ void StateMachineModule::handle_state_armed()
             {
                 m_VerificationIndex_StandingAlt++;
 
-                if (m_VerificationIndex_StandingAlt == START_ALT_VERIFICATION_COUNT)
+                if (m_VerificationIndex_StandingAlt == _getVerificationCount(START_ALT_VERIFICATION_TIME_MS))
                 {
                     m_BaseAlt = 0;
                     m_Verifing_StandingAlt = false;
                     m_VerificationIndex_StandingAlt = 0;
+
+                    LOG_INFO("Failed to verify standing altitude. Resetting base altitude and verification process.");
                 }
             }
         }
@@ -173,7 +184,7 @@ void StateMachineModule::handle_state_free_flight()
         {
             m_VerificationIndex_Apogee++;
 
-            if (m_VerificationIndex_Apogee == LAST_ALT_APOGEE_VERIFICATION_COUNT)
+            if (m_VerificationIndex_Apogee == _getVerificationCount(LAST_ALT_APOGEE_TIME_MS))
             {
                 changeState(DATALINK_SM_STATE_FREE_FALL);
             }
@@ -202,7 +213,7 @@ void StateMachineModule::handle_state_free_fall()
         {
             m_VerificationIndex_Landing++;
 
-            if (m_VerificationIndex_Landing == LAST_ALT_LAND_VERIFICATION_COUNT)
+            if (m_VerificationIndex_Landing == _getVerificationCount(LAST_ALT_LAND_VERIFICATION_TIME_MS))
             {
                 changeState(DATALINK_SM_STATE_LANDED);
             }

@@ -5,7 +5,7 @@
 #include <hal/gpio_driver.h>
 
 #define IGN_UP_TIME_MS 10
-#define MAIN_PARACHUTE_HEIGHT 100
+#define MAIN_PARACHUTE_HEIGHT 200
 #define MALFUNCTION_SPEED 20
 
 #define IGN_FUSE_WORKING_IGN_PRESENT_FACTOR 0
@@ -37,24 +37,35 @@ void IgnitersModule::run()
     {
         if (!m_ApogeeReached)
         {
+            LOG_INFO("Apogee reached, firing pilot igniter");
+
             ignFire(m_Igniters[0]);
 
             m_ApogeeReached = true;
         }
         if (!m_Igniters[1].fired)
         {
-            if (vec3_mag_compare(&m_EKFSubscriber.get().velocity, MALFUNCTION_SPEED) >= 0)
+            const float vel_z = -m_EKFSubscriber.get().velocity.z;
+            const float pos_z = -m_EKFSubscriber.get().position.z;
+
+            bool fire = false;
+
+            if (vel_z >= MALFUNCTION_SPEED)
             {
                 LOG_INFO("Malfunction detected, firing backup igniter");
-                LOG_INFO("Height: %.2f m", m_SMHeightSubscriber.get().height);
-                LOG_INFO("Velocity: %.2f m/s", vec3_mag(&m_EKFSubscriber.get().velocity));
-
-                ignFire(m_Igniters[1]);
+                fire = true;
             }
-            else if (m_SMHeightSubscriber.get().height <= MAIN_PARACHUTE_HEIGHT)
+            else if (pos_z <= MAIN_PARACHUTE_HEIGHT)
             {
                 LOG_INFO("Main parachute deployment detected, firing backup igniter");
-                
+                fire = true;
+            }
+
+            if (fire)
+            {
+                LOG_INFO("Height: %.2f m", pos_z);
+                LOG_INFO("Velocity: %.2f m/s", vel_z);
+
                 ignFire(m_Igniters[1]);
             }
         }
@@ -115,7 +126,7 @@ void IgnitersModule::ignTestFire()
     else
     {
         LOG_WARN("Invalid igniter test fire command received or another test is currently running");
-        
+
         m_RPC_IGN.sendResponse(false);
     }
 }
@@ -152,7 +163,7 @@ void IgnitersModule::ignUpdate(IgniterPinData &data)
 }
 
 void IgnitersModule::ignFinish(IgniterPinData &data)
-{    
+{
     hal_gpio_set_pin_state(data.pin, GPIO_LOW);
 
     if (m_CurrentTestingIgniter && m_CurrentTestingIgniter->pin == data.pin)
