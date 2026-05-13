@@ -1,5 +1,8 @@
+Startup_Delay = 2.0;    % Time [s]
+
+
 Physics_Gravity = -9.81;    % Acceleration [m/s^2]
-Physics_TurbulenceFactor = 0.5;   % Coefficient [dimensionless]
+Physics_TurbulenceFactor = 0.1;   % Coefficient [dimensionless]
 Physics_SensorsNoiseFactor = 0.5;  % Coefficient [dimensionless]
 
 
