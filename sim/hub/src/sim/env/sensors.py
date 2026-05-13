@@ -68,13 +68,13 @@ class IMUModelInterface(SensorModelInterface):
 
 
 class SyntheticIMUModel(IMUModelInterface):
-    def __init__(self, rate: int, noise_acc: NoiseModelInterface, noise_gyro: NoiseModelInterface, acc_range_g: float, gyro_range: float):
+    def __init__(self, rate: int, noise_acc: NoiseModelInterface, noise_gyro: NoiseModelInterface, acc_range_g: float, gyro_range_deg: float):
         super().__init__(rate)
 
         self.noise_acc = noise_acc
         self.noise_gyro = noise_gyro
         self.acc_range = acc_range_g * geo.g
-        self.gyro_range = gyro_range
+        self.gyro_range = gyro_range_deg * np.pi / 180.0
 
     def set_state(self, state: PhysicsEngineOutput):
         self.state = state
@@ -97,12 +97,12 @@ class SyntheticIMUModel(IMUModelInterface):
 
 
 class ReplayIMUModel(IMUModelInterface):
-    def __init__(self, rate: int, acc_x: str, acc_y: str, acc_z: str, gyro_x: str, gyro_y: str, gyro_z: str, clipping_acc_range: float, clipping_gyro_range: float):
+    def __init__(self, rate: int, acc_x: str, acc_y: str, acc_z: str, gyro_x: str, gyro_y: str, gyro_z: str, acc_range_g: float, gyro_range_deg: float):
         super().__init__(rate)
 
         self.cols = [acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z]
-        self.clipping_acc_range = clipping_acc_range
-        self.clipping_gyro_range = clipping_gyro_range
+        self.clipping_acc_range = acc_range_g * geo.g
+        self.clipping_gyro_range = gyro_range_deg * np.pi / 180.0
 
     def set_df(self, times: np.ndarray, df: pd.DataFrame):
         if not all(col in df.columns for col in self.cols):
@@ -114,8 +114,8 @@ class ReplayIMUModel(IMUModelInterface):
     def get_measurement(self, time: float) -> IMUModelOutput:
         super().get_measurement(time)
 
-        acc_meas = sensor_utils.get_values_interp(time, self.times, self.data[:, 0:3])
-        gyro_meas = sensor_utils.get_values_interp(time, self.times, self.data[:, 3:6])
+        acc_meas = np.array(sensor_utils.get_values_interp(time, self.times, self.data[:, 0:3]))
+        gyro_meas = np.array(sensor_utils.get_values_interp(time, self.times, self.data[:, 3:6]))
         clipping_flags = sensor_utils.get_imu_clipping_flags(acc_meas, gyro_meas, self.clipping_acc_range, self.clipping_gyro_range)
 
         return IMUModelOutput(acc=acc_meas, gyro=gyro_meas, clipping_flags=clipping_flags, dt=1.0/self.rate)
@@ -150,12 +150,13 @@ class SyntheticMagnetometerModel(MagnetometerModelInterface):
 
 
 class ReplayMagnetometerModel(MagnetometerModelInterface):
-    def __init__(self, rate: int, mag_x: str, mag_y: str, mag_z: str):
+    def __init__(self, rate: int, mag_x: str, mag_y: str, mag_z: str, scale: float = 1.0):
         super().__init__(rate)
 
         self.mag_x = mag_x
         self.mag_y = mag_y
         self.mag_z = mag_z
+        self.scale = scale
 
     def set_df(self, times: np.ndarray, df: pd.DataFrame):
         if not all(col in df.columns for col in [self.mag_x, self.mag_y, self.mag_z]):
@@ -167,7 +168,7 @@ class ReplayMagnetometerModel(MagnetometerModelInterface):
     def get_measurement(self, time: float) -> MagnetometerModelOutput:
         super().get_measurement(time)
 
-        mag_meas = sensor_utils.get_values_interp(time, self.times, self.data)
+        mag_meas = np.array(sensor_utils.get_values_interp(time, self.times, self.data)) * self.scale
 
         return MagnetometerModelOutput(mag=mag_meas)
 
@@ -187,7 +188,8 @@ class SyntheticGPSModel(GPSModelInterface):
         self.base_lat = lat
         self.base_lon = lon
         self.base_alt = alt
-        self.buffer = sensor_utils.SensorDelayedBuffer(delay_ms=100, initial_value=GPSModelOutput(pos=np.array([lat, lon, alt]), vel=np.zeros(3), stddevs=self._get_stddevs(), sats=0))
+        self.default_sats = 14
+        self.buffer = sensor_utils.SensorDelayedBuffer(delay_ms=100, initial_value=GPSModelOutput(pos=np.array([lat, lon, alt]), vel=np.zeros(3), stddevs=self._get_stddevs(), sats=self.default_sats))
 
     def set_state(self, state: PhysicsEngineOutput):
         self.state = state
@@ -201,9 +203,8 @@ class SyntheticGPSModel(GPSModelInterface):
         pos = self.state.pos + pos_noise
         vel = self.state.vel + vel_noise
         lat, lon, alt = geo.ned_to_geo(self.base_lat, self.base_lon, self.base_alt, pos[0], pos[1], pos[2])
-        sats = 14
 
-        meas = self.buffer.update(time, GPSModelOutput(pos=np.array([lat, lon, alt]), vel=vel, stddevs=self._get_stddevs(), sats=sats))
+        meas = self.buffer.update(time, GPSModelOutput(pos=np.array([lat, lon, alt]), vel=vel, stddevs=self._get_stddevs(), sats=self.default_sats))
 
         return meas
 
@@ -283,6 +284,57 @@ class ReplayGPSModel(GPSModelInterface):
         return GPSModelOutput(pos=gps_meas, vel=vel_meas, stddevs=np.array([std_h, std_v, std_vel]), sats=sats)
 
 
+class EventReplayGPSModel(GPSModelInterface):
+    def __init__(self):
+        super().__init__(rate=1)
+        self._times: np.ndarray | None = None
+        self._data: np.ndarray | None = None
+        self._cursor = 0
+
+    def set_data(self, times: np.ndarray, data: np.ndarray) -> None:
+        self._times = times
+        self._data = data
+        self._cursor = 0
+
+    def is_update_time(self, time: float) -> bool:
+        if self._times is None or self._cursor >= len(self._times):
+            return False
+        return time >= self._times[self._cursor]
+
+    def get_measurement(self, time: float) -> GPSModelOutput:
+        row = self._data[self._cursor]
+        self._cursor += 1
+        return GPSModelOutput(
+            pos=np.array([row[0], row[1], row[2]]),
+            vel=np.array([row[3], row[4], row[5]]),
+            stddevs=np.array([row[6], row[7], row[8]]),
+            sats=int(row[9]),
+        )
+
+
+class EventReplayMagnetometerModel(MagnetometerModelInterface):
+    def __init__(self):
+        super().__init__(rate=1)
+        self._times: np.ndarray | None = None
+        self._data: np.ndarray | None = None
+        self._cursor = 0
+
+    def set_data(self, times: np.ndarray, data: np.ndarray) -> None:
+        self._times = times
+        self._data = data
+        self._cursor = 0
+
+    def is_update_time(self, time: float) -> bool:
+        if self._times is None or self._cursor >= len(self._times):
+            return False
+        return time >= self._times[self._cursor]
+
+    def get_measurement(self, time: float) -> MagnetometerModelOutput:
+        mag = self._data[self._cursor].copy()
+        self._cursor += 1
+        return MagnetometerModelOutput(mag=mag)
+
+
 class BarometerModelInterface(SensorModelInterface):
     def get_measurement(self, time: float) -> BarometerModelOutput:
         super().get_measurement(time)
@@ -336,3 +388,27 @@ class ReplayBarometerModel(BarometerModelInterface):
         baro_meas[0] = int(baro_meas[0])  # Pressure should be int
 
         return BarometerModelOutput(pressure=baro_meas[0], temperature=baro_meas[1], height=baro_meas[2])
+
+
+class EventReplayBarometerModel(BarometerModelInterface):
+    def __init__(self):
+        super().__init__(rate=1)
+        self._times: np.ndarray | None = None
+        self._data: np.ndarray | None = None  # shape (N, 3): [pressure, temperature, height]
+        self._cursor = 0
+
+    def set_data(self, times: np.ndarray, data: np.ndarray) -> None:
+        """times: 1D seconds. data: shape (N, 3) — [pressure (Pa), temperature (°C), height (m)]."""
+        self._times = times
+        self._data = data
+        self._cursor = 0
+
+    def is_update_time(self, time: float) -> bool:
+        if self._times is None or self._cursor >= len(self._times):
+            return False
+        return time >= self._times[self._cursor]
+
+    def get_measurement(self, time: float) -> BarometerModelOutput:
+        row = self._data[self._cursor]
+        self._cursor += 1
+        return BarometerModelOutput(pressure=int(row[0]), temperature=float(row[1]), height=float(row[2]))

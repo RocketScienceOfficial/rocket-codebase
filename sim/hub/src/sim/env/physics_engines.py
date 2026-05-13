@@ -62,7 +62,7 @@ class OpenRocketSimScenario(SimpleIntegratorScenarioInterface):
 
 
 class SimpleIntegratorPhysicsEngine(PhysicsEngineInterface):
-    def __init__(self, dt: float, scenario: SimpleIntegratorScenarioInterface):
+    def __init__(self, dt: float, scenario: SimpleIntegratorScenarioInterface, init_time: float = 0.0):
         super().__init__(dt)
 
         self.acc = np.array([0.0, 0.0, 0.0])
@@ -73,20 +73,22 @@ class SimpleIntegratorPhysicsEngine(PhysicsEngineInterface):
 
         self.current_state = PhysicsEngineOutput(acc=self.acc, vel=self.vel, pos=self.pos, w=self.w, q=self.q)
         self.scenario = scenario
+        self.init_time = init_time
 
     def integrate(self, input: PhysicsEngineInput) -> PhysicsEngineOutput:
-        self.acc = self.scenario.get_net_acc(self.time, self.current_state, input)
+        if self.time > self.init_time:
+            self.acc = self.scenario.get_net_acc(self.time, self.current_state, input)
 
-        self.pos = self.pos + self.vel * self.dt + self.acc * 0.5 * self.dt**2
-        self.vel = self.vel + self.acc * self.dt
+            self.pos = self.pos + self.vel * self.dt + self.acc * 0.5 * self.dt**2
+            self.vel = self.vel + self.acc * self.dt
 
-        omega_q = np.array([0.0, self.w[0], self.w[1], self.w[2]])
-        q_dot = 0.5 * quat.quat_multiply(self.q, omega_q)
-        self.q = self.q + q_dot * self.dt
-        n = np.linalg.norm(self.q)
+            omega_q = np.array([0.0, self.w[0], self.w[1], self.w[2]])
+            q_dot = 0.5 * quat.quat_multiply(self.q, omega_q)
+            self.q = self.q + q_dot * self.dt
+            n = np.linalg.norm(self.q)
 
-        if n > 0.0:
-            self.q = self.q / n
+            if n > 0.0:
+                self.q = self.q / n
 
         self.time += self.dt
         self.current_state = PhysicsEngineOutput(acc=self.acc, vel=self.vel, pos=self.pos, w=self.w, q=self.q)
