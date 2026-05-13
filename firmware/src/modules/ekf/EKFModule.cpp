@@ -476,32 +476,37 @@ void EKFModule::updateEKF()
             break;
         }
 
-        bool cleanFusion = false;
-
         if (!m_GPSPosBuffer.empty() && m_GPSPosBuffer.peekTimestamp() <= minMeasTimestamp)
         {
-            cleanFusion = m_EKF.fuseGPSPosition(m_GPSPosBuffer.pop(), EKF_GATE_THRESHOLD_GPS_POS);
+            if (!m_EKF.fuseGPSPosition(m_GPSPosBuffer.pop(), EKF_GATE_THRESHOLD_GPS_POS))
+            {
+                LOG_WARN("GPS position fusion failed gate check");
+            }
         }
         else if (!m_GPSVelBuffer.empty() && m_GPSVelBuffer.peekTimestamp() <= minMeasTimestamp)
         {
-            cleanFusion = m_EKF.fuseGPSVelocity(m_GPSVelBuffer.pop(), EKF_GATE_THRESHOLD_GPS_VEL);
+            if (!m_EKF.fuseGPSVelocity(m_GPSVelBuffer.pop(), EKF_GATE_THRESHOLD_GPS_VEL))
+            {
+                LOG_WARN("GPS velocity fusion failed gate check");
+            }
         }
         else if (!m_BaroBuffer.empty() && m_BaroBuffer.peekTimestamp() <= minMeasTimestamp)
         {
-            cleanFusion = m_EKF.fuseBaroHeight(m_BaroBuffer.pop(), EKF_GATE_THRESHOLD_BARO);
+            if (!m_EKF.fuseBaroHeight(m_BaroBuffer.pop(), EKF_GATE_THRESHOLD_BARO))
+            {
+                LOG_WARN("Baro height fusion failed gate check");
+            }
         }
         else if (!m_MagBuffer.empty() && m_MagBuffer.peekTimestamp() <= minMeasTimestamp)
         {
-            cleanFusion = m_EKF.fuseMag(m_MagBuffer.pop(), EKF_GATE_THRESHOLD_MAG);
+            if (!m_EKF.fuseMag(m_MagBuffer.pop(), EKF_GATE_THRESHOLD_MAG))
+            {
+                LOG_WARN("Mag fusion failed gate check");
+            }
         }
         else
         {
             break;
-        }
-
-        if (!cleanFusion)
-        {
-            LOG_WARN("Measurement fusion failed gate check");
         }
     }
 

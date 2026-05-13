@@ -173,6 +173,29 @@ class ReplayMagnetometerModel(MagnetometerModelInterface):
         return MagnetometerModelOutput(mag=mag_meas)
 
 
+class EventReplayMagnetometerModel(MagnetometerModelInterface):
+    def __init__(self):
+        super().__init__(rate=1)
+        self._times: np.ndarray | None = None
+        self._data: np.ndarray | None = None
+        self._cursor = 0
+
+    def set_data(self, times: np.ndarray, data: np.ndarray) -> None:
+        self._times = times
+        self._data = data
+        self._cursor = 0
+
+    def is_update_time(self, time: float) -> bool:
+        if self._times is None or self._cursor >= len(self._times):
+            return False
+        return time >= self._times[self._cursor]
+
+    def get_measurement(self, time: float) -> MagnetometerModelOutput:
+        mag = self._data[self._cursor].copy()
+        self._cursor += 1
+        return MagnetometerModelOutput(mag=mag)
+
+
 class GPSModelInterface(SensorModelInterface):
     def get_measurement(self, time: float) -> GPSModelOutput:
         super().get_measurement(time)
@@ -310,29 +333,6 @@ class EventReplayGPSModel(GPSModelInterface):
             stddevs=np.array([row[6], row[7], row[8]]),
             sats=int(row[9]),
         )
-
-
-class EventReplayMagnetometerModel(MagnetometerModelInterface):
-    def __init__(self):
-        super().__init__(rate=1)
-        self._times: np.ndarray | None = None
-        self._data: np.ndarray | None = None
-        self._cursor = 0
-
-    def set_data(self, times: np.ndarray, data: np.ndarray) -> None:
-        self._times = times
-        self._data = data
-        self._cursor = 0
-
-    def is_update_time(self, time: float) -> bool:
-        if self._times is None or self._cursor >= len(self._times):
-            return False
-        return time >= self._times[self._cursor]
-
-    def get_measurement(self, time: float) -> MagnetometerModelOutput:
-        mag = self._data[self._cursor].copy()
-        self._cursor += 1
-        return MagnetometerModelOutput(mag=mag)
 
 
 class BarometerModelInterface(SensorModelInterface):

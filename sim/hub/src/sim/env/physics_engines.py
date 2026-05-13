@@ -105,6 +105,8 @@ class SimulinkPhysicsEngine(PhysicsEngineInterface):
 
         self.model = model
 
+        print("Waiting for Simulink connection...")
+
         self.server = TCPSocket(name="simulink", ip="localhost", port=12360, is_server=True, blocking=True)
         self.is_finished = False
 
