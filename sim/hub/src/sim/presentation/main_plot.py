@@ -34,6 +34,20 @@ def plot(received_data: list[datalink.sitl_response_data], dt: float):
             ign_fire_time = time_data[min(ign_time)]
             plt.axvline(x=ign_fire_time, color=color, linestyle='--', linewidth=1.5, alpha=0.7, label=label)
 
+    detected_apogee_idx = None
+
+    for i in range(1, len(filtered_received_data)):
+        if (filtered_received_data[i - 1].smState == datalink.state_machine_state.DATALINK_SM_STATE_FREE_FLIGHT and filtered_received_data[i].smState == datalink.state_machine_state.DATALINK_SM_STATE_FREE_FALL):
+            detected_apogee_idx = i
+            break
+
+    if detected_apogee_idx is not None:
+        actual_apogee_idx = np.argmax(height)
+        actual_apogee = float(np.max(height))
+        detected_apogee = float(height[detected_apogee_idx])
+
+        print("Apogee detection error: {:.2f} m (dt: {:.2f} s)".format(actual_apogee - detected_apogee, time_data[detected_apogee_idx] - time_data[actual_apogee_idx]))
+
     plt.title("Height vs Time", fontsize=14)
     plt.xlabel("Time (s)", fontsize=12)
     plt.ylabel("Height (m)", fontsize=12)

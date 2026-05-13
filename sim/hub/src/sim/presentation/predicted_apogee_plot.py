@@ -22,7 +22,7 @@ def plot(received_data: list[datalink.sitl_response_data], dt: float):
     actual_apogee = float(np.max(height))
     apogee_error = predicted_apogee - actual_apogee
 
-    print("Apogee absolute error: {:.2f} m".format(np.max(predicted_apogee) - actual_apogee))
+    print("Apogee prediction absolute error: {:.2f} m".format(np.max(predicted_apogee) - actual_apogee))
 
     ax_top.plot(time_data, height, color="#1f77b4", linewidth=1.6, label="Actual Height")
     ax_top.plot(time_data, predicted_apogee, color="#ff7f0e", linewidth=1.6, label="Predicted Apogee")
