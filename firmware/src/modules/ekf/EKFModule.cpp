@@ -1,5 +1,6 @@
 #include "EKFModule.h"
 #include "modules/common/ModuleLogger.h"
+#include <lib/maths/math_constants.h>
 #include <lib/geo/physical_constants.h>
 #include <lib/geo/geo_mag.h>
 #include <lib/debug/sys_assert.h>
@@ -12,8 +13,6 @@
 void EKFModule::init()
 {
     m_EKF.init();
-
-    initCovariance();
 }
 
 void EKFModule::run()
@@ -54,6 +53,8 @@ void EKFModule::processIMU(const PubSub::Topics::SensorsIMU &imuData)
     {
         if (initState())
         {
+            initCovariance();
+
             m_EKFInitialized = true;
 
             LOG_INFO("EKF initialized");
@@ -103,15 +104,49 @@ void EKFModule::processGPS(const PubSub::Topics::SensorsGPS &gpsData)
 {
     if (!gpsData.gpsIs3dFix || gpsData.pos.lat == 0 || gpsData.pos.lon == 0)
     {
+        LOG_ERROR("Invalid GPS fix, skipping");
+
+        if (!m_GPSOriginSet)
+        {
+            m_GPSLatStats.reset();
+            m_GPSLonStats.reset();
+            m_GPSAltStats.reset();
+        }
+
         return;
     }
 
     if (!m_GPSOriginSet)
     {
-        equirect_projection_init(&m_Projection, &gpsData.pos);
-        m_GPSOriginSet = true;
+        m_GPSLatStats.push(gpsData.pos.lat);
+        m_GPSLonStats.push(gpsData.pos.lon);
+        m_GPSAltStats.push(gpsData.pos.alt);
 
-        LOG_INFO("GPS origin set to lat: %.6f, lon: %.6f, alt: %.2f", gpsData.pos.lat, gpsData.pos.lon, gpsData.pos.alt);
+        if (m_GPSLatStats.count() >= EKF_INIT_GPS_SAMPLES && m_GPSLonStats.count() >= EKF_INIT_GPS_SAMPLES && m_GPSAltStats.count() >= EKF_INIT_GPS_SAMPLES)
+        {
+            if (m_GPSLatStats.stddev() < EKF_NOISE_GPS_POS_HOR_INIT && m_GPSLonStats.stddev() < EKF_NOISE_GPS_POS_HOR_INIT && m_GPSAltStats.stddev() < EKF_NOISE_GPS_POS_VER_INIT)
+            {
+                LOG_INFO("GPS origin lat/lon/alt stddev: %.6f / %.6f / %.2f m - origin will be set", m_GPSLatStats.stddev(), m_GPSLonStats.stddev(), m_GPSAltStats.stddev());
+
+                geo_position_t origin = {
+                    .lat = m_GPSLatStats.getMean(),
+                    .lon = m_GPSLonStats.getMean(),
+                    .alt = m_GPSAltStats.getMean(),
+                };
+                equirect_projection_init(&m_Projection, &origin);
+                m_GPSOriginSet = true;
+            }
+            else
+            {
+                LOG_ERROR("GPS origin lat/lon/alt readings too noisy for reliable origin initialization (stddev: %.6f / %.6f / %.2f m), retrying origin initialization", m_GPSLatStats.stddev(), m_GPSLonStats.stddev(), m_GPSAltStats.stddev());
+            }
+
+            m_GPSLatStats.reset();
+            m_GPSLonStats.reset();
+            m_GPSAltStats.reset();
+        }
+
+        return;
     }
 
     if (m_EKFEnabled)
@@ -120,7 +155,7 @@ void EKFModule::processGPS(const PubSub::Topics::SensorsGPS &gpsData)
         posMeas.pos = equirect_project_to_ned(&m_Projection, &gpsData.pos);
         posMeas.var_hor = _var(gpsData.stddev_horizontal);
         posMeas.var_ver = _var(gpsData.stddev_vertical);
-        m_GPSPosBuffer.push(posMeas, osal_systime_get_ms() - EKF_GPS_DELAY_MS);
+        m_GPSPosBuffer.push(posMeas, osal_systime_get_ms() - EKF_DELAY_MS_GPS);
 
         if (vec3_mag_compare(&gpsData.vel, EKF_GPS_FUSION_VELOCITY_THRESHOLD) > 0)
         {
@@ -128,11 +163,7 @@ void EKFModule::processGPS(const PubSub::Topics::SensorsGPS &gpsData)
             velMeas.vel = gpsData.vel;
             velMeas.var_hor = _var(gpsData.stddev_speed);
             velMeas.var_ver = _var(gpsData.stddev_speed * EKF_GPS_VEL_D_NOISE_SCALE);
-            m_GPSVelBuffer.push(velMeas, osal_systime_get_ms() - EKF_GPS_DELAY_MS);
-        }
-        else
-        {
-            LOG_WARN("GPS velocity below fusion threshold, skipping velocity fusion");
+            m_GPSVelBuffer.push(velMeas, osal_systime_get_ms() - EKF_DELAY_MS_GPS);
         }
     }
 }
@@ -141,15 +172,38 @@ void EKFModule::processBaro(const PubSub::Topics::SensorsBaro &baroData)
 {
     if (baroData.baroHeight == 0)
     {
+        LOG_ERROR("Invalid barometer height reading, skipping");
+
+        if (!m_BaroOffsetSet)
+        {
+            m_BaroStats.reset();
+        }
+
         return;
     }
 
     if (!m_BaroOffsetSet)
     {
-        m_BaroOffset = baroData.baroHeight;
-        m_BaroOffsetSet = true;
+        m_BaroStats.push(baroData.baroHeight);
 
-        LOG_INFO("Barometer height offset set to %.2f m", m_BaroOffset);
+        if (m_BaroStats.count() >= EKF_INIT_BARO_SAMPLES)
+        {
+            if (m_BaroStats.stddev() < EKF_NOISE_BARO_INIT)
+            {
+                m_BaroOffset = m_BaroStats.getMean();
+                m_BaroOffsetSet = true;
+
+                LOG_INFO("Barometer height offset set to %.2f m", m_BaroOffset);
+            }
+            else
+            {
+                LOG_ERROR("Barometer height readings too noisy for reliable offset initialization (stddev: %.2f m), retrying offset initialization", m_BaroStats.stddev());
+            }
+
+            m_BaroStats.reset();
+        }
+
+        return;
     }
 
     if (m_EKFEnabled)
@@ -157,26 +211,89 @@ void EKFModule::processBaro(const PubSub::Topics::SensorsBaro &baroData)
         EKFBaroMeasurement baroMeas;
         baroMeas.height = -(baroData.baroHeight - m_BaroOffset); // Negative because baro height is typically positive upwards, while NED z is positive downwards
         baroMeas.var = _var(EKF_NOISE_BARO);
-        m_BaroBuffer.push(baroMeas, osal_systime_get_ms() - EKF_BARO_DELAY_MS);
+        m_BaroBuffer.push(baroMeas, osal_systime_get_ms() - EKF_DELAY_MS_BARO);
     }
 }
 
 void EKFModule::processMag(const PubSub::Topics::SensorsMag &magData)
 {
 #if EKF_USE_MAG
+    if (!m_GPSOriginSet)
+    {
+        return;
+    }
+
+    if (!m_MagInitDone)
+    {
+        m_MagXStats.push(magData.mag.x);
+        m_MagYStats.push(magData.mag.y);
+        m_MagZStats.push(magData.mag.z);
+
+        if (m_MagXStats.count() >= EKF_INIT_MAG_SAMPLES && m_MagYStats.count() >= EKF_INIT_MAG_SAMPLES && m_MagZStats.count() >= EKF_INIT_MAG_SAMPLES)
+        {
+            float strength = sqrtf(m_MagXStats.getMean() * m_MagXStats.getMean() + m_MagYStats.getMean() * m_MagYStats.getMean() + m_MagZStats.getMean() * m_MagZStats.getMean());
+            float expectedStrength = geo_mag_get_strength(&m_Projection.ref);
+
+            if (fabsf(strength - expectedStrength) < EKF_INIT_MAG_STRENGTH_EPS && m_MagXStats.stddev() < EKF_NOISE_MAG_INIT && m_MagYStats.stddev() < EKF_NOISE_MAG_INIT && m_MagZStats.stddev() < EKF_NOISE_MAG_INIT)
+            {
+                // Get expected magnetic field vector at current location, to be used as reference for yaw initialization and fusion
+                vec3_t expectedMagNED = geo_mag_field_vector(&m_Projection.ref);
+                m_CurrentOPState.mag = expectedMagNED;
+
+                LOG_DEBUG("Expected magnetic field vector at current location (NED): x=%.4f, y=%.4f, z=%.4f", expectedMagNED.x, expectedMagNED.y, expectedMagNED.z);
+
+                // Normalize horizontal component of expected magnetic field to get reference direction for yaw
+                expectedMagNED.z = 0;
+                vec3_normalize(&expectedMagNED);
+
+                vec3_t magNED = {
+                    .x = m_MagXStats.getMean(),
+                    .y = m_MagYStats.getMean(),
+                    .z = m_MagZStats.getMean(),
+                };
+
+                LOG_DEBUG("Magnetometer readings (NED): x=%.4f, y=%.4f, z=%.4f", magNED.x, magNED.y, magNED.z);
+
+                // Rotate measured mag and normalize horizontal component to get measured direction for yaw
+                quat_rotate_vec(&magNED, &m_CurrentOPState.attitude);
+
+                magNED.z = 0;
+                vec3_normalize(&magNED);
+
+                // Apply to attitude
+                quat_t dq = quat_from_vecs(&magNED, &expectedMagNED);
+                LOG_DEBUG("Delta quaternion for mag: w=%.4f, x=%.4f, y=%.4f, z=%.4f", dq.w, dq.x, dq.y, dq.z);
+
+                m_CurrentOPState.attitude = quat_mul(&dq, &m_CurrentOPState.attitude);
+                quat_normalize(&m_CurrentOPState.attitude);
+
+                LOG_INFO("Initialized attitude (with MAG): w=%.4f, x=%.4f, y=%.4f, z=%.4f", m_CurrentOPState.attitude.w, m_CurrentOPState.attitude.x, m_CurrentOPState.attitude.y, m_CurrentOPState.attitude.z);
+
+                yawReset();
+
+                m_MagInitDone = true;
+
+                LOG_INFO("Magnetometer initialized");
+            }
+            else
+            {
+                LOG_ERROR("Magnetometer readings too noisy (stddev: x=%.5f, y=%.5f, z=%.5f) or incorrect strength (expected: %.3f, got: %.3f), retrying magnetometer initialization", m_MagXStats.stddev(), m_MagYStats.stddev(), m_MagZStats.stddev(), expectedStrength, strength);
+            }
+
+            m_MagXStats.reset();
+            m_MagYStats.reset();
+            m_MagZStats.reset();
+        }
+
+        return;
+    }
+
     if (m_EKFEnabled)
     {
         EKFMagMeasurement magMeas;
         magMeas.mag = magData.mag;
         magMeas.var = _var(EKF_NOISE_MAG);
-        m_MagBuffer.push(magMeas, osal_systime_get_ms() - EKF_MAG_DELAY_MS);
-    }
-    else
-    {
-        m_MagAccum.x += magData.mag.x;
-        m_MagAccum.y += magData.mag.y;
-        m_MagAccum.z += magData.mag.z;
-        m_MagSamplesCount++;
+        m_MagBuffer.push(magMeas, osal_systime_get_ms() - EKF_DELAY_MS_MAG);
     }
 #else
     (void)magData;
@@ -259,7 +376,7 @@ void EKFModule::outputPredictorCalculateCorrection(float dt)
 
     quat_t q_op_inv = quat_conj(&opState.attitude);
     // Calculate error in global frame. If we calculated error in body frame, then as the body rotates the correction would become less and less valid, especially at high angular rates. By calculating in global frame, the correction remains valid regardless of body rotation.
-    // q_ekf = q_err * q_op
+    // Equation: q_ekf = q_err * q_op
     quat_t q_err = quat_mul(&ekfState.attitude, &q_op_inv);
     float sign = (q_err.w >= 0) ? 1.0f : -1.0f;
 
@@ -397,44 +514,24 @@ bool EKFModule::initState()
 
     float acc_len = vec3_mag(&avgAcc);
 
-    if (fabsf(acc_len - EARTH_GRAVITY) > EKF_INIT_ACC_MAG_ERROR_THRESHOLD)
+    if (fabsf(acc_len - EARTH_GRAVITY) > EKF_INIT_IMU_EPS)
     {
         LOG_ERROR("Average acceleration (%f) magnitude is invalid for reliable attitude initialization", acc_len);
 
         return false;
     }
 
-    // TODO: Perform real init sequence
-#if EKF_USE_MAG
-    // vec3_t avgMag = {
-    //     .x = m_MagAccum.x / m_MagSamplesCount,
-    //     .y = m_MagAccum.y / m_MagSamplesCount,
-    //     .z = m_MagAccum.z / m_MagSamplesCount,
-    // };
-
-    // vec3_t avgMag = {0.191f, 0.019f, 0.462f};
-    vec3_t avgMag = {1.0f, 0.0f, 0.0f};
-
-    quat_t initialAttitude = quat_from_acc_mag(&avgAcc, &avgMag);
-
-    // vec3_t initialMagField = geo_mag_field_vector({});
-    vec3_t initialMagField = {0.191f, 0.019f, 0.462f};
-
-    LOG_DEBUG("Initial mag field: x=%.4f, y=%.4f, z=%.4f", initialMagField.x, initialMagField.y, initialMagField.z);
-#else
     vec3_normalize(&avgAcc);
 
     vec3_t g_vec_norm = {0, 0, -1};
     quat_t initialAttitude = quat_from_vecs(&avgAcc, &g_vec_norm);
-    vec3_t initialMagField = {0, 0, 0};
-#endif
 
-    LOG_DEBUG("Initial attitude: w=%.4f, x=%.4f, y=%.4f, z=%.4f", initialAttitude.w, initialAttitude.x, initialAttitude.y, initialAttitude.z);
+    LOG_INFO("Initial attitude (only IMU): w=%.4f, x=%.4f, y=%.4f, z=%.4f", initialAttitude.w, initialAttitude.x, initialAttitude.y, initialAttitude.z);
 
     m_CurrentOPState.attitude = initialAttitude;
     m_CurrentOPState.pos = {0, 0, 0};
     m_CurrentOPState.vel = {0, 0, 0};
-    m_CurrentOPState.mag = initialMagField;
+    m_CurrentOPState.mag = {0, 0, 0};
     m_CurrentOPState.bias_acc = {0, 0, 0};
     m_CurrentOPState.bias_gyro = {0, 0, 0};
     m_CurrentOPState.bias_mag = {0, 0, 0};
@@ -446,9 +543,9 @@ bool EKFModule::initState()
 
 void EKFModule::initCovariance()
 {
-    m_EKF.getCovarianceElement(0, 0) = EKF_COV_DEFAULT_ATT_ROLL_PITCH;
-    m_EKF.getCovarianceElement(1, 1) = EKF_COV_DEFAULT_ATT_ROLL_PITCH;
-    m_EKF.getCovarianceElement(2, 2) = EKF_COV_DEFAULT_ATT_YAW;
+    m_EKF.getCovarianceElement(0, 0) = EKF_COV_DEFAULT_ATT_DEFAULT;
+    m_EKF.getCovarianceElement(1, 1) = EKF_COV_DEFAULT_ATT_DEFAULT;
+    m_EKF.getCovarianceElement(2, 2) = EKF_COV_DEFAULT_ATT_UNKNOWN;
 
     for (size_t i = 3; i < 6; i++)
     {
@@ -497,4 +594,20 @@ void EKFModule::addBiasNoiseToCovariance(float dt)
     {
         m_EKF.getCovarianceElement(i, i) += _var(EKF_NOISE_MAG_BIAS) * dt;
     }
+}
+
+void EKFModule::yawReset()
+{
+    // Perform state reset and buffer repropagation
+    for (size_t i = 0; i < m_OutputPredictorBuffer.size(); i++)
+    {
+        m_OutputPredictorBuffer.get(i).attitude = m_CurrentOPState.attitude;
+        m_OutputPredictorBuffer.get(i).mag = m_CurrentOPState.mag;
+    }
+
+    m_EKF.getState().attitude = m_CurrentOPState.attitude;
+    m_EKF.getState().mag = m_CurrentOPState.mag;
+
+    // Set high initial yaw uncertainty since we don't know the initial yaw
+    m_EKF.getCovarianceElement(2, 2) = EKF_COV_DEFAULT_ATT_UNKNOWN;
 }

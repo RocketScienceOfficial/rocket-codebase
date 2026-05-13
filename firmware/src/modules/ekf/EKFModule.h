@@ -8,6 +8,7 @@
 #include "EKFData.h"
 #include "EKFConfig.h"
 #include "utils/TimestampedRingBuffer.h"
+#include "utils/RunningStats.h"
 
 class EKFModule
 {
@@ -32,7 +33,7 @@ private:
     // Output Predictor
     EKFNominalState m_CurrentOPState;
     vec3_t m_AttitudeCorrection;
-    TimestampedRingBuffer<EKFNominalState, EKF_IMU_DELAY_HORIZON_SIZE> m_OutputPredictorBuffer;
+    TimestampedRingBuffer<EKFNominalState, EKF_DELAY_HORIZON_SIZE_IMU> m_OutputPredictorBuffer;
 
     // IMU
     vec3_t m_AccelAccum;
@@ -40,23 +41,29 @@ private:
     uint8_t m_IMUClippingFlagsAccum;
     float m_IMUDtAccum;
     size_t m_IMUSamplesCount;
-    TimestampedRingBuffer<EKFIMUData, EKF_IMU_DELAY_HORIZON_SIZE> m_IMUBuffer;
+    TimestampedRingBuffer<EKFIMUData, EKF_DELAY_HORIZON_SIZE_IMU> m_IMUBuffer;
 
     // GPS
     equirect_projection_t m_Projection;
     bool m_GPSOriginSet;
-    TimestampedRingBuffer<EKFGPSPosMeasurement, EKF_GPS_DELAY_HORIZON_SIZE> m_GPSPosBuffer;
-    TimestampedRingBuffer<EKFGPSVelMeasurement, EKF_GPS_DELAY_HORIZON_SIZE> m_GPSVelBuffer;
+    RunningStats<double> m_GPSLatStats;
+    RunningStats<double> m_GPSLonStats;
+    RunningStats<double> m_GPSAltStats;
+    TimestampedRingBuffer<EKFGPSPosMeasurement, EKF_DELAY_HORIZON_SIZE_GPS> m_GPSPosBuffer;
+    TimestampedRingBuffer<EKFGPSVelMeasurement, EKF_DELAY_HORIZON_SIZE_GPS> m_GPSVelBuffer;
 
     // Barometer
     float m_BaroOffset;
     bool m_BaroOffsetSet;
-    TimestampedRingBuffer<EKFBaroMeasurement, EKF_BARO_DELAY_HORIZON_SIZE> m_BaroBuffer;
+    RunningStats<float> m_BaroStats;
+    TimestampedRingBuffer<EKFBaroMeasurement, EKF_DELAY_HORIZON_SIZE_BARO> m_BaroBuffer;
 
     // Magnetometer
-    vec3_t m_MagAccum;
-    size_t m_MagSamplesCount;
-    TimestampedRingBuffer<EKFMagMeasurement, EKF_MAG_DELAY_HORIZON_SIZE> m_MagBuffer;
+    RunningStats<float> m_MagXStats;
+    RunningStats<float> m_MagYStats;
+    RunningStats<float> m_MagZStats;
+    bool m_MagInitDone;
+    TimestampedRingBuffer<EKFMagMeasurement, EKF_DELAY_HORIZON_SIZE_MAG> m_MagBuffer;
 
     // Processing functions
     void processIMU(const PubSub::Topics::SensorsIMU &imuData);
@@ -76,5 +83,6 @@ private:
     // Utility functions
     bool initState();
     void initCovariance();
+    void yawReset();
     void addBiasNoiseToCovariance(float dt);
 };
