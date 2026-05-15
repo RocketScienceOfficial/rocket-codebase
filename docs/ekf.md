@@ -63,7 +63,43 @@ $$
 
 The attitude error $\delta\boldsymbol{\theta} \in \mathbb{R}^3$ is a rotation vector (axis-angle) in the local frame. The quaternion's four degrees of freedom collapse to three in the tangent space, giving 21 error states from 22 nominal states.
 
-### 2.3 Multiplicative Attitude Error
+### 2.3 Exponential Map on $S^3$
+
+The unit-quaternion group $S^3$ is a double cover of SO(3). Its Lie algebra $\mathfrak{su}(2) \cong \mathbb{R}^3$ is spanned by pure quaternions. The **exponential map** $\exp : \mathbb{R}^3 \to S^3$ sends a rotation vector $\boldsymbol{\phi} = \phi\,\hat{\mathbf{n}}$ (axis $\hat{\mathbf{n}}$, angle $\phi = \|\boldsymbol{\phi}\|$) to the unit quaternion:
+
+$$
+\exp(\boldsymbol{\phi}) = \begin{bmatrix} \cos\!\dfrac{\|\boldsymbol{\phi}\|}{2} \\[6pt] \dfrac{\sin\!\dfrac{\|\boldsymbol{\phi}\|}{2}}{\|\boldsymbol{\phi}\|}\,\boldsymbol{\phi} \end{bmatrix}
+$$
+
+The factor of $\tfrac{1}{2}$ arises because a rotation by angle $\phi$ about $\hat{\mathbf{n}}$ corresponds to the quaternion $[\cos(\phi/2),\,\sin(\phi/2)\,\hat{\mathbf{n}}]^T$, so the quaternion half-angle spans the full SO(3) angle. The inverse, the **logarithmic map** $\log : S^3 \to \mathbb{R}^3$, recovers the rotation vector:
+
+$$
+\log(\mathbf{q}) = 2\,\operatorname{atan2}\!\bigl(\|\mathbf{q}_{1:3}\|,\,q_0\bigr)\,\frac{\mathbf{q}_{1:3}}{\|\mathbf{q}_{1:3}\|}
+$$
+
+The error rotation vector $\delta\boldsymbol{\theta}$ is the image of the error quaternion $\delta\mathbf{q}$ under this map: $\delta\boldsymbol{\theta} = \log(\delta\mathbf{q})$, $\;\delta\mathbf{q} = \exp(\delta\boldsymbol{\theta})$.
+
+### 2.4 First-Order Approximation
+
+For small rotations $\|\delta\boldsymbol{\theta}\| \ll 1$ (equivalently, $\|\boldsymbol{\phi}\| \ll \pi$), a first-order Taylor expansion of the exponential map gives:
+
+$$
+\cos\frac{\|\delta\boldsymbol{\theta}\|}{2} \approx 1, \qquad \frac{\sin\frac{\|\delta\boldsymbol{\theta}\|}{2}}{\|\delta\boldsymbol{\theta}\|} \approx \frac{1}{2}
+$$
+
+$$
+\boxed{\exp(\delta\boldsymbol{\theta}) \approx \begin{bmatrix} 1 \\[2pt] \tfrac{1}{2}\,\delta\boldsymbol{\theta} \end{bmatrix}}
+$$
+
+This approximation is used in two places:
+
+1. **Error quaternion** (Section 2.5): $\delta\mathbf{q} = \exp(\delta\boldsymbol{\theta}) \approx [1,\;\delta\boldsymbol{\theta}/2]^T$, valid because the EKF keeps the error state small by frequent injection and reset.
+
+2. **IMU integration** (Section 3.1): integrating a constant angular rate $\boldsymbol{\omega}$ over $\Delta t$ produces the rotation $\exp(\boldsymbol{\omega}\,\Delta t)$; the same expansion gives $[1,\;\boldsymbol{\omega}\Delta t/2]^T$, valid as long as $\|\boldsymbol{\omega}\|\Delta t \ll 1$. At 250 Hz this requires angular rates well below $\pi/0.004 \approx 785\,\text{rad/s}$, which is never approached in flight.
+
+The normalisation step $\hat{\mathbf{q}}^+ \leftarrow \hat{\mathbf{q}}^+/\|\hat{\mathbf{q}}^+\|$ after each integration corrects the unit-norm constraint that the first-order approximation does not preserve exactly.
+
+### 2.5 Multiplicative Error and Multiplication Order
 
 The true attitude is the composition of the nominal quaternion with the error quaternion:
 
@@ -71,10 +107,14 @@ $$
 \mathbf{q}_{\text{true}} = \delta\mathbf{q} \otimes \hat{\mathbf{q}}
 $$
 
-For small $\delta\boldsymbol{\theta}$ the error quaternion is approximated by its first-order Taylor expansion on $S^3$:
+**Multiplication order is not arbitrary.** Left-multiplying by $\delta\mathbf{q}$ places the perturbation in the **global (NED) frame**: the rotation axis of $\delta\boldsymbol{\theta}$ is expressed in NED coordinates. Right-multiplying ($\hat{\mathbf{q}} \otimes \delta\mathbf{q}$) would instead place it in the **body (FRD) frame**.
+
+The global-frame convention is chosen because all other error states ($\delta\mathbf{p}$, $\delta\mathbf{v}$, $\delta\mathbf{m}$) are defined in the NED frame. This keeps the off-diagonal Jacobian blocks — in particular $\partial\,\delta\dot{\mathbf{v}}/\partial\,\delta\boldsymbol{\theta} = -\mathbf{R}\lfloor\mathbf{a}\rfloor_\times$ — expressed consistently in one frame, and matches the convention used in PX4 EKF2.
+
+Applying the first-order approximation from Section 2.4:
 
 $$
-\delta\mathbf{q} \approx \begin{bmatrix} 1 \\[2pt] \tfrac{1}{2}\,\delta\boldsymbol{\theta} \end{bmatrix}
+\delta\mathbf{q} = \exp(\delta\boldsymbol{\theta}) \approx \begin{bmatrix} 1 \\[2pt] \tfrac{1}{2}\,\delta\boldsymbol{\theta} \end{bmatrix}
 $$
 
 All remaining states have additive errors: $\mathbf{x}_{\text{true}} = \hat{\mathbf{x}} + \delta\mathbf{x}$.
@@ -301,6 +341,12 @@ Instead, the symbolic algebra system computes $\mathbf{F}\mathbf{P}\mathbf{F}^T 
 The algebraic complexity of each expression (determined by the sparsity of $\mathbf{F}$ and $\mathbf{G}$, not by $n$) is much lower than the naïve $O(n^3)$ count. Only the upper triangle is emitted; the lower triangle is dropped symbolically before code generation, preventing redundant writes.
 
 The same principle applies to every scalar measurement update: $S_i = \mathbf{h}_i\mathbf{P}\mathbf{h}_i^T + r_i$ and $\mathbf{K}_i = \mathbf{P}\mathbf{h}_i^T / S_i$ are derived symbolically and emitted as closed-form expressions, with zero runtime matrix construction.
+
+> **Note — Brute-force error-state Jacobian (PX4 style).** The transition Jacobian $\mathbf{F}$ is **not** derived analytically via perturbation theory (i.e., by hand-expanding $\delta\dot{\mathbf{x}} = \mathbf{F}_c\,\delta\mathbf{x} + \cdots$ from the continuous dynamics). Instead, the derivation propagates both the **true state** $\mathbf{x}_{\text{true}} = \hat{\mathbf{x}} \oplus \delta\mathbf{x}$ and the **nominal state** $\hat{\mathbf{x}}$ through the same discrete kinematic function $f(\cdot)$, then computes the predicted error as the symbolic difference:
+> $$\delta\mathbf{x}^+ = f(\hat{\mathbf{x}} \oplus \delta\mathbf{x},\, \mathbf{n}) \ominus f(\hat{\mathbf{x}},\, \mathbf{0})$$
+> and extracts the Jacobians by automatic differentiation:
+> $$\mathbf{F} = \left.\frac{\partial\,\delta\mathbf{x}^+}{\partial\,\delta\mathbf{x}}\right|_{\delta\mathbf{x}=\mathbf{0},\;\mathbf{n}=\mathbf{0}}, \qquad \mathbf{G} = \left.\frac{\partial\,\delta\mathbf{x}^+}{\partial\,\mathbf{n}}\right|_{\delta\mathbf{x}=\mathbf{0},\;\mathbf{n}=\mathbf{0}}$$
+> This is exactly the approach PX4 EKF2 uses in its SymPy derivation. The outputs $\mathbf{F}$ and $\mathbf{G}$ are mathematically identical to what perturbation theory would yield, but the derivation requires no manual linearization of quaternion kinematics — the algebra system handles the manifold composition $\oplus$ and $\ominus$ directly. The tradeoff is heavier symbolic computation at derivation time (the CAS must expand and simplify large intermediate expressions), but the runtime result is the same closed-form scalar code.
 
 ### 6.3 First-Order Discretization and $O(\Delta t^2)$ Elimination
 
