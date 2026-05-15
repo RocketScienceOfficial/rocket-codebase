@@ -6,11 +6,6 @@
 #include <lib/geo/physical_constants.h>
 #include <cmath>
 
-static constexpr size_t _getVerificationCount(size_t time_ms)
-{
-    return time_ms / (1000 / SM_CFG_BARO_RATE);
-}
-
 void StateMachineModule::init()
 {
 }
