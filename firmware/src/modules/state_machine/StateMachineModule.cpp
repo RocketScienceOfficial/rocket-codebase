@@ -123,11 +123,12 @@ void StateMachineModule::handle_state_armed()
 {
     if (m_IMUAccChanged)
     {
-        if (!m_Verifing_StandingAlt)
+        if (!m_VerifyingStandingAlt)
         {
             if (vec3_mag_compare(&m_CurrentIMUAcc, SM_CFG_START_ACC_THRESHOLD) >= 0)
             {
-                m_Verifing_StandingAlt = true;
+                m_VerificationStartTime = osal_systime_get_ms();
+                m_VerifyingStandingAlt = true;
 
                 LOG_INFO("Acceleration threshold exceeded. Starting standing altitude verification.");
             }
@@ -136,7 +137,7 @@ void StateMachineModule::handle_state_armed()
 
     if (m_BaroHeightChanged)
     {
-        if (m_Verifing_StandingAlt)
+        if (m_VerifyingStandingAlt)
         {
             if (m_BaseAlt == 0)
             {
@@ -150,13 +151,11 @@ void StateMachineModule::handle_state_armed()
                 }
                 else
                 {
-                    m_VerificationIndex_StandingAlt++;
-
-                    if (m_VerificationIndex_StandingAlt == _getVerificationCount(SM_CFG_START_ALT_VERIFICATION_TIME_MS))
+                    if (osal_systime_get_ms() - m_VerificationStartTime > SM_CFG_START_ALT_VERIFICATION_TIME_MS)
                     {
                         m_BaseAlt = 0;
-                        m_Verifing_StandingAlt = false;
-                        m_VerificationIndex_StandingAlt = 0;
+                        m_VerificationStartTime = 0;
+                        m_VerifyingStandingAlt = false;
 
                         LOG_INFO("Failed to verify standing altitude. Resetting base altitude and verification process.");
                     }
@@ -192,17 +191,17 @@ void StateMachineModule::handle_state_free_flight()
 
         if (alt <= m_Apogee || alt - m_Apogee <= SM_CFG_APOGEE_MAX_DELTA)
         {
-            m_VerificationIndex_Apogee++;
-
-            if (m_VerificationIndex_Apogee == _getVerificationCount(SM_CFG_LAST_ALT_APOGEE_TIME_MS))
+            if (osal_systime_get_ms() - m_VerificationStartTime > SM_CFG_LAST_ALT_APOGEE_TIME_MS)
             {
+                m_VerificationStartTime = 0;
+
                 changeState(DATALINK_SM_STATE_FREE_FALL);
             }
         }
         else
         {
             m_Apogee = alt;
-            m_VerificationIndex_Apogee = 0;
+            m_VerificationStartTime = osal_systime_get_ms();
         }
     }
 }
@@ -217,14 +216,14 @@ void StateMachineModule::handle_state_free_fall()
         if (delta > SM_CFG_LAND_MAX_DELTA)
         {
             m_LandingAlt = alt;
-            m_VerificationIndex_Landing = 0;
+            m_VerificationStartTime = osal_systime_get_ms();
         }
         else
         {
-            m_VerificationIndex_Landing++;
-
-            if (m_VerificationIndex_Landing == _getVerificationCount(SM_CFG_LAST_ALT_LAND_VERIFICATION_TIME_MS))
+            if (osal_systime_get_ms() - m_VerificationStartTime > SM_CFG_LAST_ALT_LAND_VERIFICATION_TIME_MS)
             {
+                m_VerificationStartTime = 0;
+                
                 changeState(DATALINK_SM_STATE_LANDED);
             }
         }

@@ -23,6 +23,7 @@ private:
     state_machine_state m_State;
     float m_StartupBaseAlt;
     bool m_StartupBaseAltSet;
+    uint32_t m_VerificationStartTime;
 
     // Baro data
     float m_CurrentBaroHeight;
@@ -32,18 +33,11 @@ private:
     vec3_t m_CurrentIMUAcc;
     bool m_IMUAccChanged;
 
-    // Start verification
+    // Handlers utils
     float m_BaseAlt;
-    bool m_Verifing_StandingAlt;
-    size_t m_VerificationIndex_StandingAlt;
-
-    // Apogee verification
+    bool m_VerifyingStandingAlt;
     float m_Apogee;
-    size_t m_VerificationIndex_Apogee;
-
-    // Landing verification
     float m_LandingAlt;
-    size_t m_VerificationIndex_Landing;
 
     // Utility functions
     void updateData();

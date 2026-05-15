@@ -3,7 +3,6 @@
 #include <lib/geo/physical_constants.h>
 
 /** Barometer */
-#define SM_CFG_BARO_RATE 50
 #define SM_CFG_BARO_SMOOTHING_ALPHA 0.2f
 
 /** Start Verification */
