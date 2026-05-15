@@ -93,7 +93,7 @@ radio_sock.close()
 # ================== PLOTTING ==================
 print("> Plotting data...")
 
-main_plot.plot(received_data, SIM_TICK_DT)
+main_plot.plot(received_data, true_data, SIM_TICK_DT)
 axes_plots.plot(received_data, true_data, SIM_TICK_DT)
 errors_plots.plot(received_data, true_data, SIM_TICK_DT)
 predicted_apogee_plot.plot(received_data, SIM_TICK_DT)

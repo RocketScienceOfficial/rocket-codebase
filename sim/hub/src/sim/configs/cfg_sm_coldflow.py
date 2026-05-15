@@ -1,24 +1,20 @@
 from sim.env.environments import *
 from sim.env.physics_engines import *
+from sim.utils.geo import g
 
 
-class StandingBodyPhysicsEngine(PhysicsEngineInterface):
-    def __init__(self, dt: float, max_time: float | None = None):
-        super().__init__(dt)
+class ColdflowSimScenario(SimpleIntegratorScenarioInterface):
+    def __init__(self, max_time: float | None = None):
+        self.time = 0.0
+        self.max_time = max_time if max_time is not None else 10.0
 
-        self.acc = np.array([0.0, 0.0, 0.0])
-        self.vel = np.array([0.0, 0.0, 0.0])
-        self.pos = np.array([0.0, 0.0, 0.0])
-        self.w = np.array([0.0, 0.0, 0.0])
-        self.q = np.array([1.0, 0.0, 0.0, 0.0])
+    def get_net_acc(self, time: float, current_state: PhysicsEngineOutput, input: PhysicsEngineInput) -> np.ndarray:
+        self.time = time
 
-        self.current_state = PhysicsEngineOutput(acc=self.acc, vel=self.vel, pos=self.pos, w=self.w, q=self.q)
-        self.max_time = max_time if max_time is not None else 60.0
-
-    def integrate(self, input: PhysicsEngineInput) -> PhysicsEngineOutput:
-        self.time += self.dt
-
-        return self.current_state
+        if time < 1.5:
+            return np.array([0.0, 0.0, -2.0 * g])
+        else:
+            return np.array([0.0, 0.0, g])
 
     def finished(self) -> bool:
         return self.time >= self.max_time
@@ -26,7 +22,7 @@ class StandingBodyPhysicsEngine(PhysicsEngineInterface):
 
 def get_environment(dt: float):
     return SyntheticEnvironment(
-        engine=StandingBodyPhysicsEngine(dt=dt, max_time=30.0),
+        engine=SimpleIntegratorPhysicsEngine(dt=dt, scenario=ColdflowSimScenario(max_time=8.0), init_time=2.0),
         imu1=SyntheticIMUModel(rate=500, noise_acc=GaussianNoiseModel(mean=0, std_dev=0.055), noise_gyro=GaussianNoiseModel(mean=0, std_dev=0.17), acc_range_g=6.0, gyro_range_deg=500.0),
         mag1=SyntheticMagnetometerModel(rate=100, noise=GaussianNoiseModel(mean=0, std_dev=0.0004)),
         baro1=SyntheticBarometerModel(rate=50, noise=GaussianNoiseModel(mean=0, std_dev=0.4)),
