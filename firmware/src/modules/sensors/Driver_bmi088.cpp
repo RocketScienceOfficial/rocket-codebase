@@ -3,14 +3,14 @@
 #include <board_config.h>
 #include <cmath>
 
-static constexpr float ACC_CLIPPING_THRESHOLD = 6.0f * EARTH_GRAVITY * 0.95f;
+static constexpr float ACC_CLIPPING_THRESHOLD = 12.0f * EARTH_GRAVITY * 0.95f;
 static constexpr float GYRO_CLIPPING_THRESHOLD = 500.0f * 0.95f;
 
 void Driver_bmi088::initialize()
 {
     bmi088_acc_init_spi(&m_AccDevice, CFG_SPI, CFG_PIN_CS_BMI_ACC);
     bmi088_acc_set_conf(&m_AccDevice, BMI088_ACC_ODR_800HZ, BMI088_ACC_OSR_NORMAL);
-    bmi088_acc_set_range(&m_AccDevice, BMI088_ACC_RANGE_6G);
+    bmi088_acc_set_range(&m_AccDevice, BMI088_ACC_RANGE_12G);
 
     bmi088_gyro_init_spi(&m_GyroDevice, CFG_SPI, CFG_PIN_CS_BMI_GYRO);
     bmi088_gyro_set_bandwidth(&m_GyroDevice, BMI088_GYRO_ODR_1000_BW_116HZ);

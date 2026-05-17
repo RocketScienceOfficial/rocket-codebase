@@ -68,11 +68,19 @@ void EKFModule::processIMU(const PubSub::Topics::SensorsIMU &imuData)
     }
     else if (m_EKFInitialized && m_IMUDtAccum >= 1.0f / EKF_RATE_HZ)
     {
+        bool clip_acc = m_IMUClippingFlagsAccum & PubSub::Helpers::ACC_CLIP_X || m_IMUClippingFlagsAccum & PubSub::Helpers::ACC_CLIP_Y || m_IMUClippingFlagsAccum & PubSub::Helpers::ACC_CLIP_Z;
+        bool clip_gyro = m_IMUClippingFlagsAccum & PubSub::Helpers::GYRO_CLIP_X || m_IMUClippingFlagsAccum & PubSub::Helpers::GYRO_CLIP_Y || m_IMUClippingFlagsAccum & PubSub::Helpers::GYRO_CLIP_Z;
+
+        if (clip_acc || clip_gyro)
+        {
+            LOG_WARN("IMU clipping detected (acc clip: %d, gyro clip: %d), variances will be increased for this sample", clip_acc, clip_gyro);
+        }
+
         EKFIMUData sample;
         sample.delta_velocity = m_AccelAccum;
         sample.delta_angle = m_GyroAccum;
-        sample.varAcc = (m_IMUClippingFlagsAccum & PubSub::Helpers::ACC_CLIP_X || m_IMUClippingFlagsAccum & PubSub::Helpers::ACC_CLIP_Y || m_IMUClippingFlagsAccum & PubSub::Helpers::ACC_CLIP_Z) ? _var(EKF_NOISE_ACC_CLIPPING) : _var(EKF_NOISE_ACC);
-        sample.varGyro = (m_IMUClippingFlagsAccum & PubSub::Helpers::GYRO_CLIP_X || m_IMUClippingFlagsAccum & PubSub::Helpers::GYRO_CLIP_Y || m_IMUClippingFlagsAccum & PubSub::Helpers::GYRO_CLIP_Z) ? _var(EKF_NOISE_GYRO_CLIPPING) : _var(EKF_NOISE_GYRO);
+        sample.varAcc = clip_acc ? _var(EKF_NOISE_ACC_CLIPPING) : _var(EKF_NOISE_ACC);
+        sample.varGyro = clip_gyro ? _var(EKF_NOISE_GYRO_CLIPPING) : _var(EKF_NOISE_GYRO);
         sample.dt = m_IMUDtAccum;
         m_IMUBuffer.push(sample, currentTime);
 

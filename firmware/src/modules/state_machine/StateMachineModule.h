@@ -19,22 +19,32 @@ private:
     PubSub::Publisher<PubSub::Topics::StateMachineHeight> m_FlightStateHeightPublisher{PUBSUB_ID(sm_height)};
     PubSub::RPCHandler<PubSub::Topics::CommandArm> m_RPC_ARM{PUBSUB_RPC_ID(command_arm)};
 
+    // State
     state_machine_state m_State;
+    float m_StartupBaseAlt;
+    bool m_StartupBaseAltSet;
+    uint32_t m_VerificationStartTime;
+
+    // Baro data
     float m_CurrentBaroHeight;
     bool m_BaroHeightChanged;
+
+    // IMU data
     vec3_t m_CurrentIMUAcc;
     bool m_IMUAccChanged;
-    float m_BaseAlt;
-    bool m_Verifing_StandingAlt;
-    size_t m_VerificationIndex_StandingAlt;
-    float m_Apogee;
-    size_t m_VerificationIndex_Apogee;
-    float m_LandingAlt;
-    size_t m_VerificationIndex_Landing;
 
+    // Handlers utils
+    float m_BaseAlt;
+    bool m_VerifyingStandingAlt;
+    float m_Apogee;
+    float m_LandingAlt;
+
+    // Utility functions
     void updateData();
     void postUpdate();
     void changeState(state_machine_state new_state);
+
+    // State handlers
     void handle_state_standing();
     void handle_state_armed();
     void handle_state_accelerating();

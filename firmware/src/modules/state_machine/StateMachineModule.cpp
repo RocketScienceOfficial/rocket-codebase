@@ -1,24 +1,10 @@
 #include "StateMachineModule.h"
+#include "SMConfig.h"
 #include "modules/common/ModuleLogger.h"
 #include <osal/systime.h>
 #include <lib/maths/math_utils.h>
 #include <lib/geo/physical_constants.h>
 #include <cmath>
-
-#define BARO_RATE 50
-
-#define START_ACC_THRESHOLD (2.5f * EARTH_GRAVITY)
-#define START_ALT_THRESHOLD 3
-#define START_ALT_VERIFICATION_TIME_MS 200
-#define APOGEE_MAX_DELTA 1
-#define LAND_MAX_DELTA 1
-#define LAST_ALT_APOGEE_TIME_MS 200
-#define LAST_ALT_LAND_VERIFICATION_TIME_MS 4000
-
-static constexpr size_t _getVerificationCount(size_t time_ms)
-{
-    return time_ms / (1000 / BARO_RATE);
-}
 
 void StateMachineModule::init()
 {
@@ -85,8 +71,16 @@ void StateMachineModule::updateData()
     {
         const auto &baro_data = m_BaroDataSubscriber.get();
 
-        m_CurrentBaroHeight = exp_smoothing(baro_data.baroHeight, m_CurrentBaroHeight, 0.2f);
+        m_CurrentBaroHeight = exp_smoothing(baro_data.baroHeight, m_CurrentBaroHeight, SM_CFG_BARO_SMOOTHING_ALPHA);
         m_BaroHeightChanged = true;
+
+        if (!m_StartupBaseAltSet)
+        {
+            m_StartupBaseAlt = m_CurrentBaroHeight;
+            m_StartupBaseAltSet = true;
+
+            LOG_INFO("Startup base altitude set to %.2f", m_StartupBaseAlt);
+        }
     }
 
     if (m_IMUDataSubscriber.poll())
@@ -117,48 +111,57 @@ void StateMachineModule::changeState(state_machine_state new_state)
 
 void StateMachineModule::handle_state_standing()
 {
+    (void)(0);
 }
 
 void StateMachineModule::handle_state_armed()
 {
     if (m_IMUAccChanged)
     {
-        if (!m_Verifing_StandingAlt)
+        if (!m_VerifyingStandingAlt)
         {
-            if (vec3_mag_compare(&m_CurrentIMUAcc, START_ACC_THRESHOLD) >= 0)
+            if (vec3_mag_compare(&m_CurrentIMUAcc, SM_CFG_START_ACC_THRESHOLD) >= 0)
             {
-                m_Verifing_StandingAlt = true;
+                m_VerificationStartTime = osal_systime_get_ms();
+                m_VerifyingStandingAlt = true;
 
                 LOG_INFO("Acceleration threshold exceeded. Starting standing altitude verification.");
             }
         }
     }
 
-    if (m_BaroHeightChanged && m_Verifing_StandingAlt)
+    if (m_BaroHeightChanged)
     {
-        if (m_BaseAlt == 0)
+        if (m_VerifyingStandingAlt)
         {
-            m_BaseAlt = m_CurrentBaroHeight;
-        }
-        else
-        {
-            if (m_CurrentBaroHeight - m_BaseAlt >= START_ALT_THRESHOLD)
+            if (m_BaseAlt == 0)
             {
-                changeState(DATALINK_SM_STATE_ACCELERATING);
+                m_BaseAlt = m_CurrentBaroHeight;
             }
             else
             {
-                m_VerificationIndex_StandingAlt++;
-
-                if (m_VerificationIndex_StandingAlt == _getVerificationCount(START_ALT_VERIFICATION_TIME_MS))
+                if (m_CurrentBaroHeight - m_BaseAlt >= SM_CFG_START_ALT_THRESHOLD)
                 {
-                    m_BaseAlt = 0;
-                    m_Verifing_StandingAlt = false;
-                    m_VerificationIndex_StandingAlt = 0;
+                    changeState(DATALINK_SM_STATE_ACCELERATING);
+                }
+                else
+                {
+                    if (osal_systime_get_ms() - m_VerificationStartTime > SM_CFG_START_ALT_VERIFICATION_TIME_MS)
+                    {
+                        m_BaseAlt = 0;
+                        m_VerificationStartTime = 0;
+                        m_VerifyingStandingAlt = false;
 
-                    LOG_INFO("Failed to verify standing altitude. Resetting base altitude and verification process.");
+                        LOG_INFO("Failed to verify standing altitude. Resetting base altitude and verification process.");
+                    }
                 }
             }
+        }
+        else if (m_StartupBaseAltSet && m_CurrentBaroHeight - m_StartupBaseAlt >= SM_CFG_START_ALT_FALLBACK_HEIGHT)
+        {
+            LOG_INFO("Fallback altitude threshold exceeded. Starting flight.");
+
+            changeState(DATALINK_SM_STATE_ACCELERATING);
         }
     }
 }
@@ -167,6 +170,7 @@ void StateMachineModule::handle_state_accelerating()
 {
     if (m_IMUAccChanged)
     {
+        // NOTE: This may fail if aerodynamic drag is higher than 1g (it will just detect free flight when thrust = drag + 1g)
         if (vec3_mag_compare(&m_CurrentIMUAcc, EARTH_GRAVITY) < 0)
         {
             changeState(DATALINK_SM_STATE_FREE_FLIGHT);
@@ -180,19 +184,19 @@ void StateMachineModule::handle_state_free_flight()
     {
         float alt = m_CurrentBaroHeight - m_BaseAlt;
 
-        if (alt <= m_Apogee || alt - m_Apogee <= APOGEE_MAX_DELTA)
+        if (alt <= m_Apogee || alt - m_Apogee <= SM_CFG_APOGEE_MAX_DELTA)
         {
-            m_VerificationIndex_Apogee++;
-
-            if (m_VerificationIndex_Apogee == _getVerificationCount(LAST_ALT_APOGEE_TIME_MS))
+            if (osal_systime_get_ms() - m_VerificationStartTime > SM_CFG_LAST_ALT_APOGEE_TIME_MS)
             {
+                m_VerificationStartTime = 0;
+
                 changeState(DATALINK_SM_STATE_FREE_FALL);
             }
         }
         else
         {
             m_Apogee = alt;
-            m_VerificationIndex_Apogee = 0;
+            m_VerificationStartTime = osal_systime_get_ms();
         }
     }
 }
@@ -204,17 +208,17 @@ void StateMachineModule::handle_state_free_fall()
         float alt = m_CurrentBaroHeight - m_BaseAlt;
         float delta = fabsf(m_LandingAlt - alt);
 
-        if (delta > LAND_MAX_DELTA)
+        if (delta > SM_CFG_LAND_MAX_DELTA)
         {
             m_LandingAlt = alt;
-            m_VerificationIndex_Landing = 0;
+            m_VerificationStartTime = osal_systime_get_ms();
         }
         else
         {
-            m_VerificationIndex_Landing++;
-
-            if (m_VerificationIndex_Landing == _getVerificationCount(LAST_ALT_LAND_VERIFICATION_TIME_MS))
+            if (osal_systime_get_ms() - m_VerificationStartTime > SM_CFG_LAST_ALT_LAND_VERIFICATION_TIME_MS)
             {
+                m_VerificationStartTime = 0;
+                
                 changeState(DATALINK_SM_STATE_LANDED);
             }
         }
