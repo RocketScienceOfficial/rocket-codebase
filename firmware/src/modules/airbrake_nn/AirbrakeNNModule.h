@@ -13,4 +13,11 @@ public:
 private:
     PubSub::Subscriber<PubSub::Topics::EKFState> m_EKFSubscriber{PUBSUB_ID(ekf_state)};
     PubSub::Publisher<PubSub::Topics::AirbrakeState> m_AirbrakePublisher{PUBSUB_ID(airbrake_state)};
+
+    float m_LastPredictedApogee;
+
+    float m_Buffer1[1024];
+    float m_Buffer2[1024];
+
+    float runNeuralNet(float h0, float v0);
 };
