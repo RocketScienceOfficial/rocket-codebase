@@ -13,25 +13,25 @@
 #endif
 
 #if LOG_LEVEL_DEBUG <= LOG_LEVEL
-#define LOG_DEBUG(...) __sys_log("DEBUG", MODULE_NAME, __VA_ARGS__)
+#define LOG_DEBUG(...) sys_log("DEBUG", MODULE_NAME, __VA_ARGS__)
 #else
 #define LOG_DEBUG(...) ((void)0)
 #endif
 
 #if LOG_LEVEL_INFO <= LOG_LEVEL
-#define LOG_INFO(...) __sys_log("INFO", MODULE_NAME, __VA_ARGS__)
+#define LOG_INFO(...) sys_log("INFO", MODULE_NAME, __VA_ARGS__)
 #else
 #define LOG_INFO(...) ((void)0)
 #endif
 
 #if LOG_LEVEL_WARN <= LOG_LEVEL
-#define LOG_WARN(...) __sys_log("WARN", MODULE_NAME, __VA_ARGS__)
+#define LOG_WARN(...) sys_log("WARN", MODULE_NAME, __VA_ARGS__)
 #else
 #define LOG_WARN(...) ((void)0)
 #endif
 
 #if LOG_LEVEL_ERROR <= LOG_LEVEL
-#define LOG_ERROR(...) __sys_log("ERROR", MODULE_NAME, __VA_ARGS__)
+#define LOG_ERROR(...) sys_log("ERROR", MODULE_NAME, __VA_ARGS__)
 #else
 #define LOG_ERROR(...) ((void)0)
 #endif

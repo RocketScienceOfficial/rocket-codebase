@@ -11,7 +11,7 @@
     {                                                        \
         if (!(expr))                                         \
         {                                                    \
-            __sys_assert_handler(#expr, __FILE__, __LINE__); \
+            sys_assert_handler(#expr, __FILE__, __LINE__); \
         }                                                    \
     } while (0)
 
@@ -23,7 +23,7 @@
             hal_stdio_printf("\t");                          \
             hal_stdio_printf(__VA_ARGS__);                   \
             hal_stdio_printf("\n");                          \
-            __sys_assert_handler(#expr, __FILE__, __LINE__); \
+            sys_assert_handler(#expr, __FILE__, __LINE__); \
         }                                                    \
     } while (0)
 
@@ -46,7 +46,7 @@ extern "C"
  * @param file The name of the source file where the assertion failed.
  * @param line The line number in the source file where the assertion failed.
  */
-void __sys_assert_handler(const char *expr, const char *file, int line);
+void sys_assert_handler(const char *expr, const char *file, int line);
 
 #ifdef __cplusplus
 }

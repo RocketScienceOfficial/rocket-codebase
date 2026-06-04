@@ -13,7 +13,7 @@ extern "C"
  * @param additional Additional information to include in the log (e.g., module name).
  * @param fmt The format string for the log message, followed by variable arguments.
  */
-void __sys_log(const char *level, const char* additional, const char *fmt, ...);
+void sys_log(const char *level, const char* additional, const char *fmt, ...);
 
 #ifdef __cplusplus
 }

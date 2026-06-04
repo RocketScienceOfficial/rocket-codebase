@@ -28,7 +28,7 @@ static int _safe_copy(uint8_t *buffer, int *bufferOffset, int bufferLen, const u
     }
 }
 
-uint16_t __crc16_mcrf4xx_table[256] = {
+uint16_t crc16_mcrf4xx_table_internal[256] = {
     0x0000, 0x1189, 0x2312, 0x329B, 0x4624, 0x57AD, 0x6536, 0x74BF,
     0x8C48, 0x9DC1, 0xAF5A, 0xBED3, 0xCA6C, 0xDBE5, 0xE97E, 0xF8F7,
     0x1081, 0x0108, 0x3393, 0x221A, 0x56A5, 0x472C, 0x75B7, 0x643E,
@@ -69,7 +69,7 @@ uint16_t datalink_crc16_mcrf4xx_calculate(const uint8_t *data, int length)
     
     while (length--) 
     {
-        crc = (crc >> 8) ^ __crc16_mcrf4xx_table[(crc ^ *data++) & 0xFF];
+        crc = (crc >> 8) ^ crc16_mcrf4xx_table_internal[(crc ^ *data++) & 0xFF];
     }
 
     return crc;

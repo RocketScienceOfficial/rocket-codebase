@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-void __sys_log(const char *level, const char *additional, const char *fmt, ...)
+void sys_log(const char *level, const char *additional, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);

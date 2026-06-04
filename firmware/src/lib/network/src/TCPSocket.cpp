@@ -28,10 +28,10 @@ typedef int native_socket_t;
 #define GET_NATIVE_SOCKET(x) (static_cast<native_socket_t>(x))
 
 #ifdef NETWORK_LOGS_ENABLED
-#define NETWORK_DEBUG(msg, ...) __sys_log("DEBUG", "network", msg, ##__VA_ARGS__)
-#define NETWORK_INFO(msg, ...) __sys_log("INFO", "network", msg, ##__VA_ARGS__)
-#define NETWORK_WARN(msg, ...) __sys_log("WARN", "network", msg, ##__VA_ARGS__)
-#define NETWORK_ERROR(msg, ...) __sys_log("ERROR", "network", msg, ##__VA_ARGS__)
+#define NETWORK_DEBUG(msg, ...) sys_log("DEBUG", "network", msg, ##__VA_ARGS__)
+#define NETWORK_INFO(msg, ...) sys_log("INFO", "network", msg, ##__VA_ARGS__)
+#define NETWORK_WARN(msg, ...) sys_log("WARN", "network", msg, ##__VA_ARGS__)
+#define NETWORK_ERROR(msg, ...) sys_log("ERROR", "network", msg, ##__VA_ARGS__)
 #else
 #define NETWORK_DEBUG(msg, ...) (void)0
 #define NETWORK_INFO(msg, ...) (void)0
