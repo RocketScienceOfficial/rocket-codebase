@@ -22,7 +22,7 @@ namespace PubSub
     static Topic g_topics[MAX_TOPICS];
     static uint8_t g_topicsCount = 0;
 
-    static Topic *_FindTopicById(TopicId id)
+    static Topic *FindTopicById(TopicId id)
     {
         for (size_t i = 0; i < MAX_TOPICS; ++i)
         {
@@ -35,12 +35,12 @@ namespace PubSub
         return nullptr;
     }
 
-    static bool _ValidateHandle(const TopicHandle *handle)
+    static bool ValidateHandle(const TopicHandle *handle)
     {
         return handle != nullptr && handle->topic_index < MAX_TOPICS;
     }
 
-    static bool _ValidateTopicByHandle(const TopicHandle *handle, const Topic *topic)
+    static bool ValidateTopicByHandle(const TopicHandle *handle, const Topic *topic)
     {
         return handle != nullptr && topic != nullptr && topic->message_size > 0;
     }
@@ -57,7 +57,7 @@ namespace PubSub
         SYS_ASSERT(topic_name != nullptr);
         SYS_ASSERT_MSG(message_size > 0 && message_size <= MAX_MESSAGE_SIZE, "Invalid message size: %zu (%s)", message_size, topic_name);
 
-        Topic *t = _FindTopicById(id);
+        Topic *t = FindTopicById(id);
 
         if (t != nullptr)
         {
@@ -87,11 +87,11 @@ namespace PubSub
     void MessageBus::AdvertiseTopic(const TopicHandle *handle, size_t message_count)
     {
         SYS_ASSERT(!g_creationBlocked);
-        SYS_ASSERT(_ValidateHandle(handle));
+        SYS_ASSERT(ValidateHandle(handle));
 
         Topic *topic = &g_topics[handle->topic_index];
 
-        SYS_ASSERT(_ValidateTopicByHandle(handle, topic));
+        SYS_ASSERT(ValidateTopicByHandle(handle, topic));
         SYS_ASSERT(topic->write_sequence.load(std::memory_order_acquire) == handle->read_sequence);
         SYS_ASSERT_MSG(topic->owner == nullptr, "Topic '%s' is already owned by another handle", topic->name);
 
@@ -107,12 +107,12 @@ namespace PubSub
 
     void MessageBus::PublishData(TopicHandle *handle, const void *data, size_t size)
     {
-        SYS_ASSERT(_ValidateHandle(handle));
+        SYS_ASSERT(ValidateHandle(handle));
         SYS_ASSERT(data != nullptr);
 
         Topic *topic = &g_topics[handle->topic_index];
 
-        SYS_ASSERT(_ValidateTopicByHandle(handle, topic));
+        SYS_ASSERT(ValidateTopicByHandle(handle, topic));
         SYS_ASSERT(topic->write_sequence.load(std::memory_order_acquire) == handle->read_sequence);
         SYS_ASSERT_MSG(size == topic->message_size, "Data size does not match topic message size: %zu (expected: %zu)", size, topic->message_size);
         SYS_ASSERT_MSG(topic->owner == handle, "Handle does not own the topic '%s'", topic->name);
@@ -127,12 +127,12 @@ namespace PubSub
 
     bool MessageBus::CopyData(TopicHandle *handle, void *buffer, size_t buffer_size, bool latest)
     {
-        SYS_ASSERT(_ValidateHandle(handle));
+        SYS_ASSERT(ValidateHandle(handle));
         SYS_ASSERT(buffer != nullptr);
 
         Topic *topic = &g_topics[handle->topic_index];
 
-        SYS_ASSERT(_ValidateTopicByHandle(handle, topic));
+        SYS_ASSERT(ValidateTopicByHandle(handle, topic));
         SYS_ASSERT_MSG(topic->owner != nullptr, "Topic '%s' is not owned by any handle", topic->name);
         SYS_ASSERT_MSG(buffer_size == topic->message_size, "Buffer size does not match topic message size: %zu (expected: %zu)", buffer_size, topic->message_size);
 

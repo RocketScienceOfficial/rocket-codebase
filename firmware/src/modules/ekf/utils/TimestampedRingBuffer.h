@@ -68,6 +68,6 @@ public:
 private:
     T m_Buffer[N];
     uint32_t m_TimestampsBuffer[N];
-    size_t m_HeadSeq;
-    size_t m_TailSeq;
+    size_t m_HeadSeq = 0;
+    size_t m_TailSeq = 0;
 };

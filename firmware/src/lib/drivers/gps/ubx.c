@@ -86,7 +86,12 @@ void ubx_set_airborne_dynamic_model(void)
 
 static size_t ubx_create_frame(uint8_t *frameBuffer, uint16_t frameBufferLen, uint8_t class, uint8_t id, const uint8_t *payload, uint16_t length)
 {
-    SYS_ASSERT(frameBufferLen >= 6 + length + 2);
+    if (frameBufferLen < 6 + length + 2)
+    {
+        SYS_ASSERT(false);
+
+        return 0;
+    }
 
     frameBuffer[0] = UBX_PREAMBLE_SYNC_CHAR_1;
     frameBuffer[1] = UBX_PREAMBLE_SYNC_CHAR_2;
