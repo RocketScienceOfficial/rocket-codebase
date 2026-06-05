@@ -5,7 +5,7 @@
 #include <hal/spi_driver.h>
 #include <hal/time_driver.h>
 
-static void _ms56xx_reset(const ms56xx_device_t *device)
+static void ms56xx_reset(const ms56xx_device_t *device)
 {
     uint8_t data = MS56XX_CMD_RESET;
 
@@ -19,7 +19,7 @@ static void _ms56xx_reset(const ms56xx_device_t *device)
 /**
  * REF: https://github.com/PX4/PX4-Autopilot/blob/8f5f564c05b5a0e12989d6e56642cc0b453ec45d/src/drivers/barometer/ms56xx/ms56xx.cpp#L352
  */
-static bool _ms56xx_validate_crc(uint16_t *n_prom)
+static bool ms56xx_validate_crc(uint16_t *n_prom)
 {
     int16_t cnt;
     uint16_t n_rem;
@@ -67,7 +67,7 @@ static bool _ms56xx_validate_crc(uint16_t *n_prom)
     return (0x000F & crc_read) == (n_rem ^ 0x00);
 }
 
-static bool _ms56xx_read_coefficents(ms56xx_device_t *device)
+static bool ms56xx_read_coefficents(ms56xx_device_t *device)
 {
     ms56xx_prom_data_t coeffs = {0};
 
@@ -83,7 +83,7 @@ static bool _ms56xx_read_coefficents(ms56xx_device_t *device)
         ((uint16_t *)&coeffs)[i] = rx[1] << 8 | rx[2];
     }
 
-    if (!_ms56xx_validate_crc((uint16_t *)&coeffs))
+    if (!ms56xx_validate_crc((uint16_t *)&coeffs))
     {
         return false;
     }
@@ -104,9 +104,9 @@ void ms56xx_init_spi(ms56xx_device_t *device, uint8_t spi, uint8_t cs, bool vers
 
     spi_utils_cs_init(cs);
 
-    _ms56xx_reset(device);
+    ms56xx_reset(device);
 
-    device->coeffs_valid = _ms56xx_read_coefficents(device);
+    device->coeffs_valid = ms56xx_read_coefficents(device);
 }
 
 void ms56xx_set_osr(ms56xx_device_t *device, ms56xx_osr_t press, ms56xx_osr_t temp)
@@ -124,7 +124,7 @@ bool ms56xx_validate(const ms56xx_device_t *device)
     return device->coeffs_valid;
 }
 
-static uint32_t _ms56xx_read_raw_value(const ms56xx_device_t *device)
+static uint32_t ms56xx_read_raw_value(const ms56xx_device_t *device)
 {
     uint8_t tx[4] = {MS56XX_CMD_ADC_READ, 0x00, 0x00, 0x00};
     uint8_t rx[4];
@@ -138,7 +138,7 @@ static uint32_t _ms56xx_read_raw_value(const ms56xx_device_t *device)
     return d;
 }
 
-static uint32_t _ms56xx_get_timeout(ms56xx_osr_t osr)
+static uint32_t ms56xx_get_timeout(ms56xx_osr_t osr)
 {
     switch (osr)
     {
@@ -157,7 +157,7 @@ static uint32_t _ms56xx_get_timeout(ms56xx_osr_t osr)
     }
 }
 
-static void _ms56xx_req_value(ms56xx_device_t *device, bool pressure)
+static void ms56xx_req_value(ms56xx_device_t *device, bool pressure)
 {
     uint8_t data = pressure ? (uint8_t)device->pressOSR : ((uint8_t)device->tempOSR + MS56XX_CMD_CONVERT_D2_OSR_256 - MS56XX_CMD_CONVERT_D1_OSR_256);
 
@@ -166,14 +166,14 @@ static void _ms56xx_req_value(ms56xx_device_t *device, bool pressure)
     spi_utils_cs_deselect(device->cs);
 
     ms56xx_osr_t osr = pressure ? device->pressOSR : device->tempOSR;
-    uint32_t timeout = _ms56xx_get_timeout(osr);
+    uint32_t timeout = ms56xx_get_timeout(osr);
 
     SYS_ASSERT(timeout > 0);
 
     device->nextTime = hal_time_get_us_since_boot() + timeout;
 }
 
-static void _ms5611_convert_raw_values(const ms56xx_prom_data_t *coeffs, uint32_t d1, uint32_t d2, int *pressure, float *temperature)
+static void ms5611_convert_raw_values(const ms56xx_prom_data_t *coeffs, uint32_t d1, uint32_t d2, int *pressure, float *temperature)
 {
     int32_t dT = (int32_t)d2 - ((int32_t)coeffs->c5 << 8);
     int32_t temp = 2000 + (((int64_t)dT * coeffs->c6) >> 23);
@@ -206,7 +206,7 @@ static void _ms5611_convert_raw_values(const ms56xx_prom_data_t *coeffs, uint32_
     *pressure = p;
 }
 
-static void _ms5607_convert_raw_values(const ms56xx_prom_data_t *coeffs, uint32_t d1, uint32_t d2, int *pressure, float *temperature)
+static void ms5607_convert_raw_values(const ms56xx_prom_data_t *coeffs, uint32_t d1, uint32_t d2, int *pressure, float *temperature)
 {
     int32_t dT = (int32_t)d2 - ((int32_t)coeffs->c5 << 8);
     int32_t temp = 2000 + (((int64_t)dT * coeffs->c6) >> 23);
@@ -251,21 +251,21 @@ bool ms56xx_read_non_blocking(ms56xx_device_t *device, int *pressure, float *tem
     {
         if (device->d1 == 0)
         {
-            device->d1 = _ms56xx_read_raw_value(device);
+            device->d1 = ms56xx_read_raw_value(device);
 
-            _ms56xx_req_value(device, false);
+            ms56xx_req_value(device, false);
         }
         else
         {
-            uint32_t d2 = _ms56xx_read_raw_value(device);
+            uint32_t d2 = ms56xx_read_raw_value(device);
 
             if (device->version_5611)
             {
-                _ms5611_convert_raw_values(&device->coeffs, device->d1, d2, pressure, temperature);
+                ms5611_convert_raw_values(&device->coeffs, device->d1, d2, pressure, temperature);
             }
             else
             {
-                _ms5607_convert_raw_values(&device->coeffs, device->d1, d2, pressure, temperature);
+                ms5607_convert_raw_values(&device->coeffs, device->d1, d2, pressure, temperature);
             }
 
             device->nextTime = 0;
@@ -277,7 +277,7 @@ bool ms56xx_read_non_blocking(ms56xx_device_t *device, int *pressure, float *tem
 
     if (device->nextTime == 0)
     {
-        _ms56xx_req_value(device, true);
+        ms56xx_req_value(device, true);
     }
 
     return result;

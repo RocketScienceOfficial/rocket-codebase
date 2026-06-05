@@ -42,12 +42,12 @@ void SimpleGPSModule::run()
     }
 }
 
-static float _get_lat_sign(char ns)
+static float get_lat_sign(char ns)
 {
     return ns == 'S' ? -1 : 1;
 }
 
-static float _get_lon_sign(char ew)
+static float get_lon_sign(char ew)
 {
     return ew == 'W' ? -1 : 1;
 }
@@ -74,8 +74,8 @@ void SimpleGPSModule::parseSentence()
         }
 
         m_Publisher.publish({
-            .lat = frame.lat * _get_lat_sign(frame.NS),
-            .lon = frame.lon * _get_lon_sign(frame.EW),
+            .lat = frame.lat * get_lat_sign(frame.NS),
+            .lon = frame.lon * get_lon_sign(frame.EW),
             .alt = frame.alt,
         });
     }

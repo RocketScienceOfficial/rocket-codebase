@@ -2,26 +2,26 @@
 #include <lib/debug/sys_assert.h>
 #include <stdint.h>
 
-static void _mmc5983ma_auto_set_reset(mmc5983ma_device_t *device)
+static void mmc5983ma_auto_set_reset(mmc5983ma_device_t *device)
 {
     bus_utils_write_reg(&device->device, MMC5983MA_REG_CTRL0, MMC5983MA_CTRL0_AUTO_SR_EN);
 }
 
-static void _mmc5983ma_set(const mmc5983ma_device_t *device)
+static void mmc5983ma_set(const mmc5983ma_device_t *device)
 {
     bus_utils_write_reg(&device->device, MMC5983MA_REG_CTRL0, MMC5983MA_CTRL0_SET);
 }
 
-static void _mmc5983ma_reset(const mmc5983ma_device_t *device)
+static void mmc5983ma_reset(const mmc5983ma_device_t *device)
 {
     bus_utils_write_reg(&device->device, MMC5983MA_REG_CTRL0, MMC5983MA_CTRL0_RESET);
 }
 
-static void _mmc5983ma_base_init(const mmc5983ma_device_t *device)
+static void mmc5983ma_base_init(const mmc5983ma_device_t *device)
 {
-    _mmc5983ma_auto_set_reset((mmc5983ma_device_t *)device);
-    _mmc5983ma_set(device);
-    _mmc5983ma_reset(device);
+    mmc5983ma_auto_set_reset((mmc5983ma_device_t *)device);
+    mmc5983ma_set(device);
+    mmc5983ma_reset(device);
 }
 
 void mmc5983ma_init_spi(mmc5983ma_device_t *device, uint8_t spi, uint8_t cs)
@@ -30,7 +30,7 @@ void mmc5983ma_init_spi(mmc5983ma_device_t *device, uint8_t spi, uint8_t cs)
     
     bus_utils_init_spi_device(&device->device, spi, cs, MMC5983MA_READ_MASK, MMC5983MA_READ_MASK, MMC5983MA_WRITE_MASK);
 
-    _mmc5983ma_base_init(device);
+    mmc5983ma_base_init(device);
 }
 
 void mmc5983ma_init_i2c(mmc5983ma_device_t *device, uint8_t i2c)
@@ -39,7 +39,7 @@ void mmc5983ma_init_i2c(mmc5983ma_device_t *device, uint8_t i2c)
 
     bus_utils_init_i2c_device(&device->device, i2c, MMC5983MA_I2C_ADDR, MMC5983MA_READ_MASK, MMC5983MA_READ_MASK, MMC5983MA_WRITE_MASK);
 
-    _mmc5983ma_base_init(device);
+    mmc5983ma_base_init(device);
 }
 
 bool mmc5983ma_validate(const mmc5983ma_device_t *device)

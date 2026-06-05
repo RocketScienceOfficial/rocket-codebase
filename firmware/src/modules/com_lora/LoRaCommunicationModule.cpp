@@ -9,7 +9,7 @@
 static volatile bool g_radioOpDoneFlag;
 static bool g_radioInitialized = false;
 
-static void _set_radio_flag(void)
+static void set_radio_flag(void)
 {
     g_radioOpDoneFlag = true;
 }
@@ -20,25 +20,25 @@ static RadioLibHALPort g_hal(CFG_LORA_SPI, CFG_LORA_SPI_MISO_PIN, CFG_LORA_SPI_M
 static Module g_module(&g_hal, CFG_LORA_PIN_CS, CFG_LORA_PIN_DIO1, CFG_LORA_PIN_RESET, CFG_LORA_PIN_BUSY);
 static SX1268 g_radio(&g_module);
 
-static void _radio_init()
+static void radio_init()
 {
     int state = g_radio.begin(CFG_LORA_FREQ, CFG_LORA_BANDWIDTH, CFG_LORA_SF, 5, 0x12, CFG_LORA_TX_POWER, 8, 3.3f, false);
 
     SYS_ASSERT_MSG(state == RADIOLIB_ERR_NONE, "Failed to initialize LoRa radio! Code: %d", state);
 
-    g_radio.setDio1Action(_set_radio_flag);
+    g_radio.setDio1Action(set_radio_flag);
 }
 #elif defined(CFG_LORA_TYPE_SX1278)
 static Module g_module(&g_hal, CFG_LORA_PIN_CS, CFG_LORA_PIN_DIO0, CFG_LORA_PIN_RESET);
 static SX1278 g_radio(&g_module);
 
-static void _radio_init()
+static void radio_init()
 {
     int state = g_radio.begin(CFG_LORA_FREQ, CFG_LORA_BANDWIDTH, CFG_LORA_SF, 5, 0x12, CFG_LORA_TX_POWER, 8);
 
     SYS_ASSERT_MSG(state == RADIOLIB_ERR_NONE, "Failed to initialize LoRa radio! Code: %d", state);
 
-    g_radio.setDio0Action(_set_radio_flag, GPIO_IRQ_RISING_EDGE);
+    g_radio.setDio0Action(set_radio_flag, GPIO_IRQ_RISING_EDGE);
 }
 #else
 #error "Unsupported LoRa radio type!"
@@ -62,7 +62,7 @@ void LoRaCommunicationModule::init()
     hal_gpio_set_pin_state(CFG_LORA_PIN_RXEN, GPIO_LOW);
 #endif
 
-    _radio_init();
+    radio_init();
 
     setRX();
 

@@ -8,7 +8,7 @@
 
 #define GPS_MAX_READ_BYTES 32
 
-static void _configure_spi(gps_device_t *device)
+static void configure_spi(gps_device_t *device)
 {
     SYS_ASSERT(device != NULL);
 
@@ -37,7 +37,7 @@ void gps_init_spi(gps_device_t *device, uint8_t spi, uint8_t cs)
     memset(&device->parser, 0, sizeof(device->parser));
     memset(&device->data, 0, sizeof(device->data));
 
-    _configure_spi(device);
+    configure_spi(device);
 }
 
 bool gps_read_spi(gps_device_t *device)

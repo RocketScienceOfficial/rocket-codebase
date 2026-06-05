@@ -8,7 +8,7 @@
 static uint8_t g_cfgValBuffer[256];
 static uint8_t g_cfgValBufferLen;
 
-static void _valset(uint32_t id, uint32_t value, uint8_t size)
+static void ubx_valset(uint32_t id, uint32_t value, uint8_t size)
 {
     g_cfgValBuffer[g_cfgValBufferLen++] = (id >> 0) & 0xff;
     g_cfgValBuffer[g_cfgValBufferLen++] = (id >> 8) & 0xff;
@@ -21,20 +21,20 @@ static void _valset(uint32_t id, uint32_t value, uint8_t size)
     }
 }
 
-static void _checksum_update(uint8_t *cka, uint8_t *ckb, uint8_t b)
+static void ubx_checksum_update(uint8_t *cka, uint8_t *ckb, uint8_t b)
 {
     *cka += b;
     *ckb += *cka;
 }
 
-static void _checksum_calculate(uint8_t *cka, uint8_t *ckb, const uint8_t *buffer, uint8_t len)
+static void ubx_checksum_calculate(uint8_t *cka, uint8_t *ckb, const uint8_t *buffer, uint8_t len)
 {
     *cka = 0;
     *ckb = 0;
 
     for (uint8_t i = 0; i < len; i++)
     {
-        _checksum_update(cka, ckb, buffer[i]);
+        ubx_checksum_update(cka, ckb, buffer[i]);
     }
 
     *cka &= 0xff;
@@ -43,48 +43,48 @@ static void _checksum_calculate(uint8_t *cka, uint8_t *ckb, const uint8_t *buffe
 
 void ubx_set_nmea_enabled_spi(bool enabled)
 {
-    _valset(0x10790001, 1, 1);
+    ubx_valset(0x10790001, 1, 1);
 
-    _valset(0x107a0001, enabled ? 0 : 1, 1);
-    _valset(0x107a0002, enabled ? 1 : 0, 1);
+    ubx_valset(0x107a0001, enabled ? 0 : 1, 1);
+    ubx_valset(0x107a0002, enabled ? 1 : 0, 1);
 
-    _valset(0x209100aa, enabled ? 1 : 0, 1);
-    _valset(0x209100e1, enabled ? 1 : 0, 1);
-    _valset(0x209100be, enabled ? 1 : 0, 1);
-    _valset(0x209100cd, enabled ? 1 : 0, 1);
-    _valset(0x209100b9, enabled ? 1 : 0, 1);
-    _valset(0x209100d2, enabled ? 1 : 0, 1);
-    _valset(0x209100c3, enabled ? 1 : 0, 1);
-    _valset(0x209100d7, enabled ? 1 : 0, 1);
-    _valset(0x209100c8, enabled ? 1 : 0, 1);
-    _valset(0x20910404, enabled ? 1 : 0, 1);
-    _valset(0x209100af, enabled ? 1 : 0, 1);
-    _valset(0x209100eb, enabled ? 1 : 0, 1);
-    _valset(0x209100b4, enabled ? 1 : 0, 1);
-    _valset(0x209100dc, enabled ? 1 : 0, 1);
-    _valset(0x209100f0, enabled ? 1 : 0, 1);
-    _valset(0x209100f5, enabled ? 1 : 0, 1);
-    _valset(0x209100fa, enabled ? 1 : 0, 1);
-    _valset(0x2091025d, enabled ? 1 : 0, 1);
+    ubx_valset(0x209100aa, enabled ? 1 : 0, 1);
+    ubx_valset(0x209100e1, enabled ? 1 : 0, 1);
+    ubx_valset(0x209100be, enabled ? 1 : 0, 1);
+    ubx_valset(0x209100cd, enabled ? 1 : 0, 1);
+    ubx_valset(0x209100b9, enabled ? 1 : 0, 1);
+    ubx_valset(0x209100d2, enabled ? 1 : 0, 1);
+    ubx_valset(0x209100c3, enabled ? 1 : 0, 1);
+    ubx_valset(0x209100d7, enabled ? 1 : 0, 1);
+    ubx_valset(0x209100c8, enabled ? 1 : 0, 1);
+    ubx_valset(0x20910404, enabled ? 1 : 0, 1);
+    ubx_valset(0x209100af, enabled ? 1 : 0, 1);
+    ubx_valset(0x209100eb, enabled ? 1 : 0, 1);
+    ubx_valset(0x209100b4, enabled ? 1 : 0, 1);
+    ubx_valset(0x209100dc, enabled ? 1 : 0, 1);
+    ubx_valset(0x209100f0, enabled ? 1 : 0, 1);
+    ubx_valset(0x209100f5, enabled ? 1 : 0, 1);
+    ubx_valset(0x209100fa, enabled ? 1 : 0, 1);
+    ubx_valset(0x2091025d, enabled ? 1 : 0, 1);
 }
 
 void ubx_set_pvt_enabled_spi(bool enabled)
 {
-    _valset(0x2091000a, enabled ? 1 : 0, 1);
+    ubx_valset(0x2091000a, enabled ? 1 : 0, 1);
 }
 
 void ubx_set_nav_rate(uint16_t ms)
 {
-    _valset(0x30210001, ms, 2);
-    _valset(0x30210002, 1, 2);
+    ubx_valset(0x30210001, ms, 2);
+    ubx_valset(0x30210002, 1, 2);
 }
 
 void ubx_set_airborne_dynamic_model(void)
 {
-    _valset(0x20110021, 8, 1);
+    ubx_valset(0x20110021, 8, 1);
 }
 
-static size_t _create_frame(uint8_t *frameBuffer, uint16_t frameBufferLen, uint8_t class, uint8_t id, const uint8_t *payload, uint16_t length)
+static size_t ubx_create_frame(uint8_t *frameBuffer, uint16_t frameBufferLen, uint8_t class, uint8_t id, const uint8_t *payload, uint16_t length)
 {
     SYS_ASSERT(frameBufferLen >= 6 + length + 2);
 
@@ -98,7 +98,7 @@ static size_t _create_frame(uint8_t *frameBuffer, uint16_t frameBufferLen, uint8
     memcpy(frameBuffer + 6, payload, length);
 
     uint8_t cka, ckb;
-    _checksum_calculate(&cka, &ckb, frameBuffer + 2, 4 + length);
+    ubx_checksum_calculate(&cka, &ckb, frameBuffer + 2, 4 + length);
 
     frameBuffer[6 + length + 0] = cka;
     frameBuffer[6 + length + 1] = ckb;
@@ -122,10 +122,10 @@ size_t ubx_valset_apply(uint8_t *cfg, uint16_t cfgLen)
     i += g_cfgValBufferLen;
     g_cfgValBufferLen = 0;
 
-    return _create_frame(cfg, cfgLen, 0x06, 0x8a, buffer, i);
+    return ubx_create_frame(cfg, cfgLen, 0x06, 0x8a, buffer, i);
 }
 
-static bool _handle_frame(ubx_pvt_frame_t *frame, const uint8_t *buffer, size_t bufLen)
+static bool ubx_handle_frame(ubx_pvt_frame_t *frame, const uint8_t *buffer, size_t bufLen)
 {
     uint8_t class = buffer[0];
     uint8_t id = buffer[1];
@@ -142,7 +142,7 @@ static bool _handle_frame(ubx_pvt_frame_t *frame, const uint8_t *buffer, size_t 
     return false;
 }
 
-static void _reset_parser(ubx_parser_t *parser)
+static void ubx_reset_parser(ubx_parser_t *parser)
 {
     parser->state = UBX_PARSER_STATE_SYNC1;
     parser->idx = 0;
@@ -179,7 +179,7 @@ ubx_parser_status_t ubx_process_byte(ubx_parser_t *parser, uint8_t b)
         }
         else
         {
-            _reset_parser(parser);
+            ubx_reset_parser(parser);
         }
         break;
     }
@@ -187,13 +187,13 @@ ubx_parser_status_t ubx_process_byte(ubx_parser_t *parser, uint8_t b)
     {
         if (parser->idx >= sizeof(parser->buffer))
         {
-            _reset_parser(parser);
+            ubx_reset_parser(parser);
             break;
         }
 
         parser->buffer[parser->idx++] = b;
 
-        _checksum_update(&parser->ck_a, &parser->ck_b, b);
+        ubx_checksum_update(&parser->ck_a, &parser->ck_b, b);
 
         if (parser->idx == 4)
         {
@@ -207,14 +207,14 @@ ubx_parser_status_t ubx_process_byte(ubx_parser_t *parser, uint8_t b)
     {
         if (parser->idx >= sizeof(parser->buffer))
         {
-            _reset_parser(parser);
+            ubx_reset_parser(parser);
             break;
         }
 
         parser->buffer[parser->idx++] = b;
         parser->payload_read++;
 
-        _checksum_update(&parser->ck_a, &parser->ck_b, b);
+        ubx_checksum_update(&parser->ck_a, &parser->ck_b, b);
 
         if (parser->payload_read == parser->payload_len)
         {
@@ -230,7 +230,7 @@ ubx_parser_status_t ubx_process_byte(ubx_parser_t *parser, uint8_t b)
         }
         else
         {
-            _reset_parser(parser);
+            ubx_reset_parser(parser);
         }
         break;
     }
@@ -240,13 +240,13 @@ ubx_parser_status_t ubx_process_byte(ubx_parser_t *parser, uint8_t b)
 
         if (b == parser->ck_b)
         {
-            if (_handle_frame(&parser->current_frame, parser->buffer, parser->idx))
+            if (ubx_handle_frame(&parser->current_frame, parser->buffer, parser->idx))
             {
                 status = UBX_PARSER_STATUS_FINISHED;
             }
         }
 
-        _reset_parser(parser);
+        ubx_reset_parser(parser);
 
         return status;
     }

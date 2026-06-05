@@ -145,7 +145,7 @@ uint8_t TelemetryModule::packetGetGPSData()
     return (uint8_t)m_GPSSubscriber.get().gpsIs3dFix | (m_GPSSubscriber.get().gpsSatellitesCount << 1);
 }
 
-static void _packet_add_state_flag(uint8_t &flag, bool condition, uint8_t flagValue)
+static void packet_add_state_flag(uint8_t &flag, bool condition, uint8_t flagValue)
 {
     if (condition)
     {
@@ -159,13 +159,13 @@ uint8_t TelemetryModule::packetGetStateFlags()
 
     uint8_t flags = 0;
 
-    _packet_add_state_flag(flags, m_VoltageStateSubscriber.get().pingsFlags & VoltagePinsFlags::VOLTAGE_PIN_3V3, DATALINK_FLAGS_TELEMETRY_DATA_CONTROL_3V3_ENABLED);
-    _packet_add_state_flag(flags, m_VoltageStateSubscriber.get().pingsFlags & VoltagePinsFlags::VOLTAGE_PIN_5V, DATALINK_FLAGS_TELEMETRY_DATA_CONTROL_5V_ENABLED);
-    _packet_add_state_flag(flags, m_VoltageStateSubscriber.get().pingsFlags & VoltagePinsFlags::VOLTAGE_PIN_VBAT, DATALINK_FLAGS_TELEMETRY_DATA_CONTROL_VBAT_ENABLED);
-    _packet_add_state_flag(flags, packetCheckIgnCont(1), DATALINK_FLAGS_TELEMETRY_DATA_CONTROL_IGN_1_CONT);
-    _packet_add_state_flag(flags, packetCheckIgnCont(2), DATALINK_FLAGS_TELEMETRY_DATA_CONTROL_IGN_2_CONT);
-    _packet_add_state_flag(flags, packetCheckIgnCont(3), DATALINK_FLAGS_TELEMETRY_DATA_CONTROL_IGN_3_CONT);
-    _packet_add_state_flag(flags, packetCheckIgnCont(4), DATALINK_FLAGS_TELEMETRY_DATA_CONTROL_IGN_4_CONT);
+    packet_add_state_flag(flags, m_VoltageStateSubscriber.get().pingsFlags & VoltagePinsFlags::VOLTAGE_PIN_3V3, DATALINK_FLAGS_TELEMETRY_DATA_CONTROL_3V3_ENABLED);
+    packet_add_state_flag(flags, m_VoltageStateSubscriber.get().pingsFlags & VoltagePinsFlags::VOLTAGE_PIN_5V, DATALINK_FLAGS_TELEMETRY_DATA_CONTROL_5V_ENABLED);
+    packet_add_state_flag(flags, m_VoltageStateSubscriber.get().pingsFlags & VoltagePinsFlags::VOLTAGE_PIN_VBAT, DATALINK_FLAGS_TELEMETRY_DATA_CONTROL_VBAT_ENABLED);
+    packet_add_state_flag(flags, packetCheckIgnCont(1), DATALINK_FLAGS_TELEMETRY_DATA_CONTROL_IGN_1_CONT);
+    packet_add_state_flag(flags, packetCheckIgnCont(2), DATALINK_FLAGS_TELEMETRY_DATA_CONTROL_IGN_2_CONT);
+    packet_add_state_flag(flags, packetCheckIgnCont(3), DATALINK_FLAGS_TELEMETRY_DATA_CONTROL_IGN_3_CONT);
+    packet_add_state_flag(flags, packetCheckIgnCont(4), DATALINK_FLAGS_TELEMETRY_DATA_CONTROL_IGN_4_CONT);
 
     return flags;
 }

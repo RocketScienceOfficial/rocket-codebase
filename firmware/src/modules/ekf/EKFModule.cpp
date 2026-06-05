@@ -8,7 +8,7 @@
 #include <cmath>
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
-#define _var(std) ((std) * (std))
+#define VARIANCE(std) ((std) * (std))
 
 void EKFModule::init()
 {
@@ -79,8 +79,8 @@ void EKFModule::processIMU(const PubSub::Topics::SensorsIMU &imuData)
         EKFIMUData sample;
         sample.delta_velocity = m_AccelAccum;
         sample.delta_angle = m_GyroAccum;
-        sample.varAcc = clip_acc ? _var(EKF_NOISE_ACC_CLIPPING) : _var(EKF_NOISE_ACC);
-        sample.varGyro = clip_gyro ? _var(EKF_NOISE_GYRO_CLIPPING) : _var(EKF_NOISE_GYRO);
+        sample.varAcc = clip_acc ? VARIANCE(EKF_NOISE_ACC_CLIPPING) : VARIANCE(EKF_NOISE_ACC);
+        sample.varGyro = clip_gyro ? VARIANCE(EKF_NOISE_GYRO_CLIPPING) : VARIANCE(EKF_NOISE_GYRO);
         sample.dt = m_IMUDtAccum;
         m_IMUBuffer.push(sample, currentTime);
 
@@ -168,16 +168,16 @@ void EKFModule::processGPS(const PubSub::Topics::SensorsGPS &gpsData)
     {
         EKFGPSPosMeasurement posMeas;
         posMeas.pos = equirect_project_to_ned(&m_Projection, &gpsData.pos);
-        posMeas.var_hor = _var(gpsData.stddev_horizontal);
-        posMeas.var_ver = _var(gpsData.stddev_vertical);
+        posMeas.var_hor = VARIANCE(gpsData.stddev_horizontal);
+        posMeas.var_ver = VARIANCE(gpsData.stddev_vertical);
         m_GPSPosBuffer.push(posMeas, osal_systime_get_ms() - EKF_DELAY_MS_GPS);
 
         if (vec3_mag_compare(&gpsData.vel, EKF_GPS_FUSION_VELOCITY_THRESHOLD) > 0)
         {
             EKFGPSVelMeasurement velMeas;
             velMeas.vel = gpsData.vel;
-            velMeas.var_hor = _var(gpsData.stddev_speed);
-            velMeas.var_ver = _var(gpsData.stddev_speed * EKF_GPS_VEL_D_NOISE_SCALE);
+            velMeas.var_hor = VARIANCE(gpsData.stddev_speed);
+            velMeas.var_ver = VARIANCE(gpsData.stddev_speed * EKF_GPS_VEL_D_NOISE_SCALE);
             m_GPSVelBuffer.push(velMeas, osal_systime_get_ms() - EKF_DELAY_MS_GPS);
         }
     }
@@ -225,7 +225,7 @@ void EKFModule::processBaro(const PubSub::Topics::SensorsBaro &baroData)
     {
         EKFBaroMeasurement baroMeas;
         baroMeas.height = -(baroData.baroHeight - m_BaroOffset); // Negative because baro height is typically positive upwards, while NED z is positive downwards
-        baroMeas.var = _var(EKF_NOISE_BARO);
+        baroMeas.var = VARIANCE(EKF_NOISE_BARO);
         m_BaroBuffer.push(baroMeas, osal_systime_get_ms() - EKF_DELAY_MS_BARO);
     }
 }
@@ -307,7 +307,7 @@ void EKFModule::processMag(const PubSub::Topics::SensorsMag &magData)
     {
         EKFMagMeasurement magMeas;
         magMeas.mag = magData.mag;
-        magMeas.var = _var(EKF_NOISE_MAG);
+        magMeas.var = VARIANCE(EKF_NOISE_MAG);
         m_MagBuffer.push(magMeas, osal_systime_get_ms() - EKF_DELAY_MS_MAG);
     }
 #else
@@ -602,17 +602,17 @@ void EKFModule::addBiasNoiseToCovariance(float dt)
 {
     for (size_t i = 12; i < 15; i++)
     {
-        m_EKF.getCovarianceElement(i, i) += _var(EKF_NOISE_GYRO_BIAS) * dt;
+        m_EKF.getCovarianceElement(i, i) += VARIANCE(EKF_NOISE_GYRO_BIAS) * dt;
     }
 
     for (size_t i = 15; i < 18; i++)
     {
-        m_EKF.getCovarianceElement(i, i) += _var(EKF_NOISE_ACC_BIAS) * dt;
+        m_EKF.getCovarianceElement(i, i) += VARIANCE(EKF_NOISE_ACC_BIAS) * dt;
     }
 
     for (size_t i = 18; i < 21; i++)
     {
-        m_EKF.getCovarianceElement(i, i) += _var(EKF_NOISE_MAG_BIAS) * dt;
+        m_EKF.getCovarianceElement(i, i) += VARIANCE(EKF_NOISE_MAG_BIAS) * dt;
     }
 }
 

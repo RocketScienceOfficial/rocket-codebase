@@ -5,7 +5,7 @@
 #include <hal/time_driver.h>
 #include <string.h>
 
-static void _reverse_buff(DatabaseFrameRaw *buffer, size_t start, size_t end)
+static void reverse_buff(DatabaseFrameRaw *buffer, size_t start, size_t end)
 {
     while (start < end)
     {
@@ -123,9 +123,9 @@ void DatabaseWriter::flushStandingBuffer()
 {
     if (m_StandingBufferIndex != 0)
     {
-        _reverse_buff(m_StandingBuffer, 0, m_StandingBufferIndex - 1);
-        _reverse_buff(m_StandingBuffer, m_StandingBufferIndex, STANDING_BUFFER_LENGTH - 1);
-        _reverse_buff(m_StandingBuffer, 0, STANDING_BUFFER_LENGTH - 1);
+        reverse_buff(m_StandingBuffer, 0, m_StandingBufferIndex - 1);
+        reverse_buff(m_StandingBuffer, m_StandingBufferIndex, STANDING_BUFFER_LENGTH - 1);
+        reverse_buff(m_StandingBuffer, 0, STANDING_BUFFER_LENGTH - 1);
     }
 
     uint8_t *data = (uint8_t *)m_StandingBuffer;
