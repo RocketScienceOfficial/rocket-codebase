@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 def main():
-    print("Auditing platforms...")
+    print("Auditing code...")
 
     repo_root = Path(os.getcwd())
     p = repo_root / "src"
