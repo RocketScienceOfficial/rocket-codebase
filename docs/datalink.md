@@ -165,8 +165,7 @@ little-endian; the C runtime enforces this with a `static_assert` on `__BYTE_ORD
 [ msg_id ][ len ][ payload (len bytes) ]
 ```
 
-The minimal form: id, length, payload, nothing else. Used where the transport already guarantees framing and
-integrity, such as the TCP sockets between the firmware SITL process and the simulation hub.
+The minimal form: id, length, payload, nothing else.
 
 ### 5.2 Serial (USB / UART)
 
@@ -197,8 +196,8 @@ is again CRC-16/MCRF4XX over everything before the trailing CRC.
 
 | Form | Header | Integrity | Delimiting | Typical transport |
 |---|---|---|---|---|
-| Plain | id, len | none (transport provides) | length-prefixed | TCP / SITL |
-| Serial | 0x7E, id, len | CRC-16 | COBS + `0x00` | USB, UART |
+| Plain | id, len | none (transport provides) | length-prefixed | Internal use |
+| Serial | 0x7E, id, len | CRC-16 | COBS + `0x00` | USB, UART, TCP |
 | Radio | 0x5A, seq, src, dest, id, len | CRC-16 | discrete packet | LoRa |
 
 ---
@@ -222,7 +221,7 @@ CI runs the three suites on every push (`datalink-c-tests`, `datalink-csharp-tes
   [pubsub.md](pubsub.md).
 - **Apps.** The Unity telemetry and OBC apps use the generated C# classes (`apps/shared/datalink-unity-utils/`)
   to decode the same frames the firmware sends.
-- **Simulator.** The Python hub generates `datalink.py` at build time and speaks the plain form over TCP to the
+- **Simulator.** The Python hub generates `datalink.py` at build time and speaks the serial form over TCP to the
   firmware SITL process.
 
 ## 8. Adding or changing a message

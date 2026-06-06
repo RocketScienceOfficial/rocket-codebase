@@ -73,13 +73,14 @@ bus. Full details in [docs/main.md](docs/main.md).
 The firmware is built in clean layers. Everything above the HAL and OSAL line is hardware-independent:
 
 ```mermaid
+%%{init: {"themeVariables": {"fontSize": "11px", "edgeLabelFontSize": "9px", "nodeSpacing": 10, "rankSpacing": 10, "diagramPadding": 0}}}%%
 flowchart TB
-    APP["<b>Application modules</b><br/>sensors, ekf, state_machine, ign, telemetry, com, commander, ..."]
-    FW["<b>Framework</b><br/>runner (fixed-rate RTOS task pools) + pub/sub bus + DataLink"]
-    LIB["<b>Shared libraries</b><br/>math, geo, sensor drivers, battery"]
-    ABS["<b>HAL + OSAL</b><br/>hardware and OS abstraction interfaces"]
-    PLAT["<b>Platform implementations + board configs</b><br/>pico (Pico SDK), esp32 (ESP-IDF), host (SITL)"]
-    HW["<b>Hardware and vendor SDKs</b><br/>RP2040, ESP32, FreeRTOS, host OS"]
+  APP["<b>App modules</b><br/>sensors, ekf, state machine, telemetry, com"]
+  FW["<b>Framework</b><br/>runner + pub/sub + DataLink"]
+  LIB["<b>Shared libs</b><br/>math, geo, drivers, battery"]
+  ABS["<b>HAL + OSAL</b><br/>abstraction interfaces"]
+  PLAT["<b>Platform impls</b><br/>pico, esp32, host"]
+  HW["<b>Hardware SDKs</b><br/>RP2040, ESP32, FreeRTOS, host OS"]
 
     APP --> FW --> LIB --> ABS --> PLAT --> HW
 
