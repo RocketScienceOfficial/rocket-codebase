@@ -4,7 +4,7 @@
 #include <pubsub/Publisher.h>
 #include <pubsub/Subscriber.h>
 #include <lib/geo/projection.h>
-#include "EKF.h"
+#include "ekf.h"
 #include "EKFData.h"
 #include "EKFConfig.h"
 #include "utils/TimestampedRingBuffer.h"
