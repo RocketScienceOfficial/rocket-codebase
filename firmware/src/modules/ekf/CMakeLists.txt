@@ -24,7 +24,7 @@ add_custom_command(
 add_module(ekf
     SOURCES
     EKFModule.cpp
-    EKF.cpp
+    ekf.cpp
     ${GENERATED_FILES}
     DEPENDS
     maths
