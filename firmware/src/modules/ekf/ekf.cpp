@@ -1,4 +1,4 @@
-#include "EKF.h"
+#include "ekf.h"
 #include "derivation/generated/covariance_prediction.h"
 #include "derivation/generated/baro_fusion.h"
 #include "derivation/generated/gps_fusion_pos_n.h"
