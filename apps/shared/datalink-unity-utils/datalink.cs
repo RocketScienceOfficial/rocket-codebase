@@ -185,6 +185,21 @@ public enum sitl_read_flags : byte
     DATALINK_FLAGS_SITL_READ_GPS_1 = 8,
 };
 
+public enum imu_clipping_flags : byte
+{
+    DATALINK_FLAGS_IMU_CLIP_ACC_X = 1,
+    DATALINK_FLAGS_IMU_CLIP_ACC_Y = 2,
+    DATALINK_FLAGS_IMU_CLIP_ACC_Z = 4,
+    DATALINK_FLAGS_IMU_CLIP_GYRO_X = 8,
+    DATALINK_FLAGS_IMU_CLIP_GYRO_Y = 16,
+    DATALINK_FLAGS_IMU_CLIP_GYRO_Z = 32,
+};
+
+public enum sitl_response_flags : byte
+{
+    DATALINK_FLAGS_SITL_RESP_EKF = 1,
+};
+
 public enum telemetry_data_state_flags : byte
 {
     DATALINK_FLAGS_TELEMETRY_DATA_CONTROL_3V3_ENABLED = 1,
@@ -250,7 +265,7 @@ public class saved_data_chunk_obc
     public float qz { get; set; }
     public ushort dt { get; set; }
     public ushort batteryVoltage100 { get; set; }
-    public byte gpsData { get; set; } // First bit - GPS fix, rest - sats number
+    public byte gpsData { get; set; } // First bit - GPS fix 3d, rest - sats number
     public byte smState { get; set; } // Based on state_machine_state
     public byte ignFlags { get; set; } // Flags from data_chunk_ign_flags
 
@@ -364,7 +379,7 @@ public class saved_data_chunk_acs
     public ushort batteryVoltage100 { get; set; }
     public short angleSetpoint10 { get; set; }
     public short pidRoll10 { get; set; }
-    public byte gpsData { get; set; } // First bit - GPS fix, rest - sats number
+    public byte gpsData { get; set; } // First bit - GPS fix 3d, rest - sats number
     public byte smState { get; set; } // Based on state_machine_state
     public sbyte pidOutputAngle10 { get; set; }
 
@@ -721,7 +736,7 @@ public class ign_response_test
 public class sitl_request_data
 {
     public const int MSG_ID = 32;
-    public const int MSG_SIZE = 78;
+    public const int MSG_SIZE = 103;
 
     public double gps1Lat { get; set; }
     public double gps1Lon { get; set; }
@@ -739,7 +754,14 @@ public class sitl_request_data
     public int baro1Pressure { get; set; }
     public float baro1Temperature { get; set; }
     public float baro1Height { get; set; }
+    public float gps1VelN { get; set; }
+    public float gps1VelE { get; set; }
+    public float gps1VelD { get; set; }
+    public float gps1stddevHorizontal { get; set; }
+    public float gps1stddevVertical { get; set; }
+    public float gps1stddevSpeed { get; set; }
     public byte readFlags { get; set; } // Based on sitl_read_flags
+    public byte imu1ClippingFlags { get; set; } // Based on imu_clipping_flags
     public byte gps1Sats { get; set; }
 
     public datalink_message Pack()
@@ -762,8 +784,15 @@ public class sitl_request_data
         DataLinkMemoryUtils.WriteInt32(payload, 64, this.baro1Pressure);
         DataLinkMemoryUtils.WriteFloat(payload, 68, this.baro1Temperature);
         DataLinkMemoryUtils.WriteFloat(payload, 72, this.baro1Height);
-        DataLinkMemoryUtils.WriteUint8(payload, 76, this.readFlags);
-        DataLinkMemoryUtils.WriteUint8(payload, 77, this.gps1Sats);
+        DataLinkMemoryUtils.WriteFloat(payload, 76, this.gps1VelN);
+        DataLinkMemoryUtils.WriteFloat(payload, 80, this.gps1VelE);
+        DataLinkMemoryUtils.WriteFloat(payload, 84, this.gps1VelD);
+        DataLinkMemoryUtils.WriteFloat(payload, 88, this.gps1stddevHorizontal);
+        DataLinkMemoryUtils.WriteFloat(payload, 92, this.gps1stddevVertical);
+        DataLinkMemoryUtils.WriteFloat(payload, 96, this.gps1stddevSpeed);
+        DataLinkMemoryUtils.WriteUint8(payload, 100, this.readFlags);
+        DataLinkMemoryUtils.WriteUint8(payload, 101, this.imu1ClippingFlags);
+        DataLinkMemoryUtils.WriteUint8(payload, 102, this.gps1Sats);
 
         return new datalink_message(MSG_ID, payload);
     }
@@ -793,8 +822,15 @@ public class sitl_request_data
         frame.baro1Pressure = DataLinkMemoryUtils.ReadInt32(message.payload, 64);
         frame.baro1Temperature = DataLinkMemoryUtils.ReadFloat(message.payload, 68);
         frame.baro1Height = DataLinkMemoryUtils.ReadFloat(message.payload, 72);
-        frame.readFlags = DataLinkMemoryUtils.ReadUint8(message.payload, 76);
-        frame.gps1Sats = DataLinkMemoryUtils.ReadUint8(message.payload, 77);
+        frame.gps1VelN = DataLinkMemoryUtils.ReadFloat(message.payload, 76);
+        frame.gps1VelE = DataLinkMemoryUtils.ReadFloat(message.payload, 80);
+        frame.gps1VelD = DataLinkMemoryUtils.ReadFloat(message.payload, 84);
+        frame.gps1stddevHorizontal = DataLinkMemoryUtils.ReadFloat(message.payload, 88);
+        frame.gps1stddevVertical = DataLinkMemoryUtils.ReadFloat(message.payload, 92);
+        frame.gps1stddevSpeed = DataLinkMemoryUtils.ReadFloat(message.payload, 96);
+        frame.readFlags = DataLinkMemoryUtils.ReadUint8(message.payload, 100);
+        frame.imu1ClippingFlags = DataLinkMemoryUtils.ReadUint8(message.payload, 101);
+        frame.gps1Sats = DataLinkMemoryUtils.ReadUint8(message.payload, 102);
 
         return frame;
     }
@@ -803,24 +839,25 @@ public class sitl_request_data
 public class sitl_response_data
 {
     public const int MSG_ID = 33;
-    public const int MSG_SIZE = 66;
+    public const int MSG_SIZE = 67;
 
-    public float velN { get; set; }
-    public float velE { get; set; }
-    public float velD { get; set; }
-    public float posN { get; set; }
-    public float posE { get; set; }
-    public float posD { get; set; }
     public float qw { get; set; }
     public float qx { get; set; }
     public float qy { get; set; }
     public float qz { get; set; }
+    public float posN { get; set; }
+    public float posE { get; set; }
+    public float posD { get; set; }
+    public float velN { get; set; }
+    public float velE { get; set; }
+    public float velD { get; set; }
     public float angle_fin1 { get; set; }
     public float angle_fin2 { get; set; }
     public float angle_fin3 { get; set; }
     public float angle_fin4 { get; set; }
     public float angle_airbrake { get; set; }
     public float predictedApogee { get; set; }
+    public byte responseFlags { get; set; } // Based on sitl_response_flags
     public byte smState { get; set; } // Based on state_machine_state
     public byte ignFiredFlags { get; set; } // Each bit represents whether a specific igniter is fired (1) or not (0)
 
@@ -828,24 +865,25 @@ public class sitl_response_data
     {
         byte[] payload = new byte[MSG_SIZE];
 
-        DataLinkMemoryUtils.WriteFloat(payload, 0, this.velN);
-        DataLinkMemoryUtils.WriteFloat(payload, 4, this.velE);
-        DataLinkMemoryUtils.WriteFloat(payload, 8, this.velD);
-        DataLinkMemoryUtils.WriteFloat(payload, 12, this.posN);
-        DataLinkMemoryUtils.WriteFloat(payload, 16, this.posE);
-        DataLinkMemoryUtils.WriteFloat(payload, 20, this.posD);
-        DataLinkMemoryUtils.WriteFloat(payload, 24, this.qw);
-        DataLinkMemoryUtils.WriteFloat(payload, 28, this.qx);
-        DataLinkMemoryUtils.WriteFloat(payload, 32, this.qy);
-        DataLinkMemoryUtils.WriteFloat(payload, 36, this.qz);
+        DataLinkMemoryUtils.WriteFloat(payload, 0, this.qw);
+        DataLinkMemoryUtils.WriteFloat(payload, 4, this.qx);
+        DataLinkMemoryUtils.WriteFloat(payload, 8, this.qy);
+        DataLinkMemoryUtils.WriteFloat(payload, 12, this.qz);
+        DataLinkMemoryUtils.WriteFloat(payload, 16, this.posN);
+        DataLinkMemoryUtils.WriteFloat(payload, 20, this.posE);
+        DataLinkMemoryUtils.WriteFloat(payload, 24, this.posD);
+        DataLinkMemoryUtils.WriteFloat(payload, 28, this.velN);
+        DataLinkMemoryUtils.WriteFloat(payload, 32, this.velE);
+        DataLinkMemoryUtils.WriteFloat(payload, 36, this.velD);
         DataLinkMemoryUtils.WriteFloat(payload, 40, this.angle_fin1);
         DataLinkMemoryUtils.WriteFloat(payload, 44, this.angle_fin2);
         DataLinkMemoryUtils.WriteFloat(payload, 48, this.angle_fin3);
         DataLinkMemoryUtils.WriteFloat(payload, 52, this.angle_fin4);
         DataLinkMemoryUtils.WriteFloat(payload, 56, this.angle_airbrake);
         DataLinkMemoryUtils.WriteFloat(payload, 60, this.predictedApogee);
-        DataLinkMemoryUtils.WriteUint8(payload, 64, this.smState);
-        DataLinkMemoryUtils.WriteUint8(payload, 65, this.ignFiredFlags);
+        DataLinkMemoryUtils.WriteUint8(payload, 64, this.responseFlags);
+        DataLinkMemoryUtils.WriteUint8(payload, 65, this.smState);
+        DataLinkMemoryUtils.WriteUint8(payload, 66, this.ignFiredFlags);
 
         return new datalink_message(MSG_ID, payload);
     }
@@ -859,24 +897,25 @@ public class sitl_response_data
 
         sitl_response_data frame = new sitl_response_data();
 
-        frame.velN = DataLinkMemoryUtils.ReadFloat(message.payload, 0);
-        frame.velE = DataLinkMemoryUtils.ReadFloat(message.payload, 4);
-        frame.velD = DataLinkMemoryUtils.ReadFloat(message.payload, 8);
-        frame.posN = DataLinkMemoryUtils.ReadFloat(message.payload, 12);
-        frame.posE = DataLinkMemoryUtils.ReadFloat(message.payload, 16);
-        frame.posD = DataLinkMemoryUtils.ReadFloat(message.payload, 20);
-        frame.qw = DataLinkMemoryUtils.ReadFloat(message.payload, 24);
-        frame.qx = DataLinkMemoryUtils.ReadFloat(message.payload, 28);
-        frame.qy = DataLinkMemoryUtils.ReadFloat(message.payload, 32);
-        frame.qz = DataLinkMemoryUtils.ReadFloat(message.payload, 36);
+        frame.qw = DataLinkMemoryUtils.ReadFloat(message.payload, 0);
+        frame.qx = DataLinkMemoryUtils.ReadFloat(message.payload, 4);
+        frame.qy = DataLinkMemoryUtils.ReadFloat(message.payload, 8);
+        frame.qz = DataLinkMemoryUtils.ReadFloat(message.payload, 12);
+        frame.posN = DataLinkMemoryUtils.ReadFloat(message.payload, 16);
+        frame.posE = DataLinkMemoryUtils.ReadFloat(message.payload, 20);
+        frame.posD = DataLinkMemoryUtils.ReadFloat(message.payload, 24);
+        frame.velN = DataLinkMemoryUtils.ReadFloat(message.payload, 28);
+        frame.velE = DataLinkMemoryUtils.ReadFloat(message.payload, 32);
+        frame.velD = DataLinkMemoryUtils.ReadFloat(message.payload, 36);
         frame.angle_fin1 = DataLinkMemoryUtils.ReadFloat(message.payload, 40);
         frame.angle_fin2 = DataLinkMemoryUtils.ReadFloat(message.payload, 44);
         frame.angle_fin3 = DataLinkMemoryUtils.ReadFloat(message.payload, 48);
         frame.angle_fin4 = DataLinkMemoryUtils.ReadFloat(message.payload, 52);
         frame.angle_airbrake = DataLinkMemoryUtils.ReadFloat(message.payload, 56);
         frame.predictedApogee = DataLinkMemoryUtils.ReadFloat(message.payload, 60);
-        frame.smState = DataLinkMemoryUtils.ReadUint8(message.payload, 64);
-        frame.ignFiredFlags = DataLinkMemoryUtils.ReadUint8(message.payload, 65);
+        frame.responseFlags = DataLinkMemoryUtils.ReadUint8(message.payload, 64);
+        frame.smState = DataLinkMemoryUtils.ReadUint8(message.payload, 65);
+        frame.ignFiredFlags = DataLinkMemoryUtils.ReadUint8(message.payload, 66);
 
         return frame;
     }

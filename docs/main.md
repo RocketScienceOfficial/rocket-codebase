@@ -15,6 +15,8 @@ git submodule update --init --recursive
 
 ## DataLink
 
+> **Design doc:** for the schema format, code generator, and wire framing, see **[datalink.md](datalink.md)**.
+
 DataLink is a lightweight protocol used by the whole project to communicate between different components, e.g. the flight firmware and the ground station app. It has generic schemes under the `datalink/schemas` directory in XML format. It has a custom generator script that generates code for different languages. To generate code you should use the script `datalink/gen.py` with specified language (--lang) and output directory (--outdir). For example, to generate C/C++ code for the flight firmware, you can run the following command:
 
 ```bash
@@ -126,7 +128,29 @@ make obc BUILD_TYPE=Debug LOG_LEVEL=DEBUG
 
 ---
 
+### Running SITL (no hardware)
+
+Software-in-the-loop runs the *real* firmware as a host process that communicates with the Python simulation hub (`sim/hub/`) over TCP sockets. The firmware host binary is the socket **server**, so it must be started **before** the hub.
+
+```bash
+# Terminal A: build and run the firmware SITL process
+cd firmware
+make obc_sitl
+make obc_sitl_run
+
+# Terminal B: run the simulation hub against a flight scenario
+cd sim/hub
+pip install -e .            # one-time setup
+make run CONFIG=or_taipan
+```
+
+The hub connects, arms the vehicle, streams synthesized sensor data through the firmware, and on completion plots the on-board EKF estimate against ground truth. Available configs live in `sim/hub/src/sim/configs/`; see [Simulations](#simulations) below. The `obc_sitl_freerun` target (or the `SITL_FREERUN=ON` CMake option) builds the same binary in free-run mode, running as fast as possible instead of pacing to real time.
+
+---
+
 ### EKF Derivation
+
+> **Theory:** for the mathematical background (state representation, error injection, prediction, and measurement updates), see **[ekf.md](ekf.md)**.
 
 The EKF covariance and fusion equations are derived symbolically using Python/SymPy. The derivation script generates the C source files in `firmware/src/modules/ekf/derivation/generated/` — **do not hand-edit those files**, changes will be overwritten on the next run.
 
@@ -188,6 +212,8 @@ The result is that all module code is fully portable: it calls only HAL/OSAL API
 ---
 
 #### Pub-Sub Message Bus
+
+> **Design doc:** for ring buffers, sequence numbers, the RPC layer, and scheduler integration, see **[pubsub.md](pubsub.md)**.
 
 Modules communicate exclusively through a lock-free publish-subscribe bus (`firmware/src/pubsub/`). There is no direct function-call coupling between modules.
 
