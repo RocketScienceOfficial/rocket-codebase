@@ -49,7 +49,7 @@ typedef struct
     ms56xx_prom_data_t coeffs;
     bool coeffs_valid;
     uint32_t d1;
-    uint32_t nextTime;
+    uint64_t nextTime;
 } ms56xx_device_t;
 
 /**

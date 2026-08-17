@@ -24,7 +24,7 @@ uint32_t hal_time_get_ms_since_boot(void);
  *
  * @return Current time in microseconds
  */
-uint32_t hal_time_get_us_since_boot(void);
+uint64_t hal_time_get_us_since_boot(void);
 
 /**
  * @brief Sleep for a specified number of milliseconds

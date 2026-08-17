@@ -143,9 +143,9 @@ uint32_t hal_time_get_ms_since_boot(void)
     return g_current_tick.load(std::memory_order_relaxed);
 }
 
-uint32_t hal_time_get_us_since_boot(void)
+uint64_t hal_time_get_us_since_boot(void)
 {
-    return hal_time_get_ms_since_boot() * 1000;
+    return static_cast<uint64_t>(hal_time_get_ms_since_boot()) * 1000;
 }
 
 void hal_time_sleep_ms(uint32_t ms)

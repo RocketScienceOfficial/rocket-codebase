@@ -85,7 +85,7 @@ public:
 
     unsigned long micros() override
     {
-        return hal_time_get_us_since_boot();
+        return static_cast<unsigned long>(hal_time_get_us_since_boot());
     }
 
     long pulseIn(uint32_t pin, uint32_t state, unsigned long timeout) override

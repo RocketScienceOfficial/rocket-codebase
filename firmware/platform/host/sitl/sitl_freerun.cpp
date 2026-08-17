@@ -81,11 +81,11 @@ uint32_t hal_time_get_ms_since_boot(void)
     return static_cast<uint32_t>(diff.count());
 }
 
-uint32_t hal_time_get_us_since_boot(void)
+uint64_t hal_time_get_us_since_boot(void)
 {
     auto now = std::chrono::steady_clock::now();
     auto diff = std::chrono::duration_cast<std::chrono::microseconds>(now - g_startTime);
-    return static_cast<uint32_t>(diff.count());
+    return static_cast<uint64_t>(diff.count());
 }
 
 void hal_time_sleep_ms(uint32_t ms)

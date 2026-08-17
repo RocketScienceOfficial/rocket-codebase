@@ -10,7 +10,7 @@ uint32_t hal_time_get_ms_since_boot(void)
 	return to_ms_since_boot(get_absolute_time());
 }
 
-uint32_t hal_time_get_us_since_boot(void)
+uint64_t hal_time_get_us_since_boot(void)
 {
 	return to_us_since_boot(get_absolute_time());
 }

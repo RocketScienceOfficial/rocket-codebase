@@ -43,7 +43,7 @@ private:
 
     DatamanState m_CurrentState;
     state_machine_state m_CurrentFlightState;
-    uint32_t m_LastSaveTime;
+    uint64_t m_LastSaveTime;
     size_t m_LandingBufferIndex;
 
     DatabaseMetadataController m_MetadataController{m_ReadyPublisher};

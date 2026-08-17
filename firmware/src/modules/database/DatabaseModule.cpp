@@ -166,7 +166,7 @@ void DatabaseModule::handle_state_clear()
 
 void DatabaseModule::handle_state_standing_write()
 {
-    uint32_t currentTime = hal_time_get_us_since_boot();
+    uint64_t currentTime = hal_time_get_us_since_boot();
 
     if (currentTime - m_LastSaveTime >= DATA_SAVE_RATE_US)
     {
@@ -179,7 +179,7 @@ void DatabaseModule::handle_state_standing_write()
 
 void DatabaseModule::handle_state_flight_write()
 {
-    uint32_t currentTime = hal_time_get_us_since_boot();
+    uint64_t currentTime = hal_time_get_us_since_boot();
 
     if (currentTime - m_LastSaveTime >= DATA_SAVE_RATE_US)
     {
@@ -192,7 +192,7 @@ void DatabaseModule::handle_state_flight_write()
 
 void DatabaseModule::handle_state_landed_write()
 {
-    uint32_t currentTime = hal_time_get_us_since_boot();
+    uint64_t currentTime = hal_time_get_us_since_boot();
 
     if (currentTime - m_LastSaveTime >= DATA_SAVE_RATE_US)
     {

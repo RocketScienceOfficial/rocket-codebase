@@ -11,9 +11,9 @@ uint32_t hal_time_get_ms_since_boot(void)
     return (uint32_t)(esp_timer_get_time() / 1000ULL);
 }
 
-uint32_t hal_time_get_us_since_boot(void)
+uint64_t hal_time_get_us_since_boot(void)
 {
-    return (uint32_t)esp_timer_get_time();
+    return (uint64_t)esp_timer_get_time();
 }
 
 void hal_time_sleep_ms(uint32_t ms)

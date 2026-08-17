@@ -6,23 +6,23 @@
 #include <hal/time_driver.h>
 #include <hal/stdio_driver.h>
 
-#define SYS_BENCHMARK_SCOPE(expr)                                                     \
-    do                                                                                \
-    {                                                                                 \
-        uint32_t start_internal = hal_time_get_us_since_boot();                       \
-        expr                                                                          \
-        uint32_t end_internal = hal_time_get_us_since_boot();                         \
-        hal_stdio_printf("Benchmark result: %u us\n", end_internal - start_internal); \
+#define SYS_BENCHMARK_SCOPE(expr)                                                                    \
+    do                                                                                               \
+    {                                                                                                \
+        uint64_t start_internal = hal_time_get_us_since_boot();                                      \
+        expr                                                                                         \
+        uint64_t end_internal = hal_time_get_us_since_boot();                                        \
+        hal_stdio_printf("Benchmark result: %u us\n", (uint32_t)(end_internal - start_internal));    \
     } while (0)
 
-#define SYS_BENCHMARK_AVERAGE(name, rate, expr)                                     \
-    do                                                                              \
-    {                                                                               \
-        static sys_benchmark_stats_t stats_internal = {};                           \
-        uint32_t start_internal = hal_time_get_us_since_boot();                     \
-        expr                                                                        \
-        uint32_t end_internal = hal_time_get_us_since_boot();                       \
-        sys_benchmark_stats_update(&stats_internal, end_internal - start_internal); \
+#define SYS_BENCHMARK_AVERAGE(name, rate, expr)                                                      \
+    do                                                                                               \
+    {                                                                                                \
+        static sys_benchmark_stats_t stats_internal = {};                                            \
+        uint64_t start_internal = hal_time_get_us_since_boot();                                      \
+        expr                                                                                         \
+        uint64_t end_internal = hal_time_get_us_since_boot();                                        \
+        sys_benchmark_stats_update(&stats_internal, (uint32_t)(end_internal - start_internal));      \
         if (stats_internal.count >= rate)                                           \
         {                                                                           \
             sys_benchmark_stats_print(&stats_internal, #name);                      \
