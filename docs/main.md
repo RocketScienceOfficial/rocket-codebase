@@ -352,6 +352,8 @@ Required toolboxes include *Simulink*, *Aerospace Blockset*, and *Control System
 
 ## Conventions
 
+**No leading underscores, anywhere.** Never prefix a function or variable name with `_` or `__` (e.g. `_get_ctx`, `__chipModel`), in either C or C++. Both are reserved for the implementation by the C/C++ standard (C11 §7.1.3, C++ `[lex.name]`) — using them is technically undefined behavior, and in practice risks silently colliding with a macro defined by a vendor SDK header (pico-sdk, ESP-IDF, FreeRTOS, newlib), which can produce confusing compile errors or silently wrong behavior. Use a plain name instead (`get_ctx`, `chipModel`) and rely on `static` (C) or `private`/`protected` (C++) to express file-local/private intent.
+
 ### C++ (Firmware)
 
 | Construct | Convention | Example |

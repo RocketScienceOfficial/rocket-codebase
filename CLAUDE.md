@@ -130,6 +130,8 @@ Python hub connecting firmware SITL processes over sockets. Physics and sensor m
 | PubSub topic instances | snake\_case | `sensors_imu_1`, `ekf_state` |
 | Python | PEP 8 (snake\_case functions, PascalCase classes) | |
 
+**No leading underscores.** Never prefix a function or variable with `_` or `__` (e.g. `_get_ctx`, `__chipModel`). Both are reserved for the implementation by the C/C++ standard (C11 §7.1.3, C++ `[lex.name]`) — using them is technically undefined behavior, and in practice risks silently colliding with a macro defined by a vendor SDK header (pico-sdk, ESP-IDF, FreeRTOS, newlib). Use a plain name instead (`get_ctx`, `chipModel`); mark C helpers `static` and C++ members `private`/`protected` for the same file-local intent.
+
 ## CI
 
 GitHub Actions (`.github/workflows/`) run on push/PR to `main`:
