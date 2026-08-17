@@ -15,7 +15,7 @@ typedef struct
 
 static pwm_config_t g_configs[LEDC_CHANNEL_MAX];
 
-static pwm_config_t *_get_pwm_config(uint8_t pin)
+static pwm_config_t *get_pwm_config(uint8_t pin)
 {
     for (int i = 0; i < LEDC_CHANNEL_MAX; i++)
     {
@@ -30,7 +30,7 @@ static pwm_config_t *_get_pwm_config(uint8_t pin)
 
 void hal_pwm_init_pin(uint8_t pin)
 {
-    if (_get_pwm_config(pin) != NULL)
+    if (get_pwm_config(pin) != NULL)
     {
         return;
     }
@@ -72,7 +72,7 @@ void hal_pwm_init_pin(uint8_t pin)
 
 void hal_pwm_set_frequency(uint8_t pin, unsigned long frequency)
 {
-    pwm_config_t *state = _get_pwm_config(pin);
+    pwm_config_t *state = get_pwm_config(pin);
 
     if (!state || frequency == 0)
     {
@@ -93,7 +93,7 @@ void hal_pwm_set_frequency(uint8_t pin, unsigned long frequency)
 
 void hal_pwm_set_duty(uint8_t pin, float dutyCycleUs)
 {
-    pwm_config_t *state = _get_pwm_config(pin);
+    pwm_config_t *state = get_pwm_config(pin);
 
     if (!state)
     {

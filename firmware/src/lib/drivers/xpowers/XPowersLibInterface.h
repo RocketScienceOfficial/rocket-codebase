@@ -162,7 +162,7 @@ class XPowersLibInterface : public HasBatteryLevel
 {
 public:
 
-    XPowersLibInterface() : __chipModel(XPOWERS_UNDEFINED), __protectedMask(0) {};
+    XPowersLibInterface() : chipModel(XPOWERS_UNDEFINED), protectedMask(0) {};
 
     virtual ~XPowersLibInterface() {}
 
@@ -638,18 +638,18 @@ public:
      */
     uint8_t getChipModel()
     {
-        return __chipModel;
+        return chipModel;
     }
 
 protected:
 
     void setChipModel(uint8_t m)
     {
-        __chipModel = m;
+        chipModel = m;
     }
 
-    uint8_t __chipModel;
-    uint32_t __protectedMask;
+    uint8_t chipModel;
+    uint32_t protectedMask;
 
 };
 

@@ -3,14 +3,14 @@
 #include "hardware/i2c.h"
 #include "pico/stdlib.h"
 
-static i2c_inst_t *_get_i2c(uint8_t i2c)
+static i2c_inst_t *get_i2c(uint8_t i2c)
 {
     return (i2c == 0 ? i2c0 : i2c1);
 }
 
 void hal_i2c_init(uint8_t i2c, uint8_t sda, uint8_t scl, uint32_t baudrate)
 {
-    i2c_init(_get_i2c(i2c), baudrate);
+    i2c_init(get_i2c(i2c), baudrate);
 
     hal_gpio_set_pin_function(sda, GPIO_FUNCTION_I2C);
     hal_gpio_set_pin_function(scl, GPIO_FUNCTION_I2C);
@@ -25,7 +25,7 @@ bool hal_i2c_transfer(uint8_t bus, uint8_t address, const uint8_t *tx_buffer, si
 
     if (do_write)
     {
-        if (!i2c_write_blocking(_get_i2c(bus), address, tx_buffer, tx_size, do_read))
+        if (!i2c_write_blocking(get_i2c(bus), address, tx_buffer, tx_size, do_read))
         {
             return false;
         }
@@ -33,7 +33,7 @@ bool hal_i2c_transfer(uint8_t bus, uint8_t address, const uint8_t *tx_buffer, si
 
     if (do_read)
     {
-        if (!i2c_read_blocking(_get_i2c(bus), address, rx_buffer, rx_size, false))
+        if (!i2c_read_blocking(get_i2c(bus), address, rx_buffer, rx_size, false))
         {
             return false;
         }

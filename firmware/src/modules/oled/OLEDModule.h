@@ -41,7 +41,7 @@ private:
     {
         ROCKET,
         GCS,
-        _LAST,
+        LAST_DO_NOT_USE,
     };
     OLEDState m_CurrentState;
     bool m_StateInitialized;

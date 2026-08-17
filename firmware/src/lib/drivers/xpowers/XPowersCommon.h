@@ -59,11 +59,11 @@ class XPowersCommon
 public:
     bool begin(uint8_t addr, iic_fptr_t readRegCallback, iic_fptr_t writeRegCallback)
     {
-        if (__has_init)return thisChip().initImpl();
-        __has_init = true;
+        if (has_init)return thisChip().initImpl();
+        has_init = true;
         thisReadRegCallback = readRegCallback;
         thisWriteRegCallback = writeRegCallback;
-        __addr = addr;
+        this->addr = addr;
         return thisChip().initImpl();
     }
 
@@ -71,7 +71,7 @@ public:
     {
         uint8_t val = 0;
         if (thisReadRegCallback) {
-            if (thisReadRegCallback(__addr, reg, &val, 1) != 0) {
+            if (thisReadRegCallback(addr, reg, &val, 1) != 0) {
                 return 0;
             }
             return val;
@@ -82,7 +82,7 @@ public:
     int writeRegister(uint8_t reg, uint8_t val)
     {
         if (thisWriteRegCallback) {
-            return thisWriteRegCallback(__addr, reg, &val, 1);
+            return thisWriteRegCallback(addr, reg, &val, 1);
         }
         return -1;
     }
@@ -90,7 +90,7 @@ public:
     int readRegister(uint8_t reg, uint8_t *buf, uint8_t lenght)
     {
         if (thisReadRegCallback) {
-            return thisReadRegCallback(__addr, reg, buf, lenght);
+            return thisReadRegCallback(addr, reg, buf, lenght);
         }
         return -1;
     }
@@ -98,7 +98,7 @@ public:
     int writeRegister(uint8_t reg, uint8_t *buf, uint8_t lenght)
     {
         if (thisWriteRegCallback) {
-            return thisWriteRegCallback(__addr, reg, buf, lenght);
+            return thisWriteRegCallback(addr, reg, buf, lenght);
         }
         return -1;
     }
@@ -190,10 +190,10 @@ protected:
     }
 
 protected:
-    bool        __has_init              = false;
-    int         __sda                   = -1;
-    int         __scl                   = -1;
-    uint8_t     __addr                  = 0xFF;
+    bool        has_init              = false;
+    int         sda                   = -1;
+    int         scl                   = -1;
+    uint8_t     addr                  = 0xFF;
     iic_fptr_t  thisReadRegCallback     = NULL;
     iic_fptr_t  thisWriteRegCallback    = NULL;
 };

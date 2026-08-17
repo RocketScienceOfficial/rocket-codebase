@@ -12,11 +12,11 @@ class RadioLibHALPort : public RadioLibHal
 public:
     RadioLibHALPort(uint8_t spi, uint8_t misoPin, uint8_t mosiPin, uint8_t sckPin, uint32_t spiSpeed = 500 * 1000)
         : RadioLibHal(GPIO_INPUT, GPIO_OUTPUT, 0, 1, GPIO_IRQ_RISING_EDGE, GPIO_IRQ_FALLING_EDGE),
-          _spiChannel(spi),
-          _spiSpeed(spiSpeed),
-          _misoPin(misoPin),
-          _mosiPin(mosiPin),
-          _sckPin(sckPin) {}
+          spiChannel(spi),
+          spiSpeed(spiSpeed),
+          misoPin(misoPin),
+          mosiPin(mosiPin),
+          sckPin(sckPin) {}
 
     void init() override
     {
@@ -119,7 +119,7 @@ public:
 
     void spiBegin()
     {
-        hal_spi_init(_spiChannel, _misoPin, _mosiPin, _sckPin, _spiSpeed);
+        hal_spi_init(spiChannel, misoPin, mosiPin, sckPin, spiSpeed);
     }
 
     void spiBeginTransaction()
@@ -128,7 +128,7 @@ public:
 
     void spiTransfer(uint8_t *out, size_t len, uint8_t *in)
     {
-        hal_spi_transfer(_spiChannel, out, in, len);
+        hal_spi_transfer(spiChannel, out, in, len);
     }
 
     void yield() override
@@ -145,11 +145,11 @@ public:
     }
 
 private:
-    uint8_t _spiChannel;
-    uint32_t _spiSpeed;
-    uint8_t _misoPin;
-    uint8_t _mosiPin;
-    uint8_t _sckPin;
+    uint8_t spiChannel;
+    uint32_t spiSpeed;
+    uint8_t misoPin;
+    uint8_t mosiPin;
+    uint8_t sckPin;
 };
 
 #endif

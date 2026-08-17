@@ -33,7 +33,7 @@
 
 bool XPowersLibInterface::isChannelAvailable(uint8_t channel)
 {
-    if (__chipModel == XPOWERS_AXP192) {
+    if (chipModel == XPOWERS_AXP192) {
         switch (channel) {
         case XPOWERS_DCDC1:
         case XPOWERS_DCDC2:
@@ -45,7 +45,7 @@ bool XPowersLibInterface::isChannelAvailable(uint8_t channel)
         default:
             return false;
         }
-    } else if (__chipModel == XPOWERS_AXP202) {
+    } else if (chipModel == XPOWERS_AXP202) {
 
         switch (channel) {
         case XPOWERS_DCDC2:
@@ -59,7 +59,7 @@ bool XPowersLibInterface::isChannelAvailable(uint8_t channel)
             return false;
         }
 
-    } else if (__chipModel == XPOWERS_AXP2101) {
+    } else if (chipModel == XPOWERS_AXP2101) {
         switch (channel) {
         case XPOWERS_DCDC1:
         case XPOWERS_DCDC2:
@@ -85,17 +85,17 @@ bool XPowersLibInterface::isChannelAvailable(uint8_t channel)
 
 void XPowersLibInterface::setProtectedChannel(uint8_t channel)
 {
-    __protectedMask |= _BV(channel);
+    protectedMask |= _BV(channel);
 }
 
 void XPowersLibInterface::setUnprotectChannel(uint8_t channel)
 {
-    __protectedMask &= (~_BV(channel));
+    protectedMask &= (~_BV(channel));
 }
 
 bool XPowersLibInterface::getProtectedChannel(uint8_t channel)
 {
-    return __protectedMask & _BV(channel);
+    return protectedMask & _BV(channel);
 }
 
 
@@ -122,7 +122,7 @@ bool XPowersLibInterface::disableInterrupt(uint32_t option)
 bool XPowersLibInterface::setInterruptMask(uint32_t option, bool enable)
 {
     uint64_t params = 0;
-    switch (__chipModel) {
+    switch (chipModel) {
     case XPOWERS_AXP173:
         break;
     case XPOWERS_AXP192:

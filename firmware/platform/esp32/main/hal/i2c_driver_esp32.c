@@ -34,7 +34,7 @@ void hal_i2c_init(uint8_t bus, uint8_t sda, uint8_t scl, uint32_t baudrate)
     }
 }
 
-static i2c_master_dev_handle_t _get_device_handle(uint8_t bus, uint8_t address)
+static i2c_master_dev_handle_t get_device_handle(uint8_t bus, uint8_t address)
 {
     if (bus >= MAX_I2C_BUSES || g_bus_handles[bus] == NULL)
     {
@@ -84,7 +84,7 @@ static i2c_master_dev_handle_t _get_device_handle(uint8_t bus, uint8_t address)
 
 bool hal_i2c_transfer(uint8_t bus, uint8_t address, const uint8_t *tx_buffer, size_t tx_size, uint8_t *rx_buffer, size_t rx_size)
 {
-    i2c_master_dev_handle_t dev = _get_device_handle(bus, address);
+    i2c_master_dev_handle_t dev = get_device_handle(bus, address);
 
     if (!dev)
     {

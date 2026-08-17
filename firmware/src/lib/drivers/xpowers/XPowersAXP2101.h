@@ -201,7 +201,7 @@ public:
 
     XPowersAXP2101()
     {
-        __addr = AXP2101_SLAVE_ADDRESS;
+        addr = AXP2101_SLAVE_ADDRESS;
     }
 
     ~XPowersAXP2101()

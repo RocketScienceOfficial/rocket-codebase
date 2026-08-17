@@ -99,7 +99,7 @@ void OLEDModule::handleStateChange()
         {
             m_ButtonPressed = true;
 
-            setNewState((OLEDState)(((int)m_CurrentState + 1) % (int)OLEDState::_LAST));
+            setNewState((OLEDState)(((int)m_CurrentState + 1) % (int)OLEDState::LAST_DO_NOT_USE));
         }
     }
     else

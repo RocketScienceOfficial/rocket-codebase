@@ -6,7 +6,7 @@
 #define ADC_BITS 12
 #define ADC_CONVERSION_FACTOR (ADC_VOLTAGE / (1 << ADC_BITS))
 
-static int _convert_pin_to_input(uint8_t pin)
+static int convert_pin_to_input(uint8_t pin)
 {
     return pin == 26 ? 0 :
            pin == 27 ? 1 :
@@ -26,7 +26,7 @@ void hal_adc_init_pin(uint8_t pin)
 
 float hal_adc_read_voltage(uint8_t pin)
 {
-    int input = _convert_pin_to_input(pin);
+    int input = convert_pin_to_input(pin);
 
     if (adc_get_selected_input() != input)
     {

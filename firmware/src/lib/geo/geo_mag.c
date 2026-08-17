@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <math.h>
 
-static float _get_value_from_table(const geo_position_t* pos, const int16_t table[LAT_DIM][LON_DIM])
+static float get_value_from_table(const geo_position_t* pos, const int16_t table[LAT_DIM][LON_DIM])
 {
     SYS_ASSERT(pos->lat >= SAMPLING_MIN_LAT);
     SYS_ASSERT(pos->lat <= SAMPLING_MAX_LAT);
@@ -36,17 +36,17 @@ static float _get_value_from_table(const geo_position_t* pos, const int16_t tabl
 
 float geo_mag_get_declination(const geo_position_t* pos)
 {
-    return _get_value_from_table(pos, DECLINATION_TABLE);
+    return get_value_from_table(pos, DECLINATION_TABLE);
 }
 
 float geo_mag_get_inclination(const geo_position_t* pos)
 {
-    return _get_value_from_table(pos, INCLINATION_TABLE);
+    return get_value_from_table(pos, INCLINATION_TABLE);
 }
 
 float geo_mag_get_strength(const geo_position_t* pos)
 {
-    return _get_value_from_table(pos, STRENGTH_TABLE);
+    return get_value_from_table(pos, STRENGTH_TABLE);
 }
 
 vec3_t geo_mag_field_vector(const geo_position_t* pos)

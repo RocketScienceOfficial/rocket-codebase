@@ -8,7 +8,7 @@
 static uint8_t g_flashMemory[BOARD_FLASH_SIZE];
 static FILE *g_flashFile = NULL;
 
-static void _init_file(void)
+static void init_file(void)
 {
     g_flashFile = fopen(FLASH_FILEPATH, "r+b");
 
@@ -29,7 +29,7 @@ static void _init_file(void)
     }
 }
 
-static void _sync_to_file(size_t offset, size_t length)
+static void sync_to_file(size_t offset, size_t length)
 {
     if (g_flashFile)
     {
@@ -41,7 +41,7 @@ static void _sync_to_file(size_t offset, size_t length)
 
 void hal_flash_init(void)
 {
-    _init_file();
+    init_file();
 }
 
 void hal_flash_read(size_t offset, uint8_t *dst, size_t size)
@@ -59,7 +59,7 @@ void hal_flash_write_pages(size_t offsetPages, const uint8_t *buffer, size_t pag
         g_flashMemory[byte_offset + i] &= buffer[i];
     }
 
-    _sync_to_file(byte_offset, byte_length);
+    sync_to_file(byte_offset, byte_length);
 }
 
 void hal_flash_erase_sectors(size_t sectorsOffset, size_t sectorsCount)
@@ -69,5 +69,5 @@ void hal_flash_erase_sectors(size_t sectorsOffset, size_t sectorsCount)
 
     memset(&g_flashMemory[byte_offset], 0xFF, byte_length);
 
-    _sync_to_file(byte_offset, byte_length);
+    sync_to_file(byte_offset, byte_length);
 }

@@ -8,7 +8,7 @@
 static irq_handler_t g_callbacks[PI_PICO_MAX_USER_GPIO] = {0};
 static uint32_t g_irq_event_masks[PI_PICO_MAX_USER_GPIO] = {0};
 
-static void _irq_handler(uint gpio, uint32_t events)
+static void irq_handler(uint gpio, uint32_t events)
 {
     if (g_irq_event_masks[gpio] == 0)
     {
@@ -83,7 +83,7 @@ void hal_gpio_attach_interrupt(uint8_t pin, void (*callback)(void), hal_gpio_irq
     g_callbacks[pin] = (irq_handler_t)callback;
     g_irq_event_masks[pin] = pico_mode;
 
-    gpio_set_irq_callback(_irq_handler);
+    gpio_set_irq_callback(irq_handler);
     gpio_set_irq_enabled(pin, pico_mode, true);
 
     irq_set_enabled(IO_IRQ_BANK0, true);

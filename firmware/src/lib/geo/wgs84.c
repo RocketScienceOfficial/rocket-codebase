@@ -3,19 +3,19 @@
 #include <lib/maths/math_constants.h>
 #include <math.h>
 
-static void _geo_pos_to_rad(geo_position_t *pos)
+static void geo_pos_to_rad(geo_position_t *pos)
 {
     pos->lat = DEG_2_RAD(pos->lat);
     pos->lon = DEG_2_RAD(pos->lon);
 }
 
-static void _geo_pos_to_deg(geo_position_t *pos)
+static void geo_pos_to_deg(geo_position_t *pos)
 {
     pos->lat = RAD_2_DEG(pos->lat);
     pos->lon = RAD_2_DEG(pos->lon);
 }
 
-static vec3_prec_t _geo_to_ecef(const geo_position_t *pos)
+static vec3_prec_t geo_to_ecef(const geo_position_t *pos)
 {
     double sin_lat = sin(pos->lat);
     double cos_lat = cos(pos->lat);
@@ -29,7 +29,7 @@ static vec3_prec_t _geo_to_ecef(const geo_position_t *pos)
     };
 }
 
-static geo_position_t _ecef_to_geo(const vec3_prec_t *pos)
+static geo_position_t ecef_to_geo(const vec3_prec_t *pos)
 {
     double s = sqrt(pos->x * pos->x + pos->y * pos->y);
 
@@ -66,9 +66,9 @@ static geo_position_t _ecef_to_geo(const vec3_prec_t *pos)
     };
 }
 
-static vec3_prec_t _ecef_to_ned(const vec3_prec_t *ecef, const geo_position_t *basePos)
+static vec3_prec_t ecef_to_ned(const vec3_prec_t *ecef, const geo_position_t *basePos)
 {
-    vec3_prec_t ecef0 = _geo_to_ecef(basePos);
+    vec3_prec_t ecef0 = geo_to_ecef(basePos);
     vec3_prec_t diff = {
         .x = ecef->x - ecef0.x,
         .y = ecef->y - ecef0.y,
@@ -87,9 +87,9 @@ static vec3_prec_t _ecef_to_ned(const vec3_prec_t *ecef, const geo_position_t *b
     };
 }
 
-static vec3_prec_t _ned_to_ecef(const vec3_prec_t *ned, const geo_position_t *basePos)
+static vec3_prec_t ned_to_ecef(const vec3_prec_t *ned, const geo_position_t *basePos)
 {
-    vec3_prec_t ecef0 = _geo_to_ecef(basePos);
+    vec3_prec_t ecef0 = geo_to_ecef(basePos);
 
     double sin_lat = sin(basePos->lat);
     double cos_lat = cos(basePos->lat);
@@ -105,22 +105,22 @@ static vec3_prec_t _ned_to_ecef(const vec3_prec_t *ned, const geo_position_t *ba
 
 vec3_prec_t wgs84_geo_to_ned(geo_position_t basePos, geo_position_t pos)
 {
-    _geo_pos_to_rad(&basePos);
-    _geo_pos_to_rad(&pos);
+    geo_pos_to_rad(&basePos);
+    geo_pos_to_rad(&pos);
 
-    vec3_prec_t ecef = _geo_to_ecef(&pos);
+    vec3_prec_t ecef = geo_to_ecef(&pos);
 
-    return _ecef_to_ned(&ecef, &basePos);
+    return ecef_to_ned(&ecef, &basePos);
 }
 
 geo_position_t wgs84_ned_to_geo(geo_position_t basePos, vec3_prec_t pos)
 {
-    _geo_pos_to_rad(&basePos);
+    geo_pos_to_rad(&basePos);
 
-    vec3_prec_t ecef = _ned_to_ecef(&pos, &basePos);
-    geo_position_t geo = _ecef_to_geo(&ecef);
+    vec3_prec_t ecef = ned_to_ecef(&pos, &basePos);
+    geo_position_t geo = ecef_to_geo(&ecef);
 
-    _geo_pos_to_deg(&geo);
+    geo_pos_to_deg(&geo);
 
     return geo;
 }
