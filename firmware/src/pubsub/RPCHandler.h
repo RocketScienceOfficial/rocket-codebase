@@ -1,20 +1,15 @@
 #pragma once
 
-#include "MessageBus.h"
 #include "Subscriber.h"
 #include "Publisher.h"
 #include <lib/debug/sys_assert.h>
 
 namespace PubSub
 {
-    template <typename T>
+    template <typename ReqTopic, typename ResTopic>
     class RPCHandler
     {
     public:
-        explicit RPCHandler(const TopicMetadata<RPCRequestData<T>> *req_meta, const TopicMetadata<RPCResponseData> *res_meta) : m_RequestSubscriber(req_meta), m_ResponsePublisher(res_meta), m_RequestAvailable(false), m_ShouldRespond(false)
-        {
-        }
-
         bool requestAvailable()
         {
             m_RequestAvailable = m_RequestSubscriber.poll();
@@ -27,7 +22,7 @@ namespace PubSub
             return m_RequestAvailable;
         }
 
-        const T &getRequestData() const
+        const typename ReqTopic::message_type::data_type &getRequestData() const
         {
             SYS_ASSERT_MSG(m_RequestAvailable, "No RPC request data available");
 
@@ -43,9 +38,9 @@ namespace PubSub
         }
 
     private:
-        Subscriber<RPCRequestData<T>> m_RequestSubscriber;
-        Publisher<RPCResponseData> m_ResponsePublisher;
-        bool m_RequestAvailable;
-        bool m_ShouldRespond;
+        Subscriber<ReqTopic> m_RequestSubscriber;
+        Publisher<ResTopic> m_ResponsePublisher;
+        bool m_RequestAvailable = false;
+        bool m_ShouldRespond = false;
     };
 }

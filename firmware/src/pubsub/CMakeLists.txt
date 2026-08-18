@@ -1,8 +1,6 @@
-add_library(app_pubsub STATIC
-    MessageBus.cpp
-)
+add_library(app_pubsub INTERFACE)
 
-target_link_libraries(app_pubsub PUBLIC
+target_link_libraries(app_pubsub INTERFACE
     maths
     geo
     datalink

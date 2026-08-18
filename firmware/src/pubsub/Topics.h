@@ -6,16 +6,43 @@
 #include <lib/geo/wgs84.h>
 #include <datalink.h>
 
-#define PUBSUB_TOPIC_META(name) __##name##_metadata
-#define PUBSUB_ID(name) &PubSub::Topics::PUBSUB_TOPIC_META(name)
-#define PUBSUB_REGISTER_TOPIC(T, name) inline constexpr PubSub::TopicMetadata<T> PUBSUB_TOPIC_META(name){sizeof(T), 0, #name};
-#define PUBSUB_REGISTER_TOPIC_SIZE(T, name, depth) inline constexpr PubSub::TopicMetadata<T> PUBSUB_TOPIC_META(name){sizeof(T), depth, #name};
+#define PUBSUB_TOPIC_STORAGE(name) name##_storage
+#define PUBSUB_ID(name) PubSub::Topics::name##_topic
 
-#define PUBSUB_RPC_TOPIC_META(name, type) __##name##_rpc_##type##_metadata
-#define PUBSUB_RPC_ID(name) &PubSub::Topics::PUBSUB_RPC_TOPIC_META(name, req), &PubSub::Topics::PUBSUB_RPC_TOPIC_META(name, res)
-#define PUBSUB_REGISTER_RPC(T, name)                                                                                                                        \
-    inline constexpr PubSub::TopicMetadata<PubSub::RPCRequestData<T>> PUBSUB_RPC_TOPIC_META(name, req){sizeof(PubSub::RPCRequestData<T>), 0, "req_" #name}; \
-    inline constexpr PubSub::TopicMetadata<PubSub::RPCResponseData> PUBSUB_RPC_TOPIC_META(name, res){sizeof(PubSub::RPCResponseData), 0, "res_" #name};
+#define PUBSUB_REGISTER_TOPIC_SIZE(T, name, depth)                                \
+    inline PubSub::TopicStorage<T, depth> PUBSUB_TOPIC_STORAGE(name);             \
+    struct name##_topic                                                           \
+    {                                                                             \
+        typedef T                              message_type;                     \
+        typedef PubSub::TopicStorage<T, depth> storage_type;                      \
+                                                                                    \
+        static storage_type &store() { return PUBSUB_TOPIC_STORAGE(name); }       \
+        static const char *topic_name() { return #name; }                        \
+    };
+
+#define PUBSUB_REGISTER_TOPIC(T, name) \
+    PUBSUB_REGISTER_TOPIC_SIZE(T, name, PubSub::DEFAULT_MESSAGE_COUNT)
+
+#define PUBSUB_RPC_ID(name) PubSub::Topics::name##_req_topic, PubSub::Topics::name##_res_topic
+#define PUBSUB_REGISTER_RPC(T, name)                                                                                       \
+    inline PubSub::TopicStorage<PubSub::RPCRequestData<T>, PubSub::DEFAULT_MESSAGE_COUNT> name##_req_storage;              \
+    struct name##_req_topic                                                                                                \
+    {                                                                                                                      \
+        typedef PubSub::RPCRequestData<T>                                                       message_type;             \
+        typedef PubSub::TopicStorage<PubSub::RPCRequestData<T>, PubSub::DEFAULT_MESSAGE_COUNT>   storage_type;             \
+                                                                                                                             \
+        static storage_type &store() { return name##_req_storage; }                                                       \
+        static const char *topic_name() { return "req_" #name; }                                                          \
+    };                                                                                                                     \
+    inline PubSub::TopicStorage<PubSub::RPCResponseData, PubSub::DEFAULT_MESSAGE_COUNT> name##_res_storage;                \
+    struct name##_res_topic                                                                                                \
+    {                                                                                                                      \
+        typedef PubSub::RPCResponseData                                                       message_type;               \
+        typedef PubSub::TopicStorage<PubSub::RPCResponseData, PubSub::DEFAULT_MESSAGE_COUNT>  storage_type;               \
+                                                                                                                             \
+        static storage_type &store() { return name##_res_storage; }                                                       \
+        static const char *topic_name() { return "res_" #name; }                                                          \
+    };
 
 namespace PubSub
 {

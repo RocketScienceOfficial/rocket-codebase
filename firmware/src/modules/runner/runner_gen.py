@@ -26,8 +26,7 @@ def gen_source(profile):
         sys.exit(1)
 
     def gen_header(profile):
-        s = ""        
-        s += "#include <pubsub/MessageBus.h>\n"
+        s = ""
         s += "#include <osal/task.h>\n"
         s += "#include <osal/systime.h>\n"
 
@@ -109,7 +108,6 @@ static void spawnTask(void (*taskFunc)(void *), const char *name, size_t stack_s
         s += "\n\nextern \"C\" void hw_init(void);\n\n"
         s += "void core_main()\n{\n"
         s += "    hw_init();\n"
-        s += "    PubSub::MessageBus::Init();\n"
         s += "    start_tasks();\n"
         s += "}\n"
 

@@ -1,21 +1,16 @@
 #pragma once
 
-#include "MessageBus.h"
 #include "Subscriber.h"
 #include "Publisher.h"
 #include <lib/debug/sys_assert.h>
 
 namespace PubSub
 {
-    template <typename T>
+    template <typename ReqTopic, typename ResTopic>
     class RPCRequest
     {
     public:
-        explicit RPCRequest(const TopicMetadata<RPCRequestData<T>> *req_meta, const TopicMetadata<RPCResponseData> *res_meta) : m_RequestPublisher(req_meta), m_ResponseSubscriber(res_meta), m_ResponseAvailable(false)
-        {
-        }
-
-        void call(const T &requestData, uint8_t src)
+        void call(const typename ReqTopic::message_type::data_type &requestData, uint8_t src)
         {
             m_RequestPublisher.publish({.src = src, .data = requestData});
         }
@@ -42,8 +37,8 @@ namespace PubSub
         }
 
     private:
-        Publisher<RPCRequestData<T>> m_RequestPublisher;
-        Subscriber<RPCResponseData> m_ResponseSubscriber;
-        bool m_ResponseAvailable;
+        Publisher<ReqTopic> m_RequestPublisher;
+        Subscriber<ResTopic> m_ResponseSubscriber;
+        bool m_ResponseAvailable = false;
     };
 }
