@@ -5,7 +5,20 @@
 
 namespace PubSub
 {
-    template <typename Topic>
+    struct NoOpRetryHook
+    {
+        static void afterCopy() { (void)0; }
+    };
+
+    struct DefaultTooSlowHook
+    {
+        static void onTooSlow(const char *topicName, uint32_t readSeq, uint32_t writeSeq)
+        {
+            SYS_ASSERT_MSG(false, "Subscriber is too slow and has missed messages on topic '%s' (read_sequence: %u, write_sequence: %u)", topicName, readSeq, writeSeq);
+        }
+    };
+
+    template <typename Topic, typename RetryHook = NoOpRetryHook, typename TooSlowHook = DefaultTooSlowHook>
     class Subscriber
     {
     public:
@@ -25,6 +38,9 @@ namespace PubSub
         }
 
     private:
+        typename Topic::message_type m_Data{};
+        uint32_t m_ReadSequence = 0;
+
         bool copyData(bool latest)
         {
             typename Topic::storage_type &s = Topic::store();
@@ -49,13 +65,14 @@ namespace PubSub
                 {
                     if (write_seq - m_ReadSequence > depth)
                     {
-                        SYS_ASSERT_MSG(false, "Subscriber is too slow and has missed messages on topic '%s' (read_sequence: %u, write_sequence: %u)", Topic::topic_name(), m_ReadSequence, write_seq);
+                        TooSlowHook::onTooSlow(Topic::topic_name(), m_ReadSequence, write_seq);
 
                         m_ReadSequence = write_seq - depth + 1;
                     }
                 }
 
                 m_Data = s.slots[FAST_MODULO(m_ReadSequence, depth)];
+                RetryHook::afterCopy();
 
             } while (s.write_sequence.load(std::memory_order_acquire) - m_ReadSequence > depth);
 
@@ -63,8 +80,5 @@ namespace PubSub
 
             return true;
         }
-
-        typename Topic::message_type m_Data{};
-        uint32_t m_ReadSequence = 0;
     };
 }
