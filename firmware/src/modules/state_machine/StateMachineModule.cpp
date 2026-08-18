@@ -53,6 +53,7 @@ void StateMachineModule::updateData()
         {
             LOG_INFO("ARM");
 
+            resetFlightTrackingState();
             changeState(DATALINK_SM_STATE_ARMED);
             valid = true;
         }
@@ -100,6 +101,16 @@ void StateMachineModule::postUpdate()
     m_IMUAccChanged = false;
 }
 
+void StateMachineModule::resetFlightTrackingState()
+{
+    m_BaseAltSet = false;
+    m_BaseAlt = 0;
+    m_VerifyingStandingAlt = false;
+    m_VerificationStartTime = 0;
+    m_Apogee = 0;
+    m_LandingAlt = 0;
+}
+
 void StateMachineModule::changeState(state_machine_state new_state)
 {
     m_State = new_state;
@@ -134,9 +145,10 @@ void StateMachineModule::handle_state_armed()
     {
         if (m_VerifyingStandingAlt)
         {
-            if (m_BaseAlt == 0)
+            if (!m_BaseAltSet)
             {
                 m_BaseAlt = m_CurrentBaroHeight;
+                m_BaseAltSet = true;
             }
             else
             {
@@ -148,6 +160,7 @@ void StateMachineModule::handle_state_armed()
                 {
                     if (osal_systime_get_ms() - m_VerificationStartTime > SM_CFG_START_ALT_VERIFICATION_TIME_MS)
                     {
+                        m_BaseAltSet = false;
                         m_BaseAlt = 0;
                         m_VerificationStartTime = 0;
                         m_VerifyingStandingAlt = false;

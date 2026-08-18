@@ -34,6 +34,7 @@ private:
     bool m_IMUAccChanged;
 
     // Handlers utils
+    bool m_BaseAltSet;
     float m_BaseAlt;
     bool m_VerifyingStandingAlt;
     float m_Apogee;
@@ -43,6 +44,7 @@ private:
     void updateData();
     void postUpdate();
     void changeState(state_machine_state new_state);
+    void resetFlightTrackingState();
 
     // State handlers
     void handle_state_standing();

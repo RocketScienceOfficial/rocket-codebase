@@ -5,3 +5,11 @@ add_module(state_machine
     maths
     geo
 )
+
+add_sys_test(state_machine_tests
+    SOURCES
+    tests/state_machine_tests.cpp
+    DEPENDS
+    app_modules_state_machine
+    host_sitl
+)
