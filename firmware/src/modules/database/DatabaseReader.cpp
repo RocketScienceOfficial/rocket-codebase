@@ -3,8 +3,7 @@
 #include <datalink.h>
 #include <hal/flash_driver.h>
 
-template <typename TxTopic, typename ReadyTopic>
-void DatabaseReader<TxTopic, ReadyTopic>::update()
+void DatabaseReader::update()
 {
     if (!m_Initialized)
     {
@@ -26,14 +25,12 @@ void DatabaseReader<TxTopic, ReadyTopic>::update()
     }
 }
 
-template <typename TxTopic, typename ReadyTopic>
-bool DatabaseReader<TxTopic, ReadyTopic>::isFinished() const
+bool DatabaseReader::isFinished() const
 {
     return !m_Initialized && m_Terminated;
 }
 
-template <typename TxTopic, typename ReadyTopic>
-void DatabaseReader<TxTopic, ReadyTopic>::setRecoveryMode(bool enabled)
+void DatabaseReader::setRecoveryMode(bool enabled)
 {
     if (m_RecoverMode != enabled && isFinished())
     {
@@ -41,8 +38,7 @@ void DatabaseReader<TxTopic, ReadyTopic>::setRecoveryMode(bool enabled)
     }
 }
 
-template <typename TxTopic, typename ReadyTopic>
-void DatabaseReader<TxTopic, ReadyTopic>::onInit()
+void DatabaseReader::onInit()
 {
     if (!m_RecoverMode)
     {
@@ -72,8 +68,7 @@ void DatabaseReader<TxTopic, ReadyTopic>::onInit()
     m_NewSectionInitialized = false;
 }
 
-template <typename TxTopic, typename ReadyTopic>
-void DatabaseReader<TxTopic, ReadyTopic>::onUpdate()
+void DatabaseReader::onUpdate()
 {
     if (m_CurrentStandingFrameCount > 0)
     {
@@ -117,8 +112,7 @@ void DatabaseReader<TxTopic, ReadyTopic>::onUpdate()
     }
 }
 
-template <typename TxTopic, typename ReadyTopic>
-void DatabaseReader<TxTopic, ReadyTopic>::onExit()
+void DatabaseReader::onExit()
 {
     datalink_message_t msg;
 
@@ -136,8 +130,7 @@ void DatabaseReader<TxTopic, ReadyTopic>::onExit()
     LOG_INFO("Data read has finished");
 }
 
-template <typename TxTopic, typename ReadyTopic>
-void DatabaseReader<TxTopic, ReadyTopic>::readNext()
+void DatabaseReader::readNext()
 {
     DatabaseFrameRaw frame;
     hal_flash_read(m_CurrentDataOffset, (uint8_t *)&frame, sizeof(frame));
@@ -162,8 +155,7 @@ void DatabaseReader<TxTopic, ReadyTopic>::readNext()
     }
 }
 
-template <typename TxTopic, typename ReadyTopic>
-bool DatabaseReader<TxTopic, ReadyTopic>::isFrameValid(const DatabaseFrameRaw *rawFrame)
+bool DatabaseReader::isFrameValid(const DatabaseFrameRaw *rawFrame)
 {
     if (rawFrame->magic != DATABASE_FRAME_MAGIC)
     {
@@ -175,8 +167,7 @@ bool DatabaseReader<TxTopic, ReadyTopic>::isFrameValid(const DatabaseFrameRaw *r
     return crc == rawFrame->crc;
 }
 
-template <typename TxTopic, typename ReadyTopic>
-void DatabaseReader<TxTopic, ReadyTopic>::sendFrame(const DatabaseFrameRaw *rawFrame)
+void DatabaseReader::sendFrame(const DatabaseFrameRaw *rawFrame)
 {
     const DatabaseFrame *frame = &rawFrame->frame;
 
@@ -216,8 +207,7 @@ void DatabaseReader<TxTopic, ReadyTopic>::sendFrame(const DatabaseFrameRaw *rawF
     m_TXPublisher.publish(msg);
 }
 
-template <typename TxTopic, typename ReadyTopic>
-void DatabaseReader<TxTopic, ReadyTopic>::handleFaultyFrameRead()
+void DatabaseReader::handleFaultyFrameRead()
 {
     m_CurrentFrameCount--;
 
@@ -230,8 +220,7 @@ void DatabaseReader<TxTopic, ReadyTopic>::handleFaultyFrameRead()
     m_TXPublisher.publish(msg);
 }
 
-template <typename TxTopic, typename ReadyTopic>
-void DatabaseReader<TxTopic, ReadyTopic>::handleFaultyFrameRecovery()
+void DatabaseReader::handleFaultyFrameRecovery()
 {
     if (m_CurrentStandingFrameCount > 0)
     {
@@ -242,5 +231,3 @@ void DatabaseReader<TxTopic, ReadyTopic>::handleFaultyFrameRecovery()
         m_CurrentSavedFrameCount = 0;
     }
 }
-
-template class DatabaseReader<PubSub::Topics::database_tx_topic, PubSub::Topics::database_ready_topic>;

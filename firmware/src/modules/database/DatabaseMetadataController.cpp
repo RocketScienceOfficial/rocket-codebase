@@ -5,8 +5,7 @@
 #include <hal/flash_driver.h>
 #include <string.h>
 
-template <typename ReadyTopic>
-void DatabaseMetadataController<ReadyTopic>::read()
+void DatabaseMetadataController::read()
 {
     DatabaseMetadataRaw info;
     hal_flash_read(SECTORS_OFFSET_METADATA * BOARD_FLASH_SECTOR_SIZE, (uint8_t *)&info, sizeof(info));
@@ -27,8 +26,7 @@ void DatabaseMetadataController<ReadyTopic>::read()
     }
 }
 
-template <typename ReadyTopic>
-void DatabaseMetadataController<ReadyTopic>::save(const DatabaseMetadata &metadata)
+void DatabaseMetadataController::save(const DatabaseMetadata &metadata)
 {
     DatabaseMetadataRaw rawMetadata;
     rawMetadata.magic = DATABASE_METADATA_MAGIC;
@@ -49,16 +47,14 @@ void DatabaseMetadataController<ReadyTopic>::save(const DatabaseMetadata &metada
     LOG_INFO("Database metadata saved: savedFramesCount=%u, standingFramesCount=%u", metadata.savedFramesCount, metadata.standingFramesCount);
 }
 
-template <typename ReadyTopic>
-void DatabaseMetadataController<ReadyTopic>::sendReadyNotification()
+void DatabaseMetadataController::sendReadyNotification()
 {
     bool ready = m_CurrentMetadata.savedFramesCount + m_CurrentMetadata.standingFramesCount == 0;
 
     m_ReadyPublisher.publish({.ready = ready});
 }
 
-template <typename ReadyTopic>
-bool DatabaseMetadataController<ReadyTopic>::validateInfo(const DatabaseMetadataRaw *info)
+bool DatabaseMetadataController::validateInfo(const DatabaseMetadataRaw *info)
 {
     if (info->magic != DATABASE_METADATA_MAGIC)
     {
@@ -69,5 +65,3 @@ bool DatabaseMetadataController<ReadyTopic>::validateInfo(const DatabaseMetadata
 
     return crc == info->crc;
 }
-
-template class DatabaseMetadataController<PubSub::Topics::database_ready_topic>;

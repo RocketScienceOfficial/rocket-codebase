@@ -46,10 +46,10 @@ private:
     uint64_t m_LastSaveTime;
     size_t m_LandingBufferIndex;
 
-    DatabaseMetadataController<PubSub::Topics::database_ready_topic> m_MetadataController{m_ReadyPublisher};
-    DatabaseWriter<PubSub::Topics::database_ready_topic> m_Writer{m_MetadataController};
-    DatabaseReader<PubSub::Topics::database_tx_topic, PubSub::Topics::database_ready_topic> m_Reader{m_TXPublisher, m_MetadataController};
-    DatabaseCleaner<PubSub::Topics::database_tx_topic, PubSub::Topics::database_ready_topic> m_Cleaner{m_TXPublisher, m_MetadataController};
+    DatabaseMetadataController m_MetadataController{m_ReadyPublisher};
+    DatabaseWriter m_Writer{m_MetadataController};
+    DatabaseReader m_Reader{m_TXPublisher, m_MetadataController};
+    DatabaseCleaner m_Cleaner{m_TXPublisher, m_MetadataController};
 
     void gatherData();
     void setState(DatamanState newState);

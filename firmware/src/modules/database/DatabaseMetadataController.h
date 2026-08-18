@@ -4,11 +4,10 @@
 #include <pubsub/Topics.h>
 #include <pubsub/Publisher.h>
 
-template <typename ReadyTopic>
 class DatabaseMetadataController
 {
 public:
-    DatabaseMetadataController(PubSub::Publisher<ReadyTopic> &readyPub) : m_ReadyPublisher(readyPub) {}
+    DatabaseMetadataController(PubSub::Publisher<PubSub::Topics::database_ready_topic> &readyPub) : m_ReadyPublisher(readyPub) {}
 
     void read();
     void save(const DatabaseMetadata &metadata);
@@ -16,7 +15,7 @@ public:
     const DatabaseMetadata &getMetadata() const { return m_CurrentMetadata; }
 
 private:
-    PubSub::Publisher<ReadyTopic> &m_ReadyPublisher;
+    PubSub::Publisher<PubSub::Topics::database_ready_topic> &m_ReadyPublisher;
 
     DatabaseMetadata m_CurrentMetadata;
 
