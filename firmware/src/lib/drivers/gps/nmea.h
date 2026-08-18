@@ -254,7 +254,9 @@ bool nmea_check_sentence(const char *sentence);
  * - i: integer
  * - f: float
  * - c: char
- * - s: string
+ * - s: string. Consumes two arguments: a `char *` destination and a `size_t` destination
+ *      buffer size (including space for the null terminator). The copied field is truncated
+ *      to fit if necessary and always null-terminated.
  * - l: latitude or longtitude
  * - d: date
  * - t: time

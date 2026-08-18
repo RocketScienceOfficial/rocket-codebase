@@ -98,6 +98,11 @@ bool nmea_check_sentence(const char *sentence)
 
 bool nmea_scan(const char *sentence, const char *format, ...)
 {
+    if (sentence[0] == '\0')
+    {
+        return false;
+    }
+
     va_list ap;
     va_start(ap, format);
 
@@ -116,6 +121,11 @@ bool nmea_scan(const char *sentence, const char *format, ...)
 
         while (sentence[index] != ',' && sentence[index] != '*')
         {
+            if (sentence[index] == '\0')
+            {
+                return false;
+            }
+
             if (fieldIndex >= sizeof(field) - 1)
             {
                 return false;
@@ -156,17 +166,17 @@ bool nmea_scan(const char *sentence, const char *format, ...)
         case 's':
         {
             char *value = va_arg(ap, char *);
+            size_t valueSize = va_arg(ap, size_t);
 
-            if (fieldIndex > 0)
+            size_t copyLen = fieldIndex < valueSize - 1 ? fieldIndex : valueSize - 1;
+
+            if (copyLen > 0)
             {
-                memcpy(value, field, fieldIndex);
-                value[fieldIndex] = '\0';
+                memcpy(value, field, copyLen);
             }
-            else
-            {
-                value[0] = '\0';
-            }
-            
+
+            value[copyLen] = '\0';
+
             break;
         }
         case 'l':
@@ -256,7 +266,7 @@ nmea_sentence_id_t nmea_get_sentence_id(const char *sentence)
 {
     char s[6];
 
-    if (!nmea_scan(sentence, "s", s))
+    if (!nmea_scan(sentence, "s", s, sizeof(s)))
     {
         return NMEA_SENTENCE_UNKNOWN;
     }
@@ -313,7 +323,7 @@ nmea_talker_t nmea_get_talker_id(const char *sentence)
 {
     char s[6];
 
-    if (!nmea_scan(sentence, "s", s))
+    if (!nmea_scan(sentence, "s", s, sizeof(s)))
     {
         return NMEA_TALKER_UNKNOWN;
     }
@@ -404,7 +414,7 @@ bool nmea_parse_gns(const char *sentence, nmea_sentence_gns_t *frame)
                      &frame->NS,
                      &frame->lon,
                      &frame->EW,
-                     &frame->posMode,
+                     &frame->posMode, sizeof(frame->posMode),
                      &frame->numSV,
                      &frame->HDOP,
                      &frame->alt,
