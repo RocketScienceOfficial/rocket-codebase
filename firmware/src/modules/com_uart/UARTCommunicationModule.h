@@ -18,8 +18,8 @@ public:
     void run();
 
 private:
-    PubSub::Publisher<PubSub::Topics::DatalinkMessage> m_Publisher{PUBSUB_ID(uart_rx)};
-    PubSub::Subscriber<PubSub::Topics::DatalinkMessage> m_Subscriber{PUBSUB_ID(uart_tx)};
+    PubSub::Publisher<PubSub::Topics::uart_rx_topic> m_Publisher;
+    PubSub::Subscriber<PubSub::Topics::uart_tx_topic> m_Subscriber;
 
     uint8_t m_SendBuffer[UART_TX_BUFFER_SIZE];
     uint8_t m_ReceiveFIFOBuffer[UART_MAX_BYTES_PER_TICK];

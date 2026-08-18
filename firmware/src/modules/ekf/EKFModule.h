@@ -18,11 +18,11 @@ public:
 
 private:
     // Interface
-    PubSub::Subscriber<PubSub::Topics::SensorsIMU> m_IMUSubscriber{PUBSUB_ID(sensors_imu_1)};
-    PubSub::Subscriber<PubSub::Topics::SensorsBaro> m_BaroSubscriber{PUBSUB_ID(sensors_baro_1)};
-    PubSub::Subscriber<PubSub::Topics::SensorsGPS> m_GPSSubscriber{PUBSUB_ID(sensors_gps_1)};
-    PubSub::Subscriber<PubSub::Topics::SensorsMag> m_MagSubscriber{PUBSUB_ID(sensors_mag_1)};
-    PubSub::Publisher<PubSub::Topics::EKFState> m_EKFPublisher{PUBSUB_ID(ekf_state)};
+    PubSub::Subscriber<PubSub::Topics::sensors_imu_1_topic> m_IMUSubscriber;
+    PubSub::Subscriber<PubSub::Topics::sensors_baro_1_topic> m_BaroSubscriber;
+    PubSub::Subscriber<PubSub::Topics::sensors_gps_1_topic> m_GPSSubscriber;
+    PubSub::Subscriber<PubSub::Topics::sensors_mag_1_topic> m_MagSubscriber;
+    PubSub::Publisher<PubSub::Topics::ekf_state_topic> m_EKFPublisher;
 
     // EKF instance
     EKF m_EKF;

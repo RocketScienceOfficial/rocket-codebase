@@ -13,11 +13,11 @@ public:
     void run();
 
 private:
-    PubSub::Subscriber<PubSub::Topics::SensorsIMU> m_IMUDataSubscriber{PUBSUB_ID(sensors_imu_1)};
-    PubSub::Subscriber<PubSub::Topics::SensorsBaro> m_BaroDataSubscriber{PUBSUB_ID(sensors_baro_1)};
-    PubSub::Publisher<PubSub::Topics::StateMachineState> m_FlightStatePublisher{PUBSUB_ID(sm_state)};
-    PubSub::Publisher<PubSub::Topics::StateMachineHeight> m_FlightStateHeightPublisher{PUBSUB_ID(sm_height)};
-    PubSub::RPCHandler<PubSub::Topics::CommandArm> m_RPC_ARM{PUBSUB_RPC_ID(command_arm)};
+    PubSub::Subscriber<PubSub::Topics::sensors_imu_1_topic> m_IMUDataSubscriber;
+    PubSub::Subscriber<PubSub::Topics::sensors_baro_1_topic> m_BaroDataSubscriber;
+    PubSub::Publisher<PubSub::Topics::sm_state_topic> m_FlightStatePublisher;
+    PubSub::Publisher<PubSub::Topics::sm_height_topic> m_FlightStateHeightPublisher;
+    PubSub::RPCHandler<PUBSUB_RPC_ID(command_arm)> m_RPC_ARM;
 
     // State
     state_machine_state m_State;

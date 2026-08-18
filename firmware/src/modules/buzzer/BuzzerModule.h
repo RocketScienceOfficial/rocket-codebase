@@ -13,8 +13,8 @@ public:
     void run();
 
 private:
-    PubSub::Subscriber<PubSub::Topics::SensorsGPS> m_GPSSubscriber{PUBSUB_ID(sensors_gps_1)};
-    PubSub::Subscriber<PubSub::Topics::StateMachineState> m_SMSubscriber{PUBSUB_ID(sm_state)};
+    PubSub::Subscriber<PubSub::Topics::sensors_gps_1_topic> m_GPSSubscriber;
+    PubSub::Subscriber<PubSub::Topics::sm_state_topic> m_SMSubscriber;
 
     enum class Tone
     {

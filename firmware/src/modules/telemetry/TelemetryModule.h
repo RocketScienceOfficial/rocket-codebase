@@ -13,16 +13,16 @@ public:
     void run();
 
 private:
-    PubSub::Publisher<PubSub::Topics::TelemetryDataOBC> m_TelemetryTXPublisher{PUBSUB_ID(telemetry_tx)};
-    PubSub::Subscriber<PubSub::Topics::TelemetryResponse> m_RadioResponseSubscriber{PUBSUB_ID(telemetry_rx)};
-    PubSub::Subscriber<PubSub::Topics::RadioAck> m_RadioAckSubscriber{PUBSUB_ID(radio_ack)};
-    PubSub::Subscriber<PubSub::Topics::CommanderState> m_CommanderSubscriber{PUBSUB_ID(commander_state)};
-    PubSub::Subscriber<PubSub::Topics::EKFState> m_EKFStateSubscriber{PUBSUB_ID(ekf_state)};
-    PubSub::Subscriber<PubSub::Topics::SensorsBattery> m_BatterySubscriber{PUBSUB_ID(sensors_battery)};
-    PubSub::Subscriber<PubSub::Topics::SensorsGPS> m_GPSSubscriber{PUBSUB_ID(sensors_gps_1)};
-    PubSub::Subscriber<PubSub::Topics::StateMachineState> m_StateMachineStateSubscriber{PUBSUB_ID(sm_state)};
-    PubSub::Subscriber<PubSub::Topics::VoltageState> m_VoltageStateSubscriber{PUBSUB_ID(voltage_state)};
-    PubSub::Subscriber<PubSub::Topics::IgnContinuity> m_IgnitionContinuitySubscriber{PUBSUB_ID(ign_continuity)};
+    PubSub::Publisher<PubSub::Topics::telemetry_tx_topic> m_TelemetryTXPublisher;
+    PubSub::Subscriber<PubSub::Topics::telemetry_rx_topic> m_RadioResponseSubscriber;
+    PubSub::Subscriber<PubSub::Topics::radio_ack_topic> m_RadioAckSubscriber;
+    PubSub::Subscriber<PubSub::Topics::commander_state_topic> m_CommanderSubscriber;
+    PubSub::Subscriber<PubSub::Topics::ekf_state_topic> m_EKFStateSubscriber;
+    PubSub::Subscriber<PubSub::Topics::sensors_battery_topic> m_BatterySubscriber;
+    PubSub::Subscriber<PubSub::Topics::sensors_gps_1_topic> m_GPSSubscriber;
+    PubSub::Subscriber<PubSub::Topics::sm_state_topic> m_StateMachineStateSubscriber;
+    PubSub::Subscriber<PubSub::Topics::voltage_state_topic> m_VoltageStateSubscriber;
+    PubSub::Subscriber<PubSub::Topics::ign_continuity_topic> m_IgnitionContinuitySubscriber;
 
     uint32_t m_RadioTXDoneRecoveryTimeOffset;
     uint32_t m_RadioResponseRecoveryTimeOffset;

@@ -14,8 +14,8 @@ public:
     void run();
 
 private:
-    PubSub::Publisher<PubSub::Topics::DatalinkMessage> m_UARTPublisher{PUBSUB_ID(uart_rx)};
-    PubSub::Subscriber<PubSub::Topics::DatalinkMessage> m_UARTSubscriber{PUBSUB_ID(uart_tx)};
+    PubSub::Publisher<PubSub::Topics::uart_rx_topic> m_UARTPublisher;
+    PubSub::Subscriber<PubSub::Topics::uart_tx_topic> m_UARTSubscriber;
 
     network::TCPSocket m_UARTSocket;
     bool m_Flushed;

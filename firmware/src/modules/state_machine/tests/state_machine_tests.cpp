@@ -11,8 +11,8 @@
 
 using namespace PubSub::Topics;
 
-// StateMachineModule owns sm_state/sm_height/command_arm-response (single owner per topic, see
-// MessageBus::AdvertiseTopic), so only one instance may exist in this test binary -- hence one long
+// StateMachineModule owns sm_state/sm_height/command_arm-response (Publisher's constructor enforces
+// single ownership per topic), so only one instance may exist in this test binary -- hence one long
 // scenario instead of separate TEST cases.
 
 TEST(StateMachineModule, FullLifecycleAndEdgeCases)
@@ -21,11 +21,11 @@ TEST(StateMachineModule, FullLifecycleAndEdgeCases)
     // code gets this for free via static storage duration.
     StateMachineModule module{};
 
-    PubSub::Publisher<SensorsIMU> imuPub{PUBSUB_ID(sensors_imu_1)};
-    PubSub::Publisher<SensorsBaro> baroPub{PUBSUB_ID(sensors_baro_1)};
-    PubSub::Subscriber<StateMachineState> stateSub{PUBSUB_ID(sm_state)};
-    PubSub::Subscriber<StateMachineHeight> heightSub{PUBSUB_ID(sm_height)};
-    PubSub::RPCRequest<CommandArm> armRpc{PUBSUB_RPC_ID(command_arm)};
+    PubSub::Publisher<sensors_imu_1_topic> imuPub;
+    PubSub::Publisher<sensors_baro_1_topic> baroPub;
+    PubSub::Subscriber<sm_state_topic> stateSub;
+    PubSub::Subscriber<sm_height_topic> heightSub;
+    PubSub::RPCRequest<PUBSUB_RPC_ID(command_arm)> armRpc;
 
     const vec3_t LIFTOFF_SPIKE_ACC = {0.0f, 0.0f, -(3.5f * (float)EARTH_GRAVITY)}; // > SM_CFG_START_ACC_THRESHOLD (2.5g)
 

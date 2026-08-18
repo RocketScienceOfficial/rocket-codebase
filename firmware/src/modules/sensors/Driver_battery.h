@@ -6,10 +6,10 @@
 
 #define BATTERY_READINGS_COUNT 10
 
-class Driver_battery : public DriverBase<Driver_battery, PubSub::Topics::SensorsBattery>
+class Driver_battery : public DriverBase<Driver_battery, PubSub::Topics::sensors_battery_topic>
 {
 public:
-    Driver_battery() : DriverBase(PUBSUB_ID(sensors_battery), 10) {}
+    Driver_battery() : DriverBase(10) {}
 
     void initialize();
     void readAndPublish(float dt);

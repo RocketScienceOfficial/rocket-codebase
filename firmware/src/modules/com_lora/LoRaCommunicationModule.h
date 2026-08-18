@@ -14,9 +14,9 @@ public:
     void run();
 
 private:
-    PubSub::Publisher<PubSub::Topics::LoRaRXData> m_RXPublisher{PUBSUB_ID(lora_rx)};
-    PubSub::Publisher<PubSub::Topics::LoRaTXAck> m_AckPublisher{PUBSUB_ID(lora_tx_ack)};
-    PubSub::Subscriber<PubSub::Topics::LoRaTXData> m_Subscriber{PUBSUB_ID(lora_tx)};
+    PubSub::Publisher<PubSub::Topics::lora_rx_topic> m_RXPublisher;
+    PubSub::Publisher<PubSub::Topics::lora_tx_ack_topic> m_AckPublisher;
+    PubSub::Subscriber<PubSub::Topics::lora_tx_topic> m_Subscriber;
 
     bool m_Transmitting;
     uint8_t m_ReceiveBuffer[LORA_BUFFER_SIZE];

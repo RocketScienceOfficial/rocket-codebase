@@ -6,18 +6,19 @@
 #include <pubsub/Publisher.h>
 #include <stdint.h>
 
+template <typename TxTopic, typename ReadyTopic>
 class DatabaseReader
 {
 public:
-    DatabaseReader(PubSub::Publisher<PubSub::Topics::DatalinkMessage> &txPub, const DatabaseMetadataController &metadata) : m_TXPublisher(txPub), m_MetadataController(metadata), m_RecoverMode(false), m_Initialized(false), m_Terminated(true) {}
+    DatabaseReader(PubSub::Publisher<TxTopic> &txPub, const DatabaseMetadataController<ReadyTopic> &metadata) : m_TXPublisher(txPub), m_MetadataController(metadata), m_RecoverMode(false), m_Initialized(false), m_Terminated(true) {}
 
     void update();
     bool isFinished() const;
     void setRecoveryMode(bool enabled);
 
 private:
-    PubSub::Publisher<PubSub::Topics::DatalinkMessage> &m_TXPublisher;
-    const DatabaseMetadataController &m_MetadataController;
+    PubSub::Publisher<TxTopic> &m_TXPublisher;
+    const DatabaseMetadataController<ReadyTopic> &m_MetadataController;
 
     bool m_RecoverMode;
     bool m_Initialized;

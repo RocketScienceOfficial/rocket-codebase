@@ -16,22 +16,22 @@ public:
     void run();
 
 private:
-    PubSub::Subscriber<PubSub::Topics::DatalinkMessage> m_SerialSubscriber{PUBSUB_ID(serial_rx)};
-    PubSub::Publisher<PubSub::Topics::DatalinkMessage> m_SerialPublisher{PUBSUB_ID(serial_tx)};
-    PubSub::Subscriber<PubSub::Topics::DatalinkMessage> m_UARTSubscriber{PUBSUB_ID(uart_rx)};
-    PubSub::Publisher<PubSub::Topics::DatalinkMessage> m_UARTPublisher{PUBSUB_ID(uart_tx)};
+    PubSub::Subscriber<PubSub::Topics::serial_rx_topic> m_SerialSubscriber;
+    PubSub::Publisher<PubSub::Topics::serial_tx_topic> m_SerialPublisher;
+    PubSub::Subscriber<PubSub::Topics::uart_rx_topic> m_UARTSubscriber;
+    PubSub::Publisher<PubSub::Topics::uart_tx_topic> m_UARTPublisher;
 
-    PubSub::Subscriber<PubSub::Topics::DatalinkMessage> m_DatabaseSubscriber{PUBSUB_ID(database_tx)};
-    PubSub::Publisher<PubSub::Topics::DatalinkMessage> m_DatabasePublisher{PUBSUB_ID(database_rx)};
+    PubSub::Subscriber<PubSub::Topics::database_tx_topic> m_DatabaseSubscriber;
+    PubSub::Publisher<PubSub::Topics::database_rx_topic> m_DatabasePublisher;
 
-    PubSub::Subscriber<PubSub::Topics::TelemetryDataOBC> m_TelemetrySubscriber{PUBSUB_ID(telemetry_tx)};
-    PubSub::Publisher<PubSub::Topics::TelemetryResponse> m_TelemetryResponsePublisher{PUBSUB_ID(telemetry_rx)};
-    PubSub::Publisher<PubSub::Topics::RadioAck> m_RadioACKPublisher{PUBSUB_ID(radio_ack)};
+    PubSub::Subscriber<PubSub::Topics::telemetry_tx_topic> m_TelemetrySubscriber;
+    PubSub::Publisher<PubSub::Topics::telemetry_rx_topic> m_TelemetryResponsePublisher;
+    PubSub::Publisher<PubSub::Topics::radio_ack_topic> m_RadioACKPublisher;
 
-    PubSub::RPCRequest<PubSub::Topics::CommandArm> m_RPC_ARM{PUBSUB_RPC_ID(command_arm)};
-    PubSub::RPCRequest<PubSub::Topics::CommandSetVoltage> m_RPC_Voltage{PUBSUB_RPC_ID(command_set_voltage)};
-    PubSub::RPCRequest<PubSub::Topics::CommandIgnite> m_RPC_IGN{PUBSUB_RPC_ID(command_ignite)};
-    PubSub::Publisher<PubSub::Topics::CommanderState> m_CommanderRadioRPCStatePublisher{PUBSUB_ID(commander_state)};
+    PubSub::RPCRequest<PUBSUB_RPC_ID(command_arm)> m_RPC_ARM;
+    PubSub::RPCRequest<PUBSUB_RPC_ID(command_set_voltage)> m_RPC_Voltage;
+    PubSub::RPCRequest<PUBSUB_RPC_ID(command_ignite)> m_RPC_IGN;
+    PubSub::Publisher<PubSub::Topics::commander_state_topic> m_CommanderRadioRPCStatePublisher;
 
     uint8_t m_RadioCommandSeq = 0;
     CommanderStatus m_RadioCommandStatus = CommanderStatus::SUCCESS;

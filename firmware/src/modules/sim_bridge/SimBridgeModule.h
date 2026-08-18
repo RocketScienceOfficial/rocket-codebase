@@ -14,17 +14,17 @@ public:
     void run();
 
 private:
-    PubSub::Publisher<PubSub::Topics::SensorsIMU> m_IMU1DataPublisher{PUBSUB_ID(sensors_imu_1)};
-    PubSub::Publisher<PubSub::Topics::SensorsMag> m_Mag1DataPublisher{PUBSUB_ID(sensors_mag_1)};
-    PubSub::Publisher<PubSub::Topics::SensorsBaro> m_Baro1DataPublisher{PUBSUB_ID(sensors_baro_1)};
-    PubSub::Publisher<PubSub::Topics::SensorsGPS> m_GPS1DataPublisher{PUBSUB_ID(sensors_gps_1)};
-    PubSub::Publisher<PubSub::Topics::IgnAdcChannels> m_AdcIgnitersChannelsPublisher{PUBSUB_ID(ign_adc_channels)};
-    PubSub::Publisher<PubSub::Topics::SensorsBattery> m_BatteryPublisher{PUBSUB_ID(sensors_battery)};
+    PubSub::Publisher<PubSub::Topics::sensors_imu_1_topic> m_IMU1DataPublisher;
+    PubSub::Publisher<PubSub::Topics::sensors_mag_1_topic> m_Mag1DataPublisher;
+    PubSub::Publisher<PubSub::Topics::sensors_baro_1_topic> m_Baro1DataPublisher;
+    PubSub::Publisher<PubSub::Topics::sensors_gps_1_topic> m_GPS1DataPublisher;
+    PubSub::Publisher<PubSub::Topics::ign_adc_channels_topic> m_AdcIgnitersChannelsPublisher;
+    PubSub::Publisher<PubSub::Topics::sensors_battery_topic> m_BatteryPublisher;
 
-    PubSub::Subscriber<PubSub::Topics::EKFState> m_EKFStateSubscriber{PUBSUB_ID(ekf_state)};
-    PubSub::Subscriber<PubSub::Topics::IgnFired> m_IGNSubscriber{PUBSUB_ID(ign_fired)};
-    PubSub::Subscriber<PubSub::Topics::StateMachineState> m_StateMachineStateSubscriber{PUBSUB_ID(sm_state)};
-    PubSub::Subscriber<PubSub::Topics::AirbrakeState> m_AirbrakeStateSubscriber{PUBSUB_ID(airbrake_state)};
+    PubSub::Subscriber<PubSub::Topics::ekf_state_topic> m_EKFStateSubscriber;
+    PubSub::Subscriber<PubSub::Topics::ign_fired_topic> m_IGNSubscriber;
+    PubSub::Subscriber<PubSub::Topics::sm_state_topic> m_StateMachineStateSubscriber;
+    PubSub::Subscriber<PubSub::Topics::airbrake_state_topic> m_AirbrakeStateSubscriber;
 
     sitl_response_data m_responseData;
 

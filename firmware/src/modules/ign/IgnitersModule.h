@@ -16,14 +16,14 @@ public:
     void run();
 
 private:
-    PubSub::RPCHandler<PubSub::Topics::CommandIgnite> m_RPC_IGN{PUBSUB_RPC_ID(command_ignite)};
-    PubSub::Subscriber<PubSub::Topics::IgnAdcChannels> m_ADCSubscriber{PUBSUB_ID(ign_adc_channels)};
-    PubSub::Subscriber<PubSub::Topics::SensorsBattery> m_BatSubscriber{PUBSUB_ID(sensors_battery)};
-    PubSub::Subscriber<PubSub::Topics::StateMachineState> m_SMSubscriber{PUBSUB_ID(sm_state)};
-    PubSub::Subscriber<PubSub::Topics::StateMachineHeight> m_SMHeightSubscriber{PUBSUB_ID(sm_height)};
-    PubSub::Subscriber<PubSub::Topics::EKFState> m_EKFSubscriber{PUBSUB_ID(ekf_state)};
-    PubSub::Publisher<PubSub::Topics::IgnContinuity> m_IgnDetPublisher{PUBSUB_ID(ign_continuity)};
-    PubSub::Publisher<PubSub::Topics::IgnFired> m_IgnFiredPublisher{PUBSUB_ID(ign_fired)};
+    PubSub::RPCHandler<PUBSUB_RPC_ID(command_ignite)> m_RPC_IGN;
+    PubSub::Subscriber<PubSub::Topics::ign_adc_channels_topic> m_ADCSubscriber;
+    PubSub::Subscriber<PubSub::Topics::sensors_battery_topic> m_BatSubscriber;
+    PubSub::Subscriber<PubSub::Topics::sm_state_topic> m_SMSubscriber;
+    PubSub::Subscriber<PubSub::Topics::sm_height_topic> m_SMHeightSubscriber;
+    PubSub::Subscriber<PubSub::Topics::ekf_state_topic> m_EKFSubscriber;
+    PubSub::Publisher<PubSub::Topics::ign_continuity_topic> m_IgnDetPublisher;
+    PubSub::Publisher<PubSub::Topics::ign_fired_topic> m_IgnFiredPublisher;
 
     PubSub::Topics::IgnContinuity m_CurrentIgnContinuityPubData;
     PubSub::Topics::IgnFired m_CurrentIgnFiredPubData;

@@ -11,11 +11,11 @@ public:
     void run();
 
 private:
-    PubSub::Subscriber<PubSub::Topics::PMUState> m_PMUSubscriber{PUBSUB_ID(pmu_state)};
-    PubSub::Subscriber<PubSub::Topics::SensorsSimplifiedGPS> m_SimplifiedGPSSubscriber{PUBSUB_ID(sensors_simplified_gps_1)};
-    PubSub::Subscriber<PubSub::Topics::GCSCommanderTimeout> m_GCSCommanderTimeoutSubscriber{PUBSUB_ID(gcs_commander_timeout)};
-    PubSub::Subscriber<PubSub::Topics::LoRaRXData> m_RadioSubscriber{PUBSUB_ID(lora_rx)};
-    PubSub::Subscriber<PubSub::Topics::GCSRadioState> m_GCSRadioStateSubscriber{PUBSUB_ID(gcs_radio_state)};
+    PubSub::Subscriber<PubSub::Topics::pmu_state_topic> m_PMUSubscriber;
+    PubSub::Subscriber<PubSub::Topics::sensors_simplified_gps_1_topic> m_SimplifiedGPSSubscriber;
+    PubSub::Subscriber<PubSub::Topics::gcs_commander_timeout_topic> m_GCSCommanderTimeoutSubscriber;
+    PubSub::Subscriber<PubSub::Topics::lora_rx_topic> m_RadioSubscriber;
+    PubSub::Subscriber<PubSub::Topics::gcs_radio_state_topic> m_GCSRadioStateSubscriber;
 
     u8g2_t m_Display;
     uint32_t m_LogoDisableTime;

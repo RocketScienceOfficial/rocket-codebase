@@ -11,7 +11,7 @@ public:
     void run();
 
 private:
-    PubSub::Publisher<PubSub::Topics::PMUState> m_Publisher{PUBSUB_ID(pmu_state)};
+    PubSub::Publisher<PubSub::Topics::pmu_state_topic> m_Publisher;
     
     XPowersAXP2101 m_Device;
 };

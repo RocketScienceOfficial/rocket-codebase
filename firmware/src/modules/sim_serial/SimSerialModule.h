@@ -14,8 +14,8 @@ public:
     void run();
 
 private:
-    PubSub::Publisher<PubSub::Topics::DatalinkMessage> m_SerialPublisher{PUBSUB_ID(serial_rx)};
-    PubSub::Subscriber<PubSub::Topics::DatalinkMessage> m_SerialSubscriber{PUBSUB_ID(serial_tx)};
+    PubSub::Publisher<PubSub::Topics::serial_rx_topic> m_SerialPublisher;
+    PubSub::Subscriber<PubSub::Topics::serial_tx_topic> m_SerialSubscriber;
 
     network::TCPSocket m_SerialSocket;
     bool m_Flushed;

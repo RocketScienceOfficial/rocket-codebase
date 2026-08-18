@@ -3,7 +3,8 @@
 #include "modules/common/ModuleLogger.h"
 #include <hal/flash_driver.h>
 
-void DatabaseCleaner::update()
+template <typename TxTopic, typename ReadyTopic>
+void DatabaseCleaner<TxTopic, ReadyTopic>::update()
 {
     if (!m_Initialized)
     {
@@ -25,19 +26,22 @@ void DatabaseCleaner::update()
     }
 }
 
-bool DatabaseCleaner::isFinished() const
+template <typename TxTopic, typename ReadyTopic>
+bool DatabaseCleaner<TxTopic, ReadyTopic>::isFinished() const
 {
     return !m_Initialized && m_Terminated;
 }
 
-void DatabaseCleaner::onInit()
+template <typename TxTopic, typename ReadyTopic>
+void DatabaseCleaner<TxTopic, ReadyTopic>::onInit()
 {
     m_CurrentIndex = 0;
 
     LOG_INFO("Starting database clearing");
 }
 
-void DatabaseCleaner::onUpdate()
+template <typename TxTopic, typename ReadyTopic>
+void DatabaseCleaner<TxTopic, ReadyTopic>::onUpdate()
 {
     if (m_CurrentIndex == TOTAL_COUNT)
     {
@@ -61,7 +65,8 @@ void DatabaseCleaner::onUpdate()
     m_CurrentIndex++;
 }
 
-void DatabaseCleaner::onExit()
+template <typename TxTopic, typename ReadyTopic>
+void DatabaseCleaner<TxTopic, ReadyTopic>::onExit()
 {
     DatabaseMetadata metadata = {
         .savedFramesCount = 0,
@@ -76,3 +81,5 @@ void DatabaseCleaner::onExit()
 
     LOG_INFO("Database cleared");
 }
+
+template class DatabaseCleaner<PubSub::Topics::database_tx_topic, PubSub::Topics::database_ready_topic>;

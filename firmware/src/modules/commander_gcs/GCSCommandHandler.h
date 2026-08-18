@@ -4,10 +4,11 @@
 #include <pubsub/Topics.h>
 #include <pubsub/Publisher.h>
 
+template <typename SerialTopic, typename TimeoutTopic>
 class GCSCommandHandler
 {
 public:
-    GCSCommandHandler(PubSub::Publisher<PubSub::Topics::DatalinkMessage> &serialPublisher, PubSub::Publisher<PubSub::Topics::GCSCommanderTimeout> &commandTimeoutPublisher)
+    GCSCommandHandler(PubSub::Publisher<SerialTopic> &serialPublisher, PubSub::Publisher<TimeoutTopic> &commandTimeoutPublisher)
         : m_SerialPublisher(serialPublisher), m_CommandTimeoutPublisher(commandTimeoutPublisher) {}
 
     void update();
@@ -18,8 +19,8 @@ public:
     uint8_t getCurrentSequence() const { return m_CurrentCommandSeq; }
 
 private:
-    PubSub::Publisher<PubSub::Topics::DatalinkMessage> &m_SerialPublisher;
-    PubSub::Publisher<PubSub::Topics::GCSCommanderTimeout> &m_CommandTimeoutPublisher;
+    PubSub::Publisher<SerialTopic> &m_SerialPublisher;
+    PubSub::Publisher<TimeoutTopic> &m_CommandTimeoutPublisher;
 
     uint8_t m_CurrentCMD;
     uint8_t m_CurrentCommandSeq;

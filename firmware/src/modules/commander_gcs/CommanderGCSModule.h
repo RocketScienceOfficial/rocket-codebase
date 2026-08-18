@@ -16,17 +16,17 @@ public:
     void run();
 
 private:
-    PubSub::Subscriber<PubSub::Topics::DatalinkMessage> m_SerialSubscriber{PUBSUB_ID(serial_rx)};
-    PubSub::Publisher<PubSub::Topics::DatalinkMessage> m_SerialPublisher{PUBSUB_ID(serial_tx)};
-    PubSub::Subscriber<PubSub::Topics::LoRaRXData> m_RadioSubscriber{PUBSUB_ID(lora_rx)};
-    PubSub::Publisher<PubSub::Topics::LoRaTXData> m_RadioPublisher{PUBSUB_ID(lora_tx)};
+    PubSub::Subscriber<PubSub::Topics::serial_rx_topic> m_SerialSubscriber;
+    PubSub::Publisher<PubSub::Topics::serial_tx_topic> m_SerialPublisher;
+    PubSub::Subscriber<PubSub::Topics::lora_rx_topic> m_RadioSubscriber;
+    PubSub::Publisher<PubSub::Topics::lora_tx_topic> m_RadioPublisher;
 
-    PubSub::Subscriber<PubSub::Topics::SensorsSimplifiedGPS> m_GPSSubscriber{PUBSUB_ID(sensors_simplified_gps_1)};
+    PubSub::Subscriber<PubSub::Topics::sensors_simplified_gps_1_topic> m_GPSSubscriber;
 
-    PubSub::Publisher<PubSub::Topics::GCSCommanderTimeout> m_CommandTimeoutPublisher{PUBSUB_ID(gcs_commander_timeout)};
-    PubSub::Publisher<PubSub::Topics::GCSRadioState> m_RadioStatePublisher{PUBSUB_ID(gcs_radio_state)};
+    PubSub::Publisher<PubSub::Topics::gcs_commander_timeout_topic> m_CommandTimeoutPublisher;
+    PubSub::Publisher<PubSub::Topics::gcs_radio_state_topic> m_RadioStatePublisher;
 
-    GCSCommandHandler m_CommandHandler;
+    GCSCommandHandler<PubSub::Topics::serial_tx_topic, PubSub::Topics::gcs_commander_timeout_topic> m_CommandHandler;
 
     uint8_t m_RXSequence;
     uint8_t m_TXSequence;

@@ -13,11 +13,11 @@ public:
     void run();
 
 private:
-    PubSub::Subscriber<PubSub::Topics::DatalinkMessage> m_UARTSubscriber{PUBSUB_ID(uart_rx)};
-    PubSub::Publisher<PubSub::Topics::DatalinkMessage> m_UARTPublisher{PUBSUB_ID(uart_tx)};
-    PubSub::Subscriber<PubSub::Topics::LoRaRXData> m_RadioSubscriber{PUBSUB_ID(lora_rx)};
-    PubSub::Subscriber<PubSub::Topics::LoRaTXAck> m_AckSubscriber{PUBSUB_ID(lora_tx_ack)};
-    PubSub::Publisher<PubSub::Topics::LoRaTXData> m_RadioPublisher{PUBSUB_ID(lora_tx)};
+    PubSub::Subscriber<PubSub::Topics::uart_rx_topic> m_UARTSubscriber;
+    PubSub::Publisher<PubSub::Topics::uart_tx_topic> m_UARTPublisher;
+    PubSub::Subscriber<PubSub::Topics::lora_rx_topic> m_RadioSubscriber;
+    PubSub::Subscriber<PubSub::Topics::lora_tx_ack_topic> m_AckSubscriber;
+    PubSub::Publisher<PubSub::Topics::lora_tx_topic> m_RadioPublisher;
 
     uint8_t m_Sequence;
 

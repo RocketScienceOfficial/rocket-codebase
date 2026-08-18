@@ -13,8 +13,8 @@ public:
     void run();
 
 private:
-    PubSub::RPCHandler<PubSub::Topics::CommandSetVoltage> m_RPC{PUBSUB_RPC_ID(command_set_voltage)};
-    PubSub::Publisher<PubSub::Topics::VoltageState> m_VoltageStatePublisher{PUBSUB_ID(voltage_state)};
+    PubSub::RPCHandler<PUBSUB_RPC_ID(command_set_voltage)> m_RPC;
+    PubSub::Publisher<PubSub::Topics::voltage_state_topic> m_VoltageStatePublisher;
 
     uint8_t m_CurrentPinStates;
 

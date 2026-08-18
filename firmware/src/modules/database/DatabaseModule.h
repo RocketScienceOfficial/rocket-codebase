@@ -17,18 +17,18 @@ public:
     void run();
 
 private:
-    PubSub::Publisher<PubSub::Topics::DatabaseReady> m_ReadyPublisher{PUBSUB_ID(database_ready)};
-    PubSub::Publisher<PubSub::Topics::DatalinkMessage> m_TXPublisher{PUBSUB_ID(database_tx)};
-    PubSub::Subscriber<PubSub::Topics::DatalinkMessage> m_RXSubscriber{PUBSUB_ID(database_rx)};
-    PubSub::Subscriber<PubSub::Topics::StateMachineState> m_StateMachineStateSubscriber{PUBSUB_ID(sm_state)};
-    PubSub::Subscriber<PubSub::Topics::SensorsIMU> m_IMUSubscriber{PUBSUB_ID(sensors_imu_1)};
-    PubSub::Subscriber<PubSub::Topics::SensorsMag> m_MagSubscriber{PUBSUB_ID(sensors_mag_1)};
-    PubSub::Subscriber<PubSub::Topics::SensorsGPS> m_GPSSubscriber{PUBSUB_ID(sensors_gps_1)};
-    PubSub::Subscriber<PubSub::Topics::SensorsBaro> m_BarometerSubscriber{PUBSUB_ID(sensors_baro_1)};
-    PubSub::Subscriber<PubSub::Topics::SensorsBattery> m_BatterySubscriber{PUBSUB_ID(sensors_battery)};
-    PubSub::Subscriber<PubSub::Topics::IgnContinuity> m_IgnContinuitySubscriber{PUBSUB_ID(ign_continuity)};
-    PubSub::Subscriber<PubSub::Topics::IgnFired> m_IgnFiredSubscriber{PUBSUB_ID(ign_fired)};
-    PubSub::Subscriber<PubSub::Topics::EKFState> m_EKFSubscriber{PUBSUB_ID(ekf_state)};
+    PubSub::Publisher<PubSub::Topics::database_ready_topic> m_ReadyPublisher;
+    PubSub::Publisher<PubSub::Topics::database_tx_topic> m_TXPublisher;
+    PubSub::Subscriber<PubSub::Topics::database_rx_topic> m_RXSubscriber;
+    PubSub::Subscriber<PubSub::Topics::sm_state_topic> m_StateMachineStateSubscriber;
+    PubSub::Subscriber<PubSub::Topics::sensors_imu_1_topic> m_IMUSubscriber;
+    PubSub::Subscriber<PubSub::Topics::sensors_mag_1_topic> m_MagSubscriber;
+    PubSub::Subscriber<PubSub::Topics::sensors_gps_1_topic> m_GPSSubscriber;
+    PubSub::Subscriber<PubSub::Topics::sensors_baro_1_topic> m_BarometerSubscriber;
+    PubSub::Subscriber<PubSub::Topics::sensors_battery_topic> m_BatterySubscriber;
+    PubSub::Subscriber<PubSub::Topics::ign_continuity_topic> m_IgnContinuitySubscriber;
+    PubSub::Subscriber<PubSub::Topics::ign_fired_topic> m_IgnFiredSubscriber;
+    PubSub::Subscriber<PubSub::Topics::ekf_state_topic> m_EKFSubscriber;
 
     enum class DatamanState
     {
@@ -46,10 +46,10 @@ private:
     uint64_t m_LastSaveTime;
     size_t m_LandingBufferIndex;
 
-    DatabaseMetadataController m_MetadataController{m_ReadyPublisher};
-    DatabaseWriter m_Writer{m_MetadataController};
-    DatabaseReader m_Reader{m_TXPublisher, m_MetadataController};
-    DatabaseCleaner m_Cleaner{m_TXPublisher, m_MetadataController};
+    DatabaseMetadataController<PubSub::Topics::database_ready_topic> m_MetadataController{m_ReadyPublisher};
+    DatabaseWriter<PubSub::Topics::database_ready_topic> m_Writer{m_MetadataController};
+    DatabaseReader<PubSub::Topics::database_tx_topic, PubSub::Topics::database_ready_topic> m_Reader{m_TXPublisher, m_MetadataController};
+    DatabaseCleaner<PubSub::Topics::database_tx_topic, PubSub::Topics::database_ready_topic> m_Cleaner{m_TXPublisher, m_MetadataController};
 
     void gatherData();
     void setState(DatamanState newState);

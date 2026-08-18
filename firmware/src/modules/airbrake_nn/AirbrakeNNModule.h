@@ -11,8 +11,8 @@ public:
     void run();
 
 private:
-    PubSub::Subscriber<PubSub::Topics::EKFState> m_EKFSubscriber{PUBSUB_ID(ekf_state)};
-    PubSub::Publisher<PubSub::Topics::AirbrakeState> m_AirbrakePublisher{PUBSUB_ID(airbrake_state)};
+    PubSub::Subscriber<PubSub::Topics::ekf_state_topic> m_EKFSubscriber;
+    PubSub::Publisher<PubSub::Topics::airbrake_state_topic> m_AirbrakePublisher;
 
     float m_LastPredictedApogee;
 

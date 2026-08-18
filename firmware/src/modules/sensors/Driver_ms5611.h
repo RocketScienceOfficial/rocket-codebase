@@ -3,10 +3,10 @@
 #include "DriverBase.h"
 #include <lib/drivers/baro/ms56xx_driver.h>
 
-class Driver_ms5611 : public DriverBase<Driver_ms5611, PubSub::Topics::SensorsBaro>
+class Driver_ms5611 : public DriverBase<Driver_ms5611, PubSub::Topics::sensors_baro_1_topic>
 {
 public:
-    Driver_ms5611() : DriverBase(PUBSUB_ID(sensors_baro_1)) {}
+    Driver_ms5611() {}
 
     void initialize();
     void readAndPublish(float dt);

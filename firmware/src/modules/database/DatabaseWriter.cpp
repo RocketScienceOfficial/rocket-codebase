@@ -18,7 +18,8 @@ static void reverse_buff(DatabaseFrameRaw *buffer, size_t start, size_t end)
     }
 }
 
-void DatabaseWriter::saveStandingFrame(const DatabaseFrame &frame)
+template <typename ReadyTopic>
+void DatabaseWriter<ReadyTopic>::saveStandingFrame(const DatabaseFrame &frame)
 {
     DatabaseFrameRaw rawFrame = getFrame(frame);
 
@@ -35,7 +36,8 @@ void DatabaseWriter::saveStandingFrame(const DatabaseFrame &frame)
     }
 }
 
-void DatabaseWriter::saveFrame(const DatabaseFrame &frame)
+template <typename ReadyTopic>
+void DatabaseWriter<ReadyTopic>::saveFrame(const DatabaseFrame &frame)
 {
     if (!canSaveData())
     {
@@ -75,7 +77,8 @@ void DatabaseWriter::saveFrame(const DatabaseFrame &frame)
     }
 }
 
-void DatabaseWriter::flush()
+template <typename ReadyTopic>
+void DatabaseWriter<ReadyTopic>::flush()
 {
     flushData();
     flushStandingBuffer();
@@ -87,7 +90,8 @@ void DatabaseWriter::flush()
     m_MetadataController.save(metadata);
 }
 
-DatabaseFrameRaw DatabaseWriter::getFrame(const DatabaseFrame &frame)
+template <typename ReadyTopic>
+DatabaseFrameRaw DatabaseWriter<ReadyTopic>::getFrame(const DatabaseFrame &frame)
 {
     DatabaseFrameRaw raw;
     raw.magic = DATABASE_FRAME_MAGIC;
@@ -97,12 +101,14 @@ DatabaseFrameRaw DatabaseWriter::getFrame(const DatabaseFrame &frame)
     return raw;
 }
 
-bool DatabaseWriter::canSaveData() const
+template <typename ReadyTopic>
+bool DatabaseWriter<ReadyTopic>::canSaveData() const
 {
     return m_SaveFlashOffsetPages + sizeof(m_SaveBuffer) / BOARD_FLASH_PAGE_SIZE <= SECTORS_COUNT_DATA * BOARD_FLASH_SECTOR_SIZE / BOARD_FLASH_PAGE_SIZE;
 }
 
-void DatabaseWriter::flushData()
+template <typename ReadyTopic>
+void DatabaseWriter<ReadyTopic>::flushData()
 {
     if (canSaveData())
     {
@@ -119,7 +125,8 @@ void DatabaseWriter::flushData()
     }
 }
 
-void DatabaseWriter::flushStandingBuffer()
+template <typename ReadyTopic>
+void DatabaseWriter<ReadyTopic>::flushStandingBuffer()
 {
     if (m_StandingBufferIndex != 0)
     {
@@ -135,3 +142,5 @@ void DatabaseWriter::flushStandingBuffer()
 
     LOG_INFO("Standing buffer has been flushed. %d frames (%d bytes) were written", m_StandingBufferLength, m_StandingBufferLength * sizeof(DatabaseFrameRaw));
 }
+
+template class DatabaseWriter<PubSub::Topics::database_ready_topic>;

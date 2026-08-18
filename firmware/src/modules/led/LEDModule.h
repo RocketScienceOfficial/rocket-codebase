@@ -14,10 +14,10 @@ public:
     void run();
 
 private:
-    PubSub::Subscriber<PubSub::Topics::IgnContinuity> m_ContinuitySubscriber{PUBSUB_ID(ign_continuity)};
-    PubSub::Subscriber<PubSub::Topics::SensorsBattery> m_BatSubscriber{PUBSUB_ID(sensors_battery)};
-    PubSub::Subscriber<PubSub::Topics::DatabaseReady> m_ReadySubscriber{PUBSUB_ID(database_ready)};
-    PubSub::Subscriber<PubSub::Topics::StateMachineState> m_StateSubscriber{PUBSUB_ID(sm_state)};
+    PubSub::Subscriber<PubSub::Topics::ign_continuity_topic> m_ContinuitySubscriber;
+    PubSub::Subscriber<PubSub::Topics::sensors_battery_topic> m_BatSubscriber;
+    PubSub::Subscriber<PubSub::Topics::database_ready_topic> m_ReadySubscriber;
+    PubSub::Subscriber<PubSub::Topics::sm_state_topic> m_StateSubscriber;
 
     hal_ws2812b_color_t m_DiodesColors[DIODES_COUNT];
     bool m_Updated;

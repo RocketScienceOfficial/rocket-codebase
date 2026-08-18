@@ -6,7 +6,8 @@
 
 #define CMD_TIMEOUT_MS 10000
 
-void GCSCommandHandler::update()
+template <typename SerialTopic, typename TimeoutTopic>
+void GCSCommandHandler<SerialTopic, TimeoutTopic>::update()
 {
     if (m_CommandActive)
     {
@@ -21,7 +22,8 @@ void GCSCommandHandler::update()
     }
 }
 
-void GCSCommandHandler::set(uint8_t cmd)
+template <typename SerialTopic, typename TimeoutTopic>
+void GCSCommandHandler<SerialTopic, TimeoutTopic>::set(uint8_t cmd)
 {
     if (m_CommandActive)
     {
@@ -37,7 +39,8 @@ void GCSCommandHandler::set(uint8_t cmd)
     LOG_INFO("Set command %d (seq %d)", cmd, m_CurrentCommandSeq);
 }
 
-void GCSCommandHandler::onNewSequence(uint8_t seq, uint8_t status)
+template <typename SerialTopic, typename TimeoutTopic>
+void GCSCommandHandler<SerialTopic, TimeoutTopic>::onNewSequence(uint8_t seq, uint8_t status)
 {
     m_RemoteCommandSeq = seq;
 
@@ -60,7 +63,8 @@ void GCSCommandHandler::onNewSequence(uint8_t seq, uint8_t status)
     }
 }
 
-void GCSCommandHandler::handleCommandElapsedTime()
+template <typename SerialTopic, typename TimeoutTopic>
+void GCSCommandHandler<SerialTopic, TimeoutTopic>::handleCommandElapsedTime()
 {
     uint32_t diff = osal_systime_get_ms() - m_CommandStartTime;
     int elapsedTime = (CMD_TIMEOUT_MS - (int)diff) / 1000;
@@ -75,7 +79,8 @@ void GCSCommandHandler::handleCommandElapsedTime()
     }
 }
 
-void GCSCommandHandler::reset()
+template <typename SerialTopic, typename TimeoutTopic>
+void GCSCommandHandler<SerialTopic, TimeoutTopic>::reset()
 {
     m_CurrentCMD = DATALINK_TELEMETRY_CMD_NONE;
     m_CommandActive = false;
@@ -84,7 +89,8 @@ void GCSCommandHandler::reset()
     LOG_DEBUG("Reset commander state");
 }
 
-void GCSCommandHandler::ack(bool success)
+template <typename SerialTopic, typename TimeoutTopic>
+void GCSCommandHandler<SerialTopic, TimeoutTopic>::ack(bool success)
 {
     reset();
 
@@ -100,7 +106,8 @@ void GCSCommandHandler::ack(bool success)
     LOG_INFO("Sent %s ACK for command %d", success ? "success" : "failure", m_CurrentCMD);
 }
 
-void GCSCommandHandler::nack()
+template <typename SerialTopic, typename TimeoutTopic>
+void GCSCommandHandler<SerialTopic, TimeoutTopic>::nack()
 {
     m_CurrentCMD = m_RemoteCommandSeq;
 
@@ -113,3 +120,5 @@ void GCSCommandHandler::nack()
 
     LOG_INFO("Sent NACK for command %d", m_CurrentCMD);
 }
+
+template class GCSCommandHandler<PubSub::Topics::serial_tx_topic, PubSub::Topics::gcs_commander_timeout_topic>;

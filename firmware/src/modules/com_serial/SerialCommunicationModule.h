@@ -17,8 +17,8 @@ public:
     void run();
 
 private:
-    PubSub::Publisher<PubSub::Topics::DatalinkMessage> m_Publisher{PUBSUB_ID(serial_rx)};
-    PubSub::Subscriber<PubSub::Topics::DatalinkMessage> m_Subscriber{PUBSUB_ID(serial_tx)};
+    PubSub::Publisher<PubSub::Topics::serial_rx_topic> m_Publisher;
+    PubSub::Subscriber<PubSub::Topics::serial_tx_topic> m_Subscriber;
 
     uint8_t m_SendBuffer[SERIAL_BUFFER_SIZE];
     uint8_t m_ReceiveBuffer[SERIAL_BUFFER_SIZE];

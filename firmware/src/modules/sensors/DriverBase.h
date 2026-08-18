@@ -5,12 +5,12 @@
 #include <osal/systime.h>
 #include <lib/debug/sys_assert.h>
 
-template <typename Derived, typename TopicStruct>
+template <typename Derived, typename Topic>
 class DriverBase
 {
 public:
-    DriverBase(const PubSub::TopicMetadata<TopicStruct> *meta) : m_Publisher(meta), m_ReadDelay(0) {}
-    DriverBase(const PubSub::TopicMetadata<TopicStruct> *meta, int frequency) : m_Publisher(meta), m_ReadDelay(1000 / frequency)
+    DriverBase() : m_ReadDelay(0) {}
+    explicit DriverBase(int frequency) : m_ReadDelay(1000 / frequency)
     {
         SYS_ASSERT(frequency > 0 && frequency <= 1000);
     }
@@ -35,8 +35,8 @@ public:
     }
 
 protected:
-    TopicStruct m_CurrentFrame;
-    PubSub::Publisher<TopicStruct> m_Publisher;
+    typename Topic::message_type m_CurrentFrame;
+    PubSub::Publisher<Topic> m_Publisher;
 
 private:
     Derived *m_Driver;

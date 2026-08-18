@@ -13,7 +13,7 @@ public:
     void run();
 
 private:
-    PubSub::Publisher<PubSub::Topics::SensorsSimplifiedGPS> m_Publisher{PUBSUB_ID(sensors_simplified_gps_1)};
+    PubSub::Publisher<PubSub::Topics::sensors_simplified_gps_1_topic> m_Publisher;
 
     uint8_t m_ReceiveFIFOBuffer[UART_MAX_BYTES_PER_TICK];
     char m_CurrentSentence[NMEA_SENTENCE_MAX_LENGTH];

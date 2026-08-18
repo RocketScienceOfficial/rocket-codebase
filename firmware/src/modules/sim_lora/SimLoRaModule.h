@@ -14,9 +14,9 @@ public:
     void run();
 
 private:
-    PubSub::Publisher<PubSub::Topics::LoRaRXData> m_LoRaPublisher{PUBSUB_ID(lora_rx)};
-    PubSub::Publisher<PubSub::Topics::LoRaTXAck> m_AckPublisher{PUBSUB_ID(lora_tx_ack)};
-    PubSub::Subscriber<PubSub::Topics::LoRaTXData> m_LoRaSubscriber{PUBSUB_ID(lora_tx)};
+    PubSub::Publisher<PubSub::Topics::lora_rx_topic> m_LoRaPublisher;
+    PubSub::Publisher<PubSub::Topics::lora_tx_ack_topic> m_AckPublisher;
+    PubSub::Subscriber<PubSub::Topics::lora_tx_topic> m_LoRaSubscriber;
 
     network::TCPSocket m_LoRaSocket;
     bool m_Flushed;
