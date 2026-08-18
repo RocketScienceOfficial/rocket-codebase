@@ -88,39 +88,57 @@ typedef enum
 } ubx_parser_status_t;
 
 /**
+ * @brief Accumulates CFG-VALSET config entries queued by ubx_set_*() before a single
+ * ubx_valset_apply() call embeds them into a UBX frame. Caller-owned (stack or static) so a config
+ * session has no hidden shared state and no cross-call/cross-caller interference.
+ */
+typedef struct
+{
+    uint8_t buffer[256];
+    uint16_t len;
+} ubx_cfg_builder_t;
+
+/**
  * @brief Set NMEA enabled for SPI
- * 
+ *
+ * @param builder config entry accumulator
  * @param enabled true to enable, false to disable
  */
-void ubx_set_nmea_enabled_spi(bool enabled);
+void ubx_set_nmea_enabled_spi(ubx_cfg_builder_t *builder, bool enabled);
 
 /**
  * @brief Set PVT enabled for SPI
- * 
+ *
+ * @param builder config entry accumulator
  * @param enabled true to enable, false to disable
  */
-void ubx_set_pvt_enabled_spi(bool enabled);
+void ubx_set_pvt_enabled_spi(ubx_cfg_builder_t *builder, bool enabled);
 
 /**
  * @brief Set navigation rate
- * 
+ *
+ * @param builder config entry accumulator
  * @param ms milliseconds
  */
-void ubx_set_nav_rate(uint16_t ms);
+void ubx_set_nav_rate(ubx_cfg_builder_t *builder, uint16_t ms);
 
 /**
  * @brief Set airborne dynamic model
+ *
+ * @param builder config entry accumulator
  */
-void ubx_set_airborne_dynamic_model(void);
+void ubx_set_airborne_dynamic_model(ubx_cfg_builder_t *builder);
 
 /**
  * @brief Apply configuration values
- * 
+ *
+ * @param builder config entry accumulator, previously filled by ubx_set_*() calls; reset to empty
+ * on return
  * @param cfg buffer for configuration data
  * @param cfgLen length of configuration buffer
- * @return number of bytes written
+ * @return number of bytes written, or 0 on failure (buffer too small)
  */
-size_t ubx_valset_apply(uint8_t *cfg, uint16_t cfgLen);
+size_t ubx_valset_apply(ubx_cfg_builder_t *builder, uint8_t *cfg, uint16_t cfgLen);
 
 /**
  * @brief Process a byte through the UBX parser

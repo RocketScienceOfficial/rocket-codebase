@@ -12,13 +12,15 @@ static void configure_spi(gps_device_t *device)
 {
     SYS_ASSERT(device != NULL);
 
-    ubx_set_nmea_enabled_spi(false);
-    ubx_set_pvt_enabled_spi(true);
-    ubx_set_nav_rate(1000 / 25);
-    ubx_set_airborne_dynamic_model();
+    ubx_cfg_builder_t cfgBuilder = {0};
+
+    ubx_set_nmea_enabled_spi(&cfgBuilder, false);
+    ubx_set_pvt_enabled_spi(&cfgBuilder, true);
+    ubx_set_nav_rate(&cfgBuilder, 1000 / 25);
+    ubx_set_airborne_dynamic_model(&cfgBuilder);
 
     uint8_t buffer[256];
-    size_t len = ubx_valset_apply(buffer, sizeof(buffer));
+    size_t len = ubx_valset_apply(&cfgBuilder, buffer, sizeof(buffer));
 
     spi_utils_cs_select(device->cs);
     hal_spi_transfer(device->spi, buffer, NULL, len);

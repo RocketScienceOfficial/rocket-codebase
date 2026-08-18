@@ -10,6 +10,8 @@ target_link_libraries(drivers_gps PUBLIC
 )
 
 add_sys_test(gps_tests
-    SOURCES tests/nmea_tests.cpp
+    SOURCES
+    tests/nmea_tests.cpp
+    tests/ubx_tests.cpp
     DEPENDS drivers_gps
 )

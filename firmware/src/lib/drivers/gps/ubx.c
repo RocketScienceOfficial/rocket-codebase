@@ -5,19 +5,20 @@
 #define UBX_PREAMBLE_SYNC_CHAR_1 0xb5
 #define UBX_PREAMBLE_SYNC_CHAR_2 0x62
 
-static uint8_t g_cfgValBuffer[256];
-static uint8_t g_cfgValBufferLen;
-
-static void ubx_valset(uint32_t id, uint32_t value, uint8_t size)
+static void ubx_valset(ubx_cfg_builder_t *builder, uint32_t id, uint32_t value, uint8_t size)
 {
-    g_cfgValBuffer[g_cfgValBufferLen++] = (id >> 0) & 0xff;
-    g_cfgValBuffer[g_cfgValBufferLen++] = (id >> 8) & 0xff;
-    g_cfgValBuffer[g_cfgValBufferLen++] = (id >> 16) & 0xff;
-    g_cfgValBuffer[g_cfgValBufferLen++] = (id >> 24) & 0xff;
+    size_t entryLen = 4 + size;
+
+    SYS_CHECK(builder->len + entryLen <= sizeof(builder->buffer), return);
+
+    builder->buffer[builder->len++] = (id >> 0) & 0xff;
+    builder->buffer[builder->len++] = (id >> 8) & 0xff;
+    builder->buffer[builder->len++] = (id >> 16) & 0xff;
+    builder->buffer[builder->len++] = (id >> 24) & 0xff;
 
     for (size_t j = 0; j < size; j++)
     {
-        g_cfgValBuffer[g_cfgValBufferLen++] = (value >> (j * 8)) & 0xff;
+        builder->buffer[builder->len++] = (value >> (j * 8)) & 0xff;
     }
 }
 
@@ -41,57 +42,52 @@ static void ubx_checksum_calculate(uint8_t *cka, uint8_t *ckb, const uint8_t *bu
     *ckb &= 0xff;
 }
 
-void ubx_set_nmea_enabled_spi(bool enabled)
+void ubx_set_nmea_enabled_spi(ubx_cfg_builder_t *builder, bool enabled)
 {
-    ubx_valset(0x10790001, 1, 1);
+    ubx_valset(builder, 0x10790001, 1, 1);
 
-    ubx_valset(0x107a0001, enabled ? 0 : 1, 1);
-    ubx_valset(0x107a0002, enabled ? 1 : 0, 1);
+    ubx_valset(builder, 0x107a0001, enabled ? 0 : 1, 1);
+    ubx_valset(builder, 0x107a0002, enabled ? 1 : 0, 1);
 
-    ubx_valset(0x209100aa, enabled ? 1 : 0, 1);
-    ubx_valset(0x209100e1, enabled ? 1 : 0, 1);
-    ubx_valset(0x209100be, enabled ? 1 : 0, 1);
-    ubx_valset(0x209100cd, enabled ? 1 : 0, 1);
-    ubx_valset(0x209100b9, enabled ? 1 : 0, 1);
-    ubx_valset(0x209100d2, enabled ? 1 : 0, 1);
-    ubx_valset(0x209100c3, enabled ? 1 : 0, 1);
-    ubx_valset(0x209100d7, enabled ? 1 : 0, 1);
-    ubx_valset(0x209100c8, enabled ? 1 : 0, 1);
-    ubx_valset(0x20910404, enabled ? 1 : 0, 1);
-    ubx_valset(0x209100af, enabled ? 1 : 0, 1);
-    ubx_valset(0x209100eb, enabled ? 1 : 0, 1);
-    ubx_valset(0x209100b4, enabled ? 1 : 0, 1);
-    ubx_valset(0x209100dc, enabled ? 1 : 0, 1);
-    ubx_valset(0x209100f0, enabled ? 1 : 0, 1);
-    ubx_valset(0x209100f5, enabled ? 1 : 0, 1);
-    ubx_valset(0x209100fa, enabled ? 1 : 0, 1);
-    ubx_valset(0x2091025d, enabled ? 1 : 0, 1);
+    ubx_valset(builder, 0x209100aa, enabled ? 1 : 0, 1);
+    ubx_valset(builder, 0x209100e1, enabled ? 1 : 0, 1);
+    ubx_valset(builder, 0x209100be, enabled ? 1 : 0, 1);
+    ubx_valset(builder, 0x209100cd, enabled ? 1 : 0, 1);
+    ubx_valset(builder, 0x209100b9, enabled ? 1 : 0, 1);
+    ubx_valset(builder, 0x209100d2, enabled ? 1 : 0, 1);
+    ubx_valset(builder, 0x209100c3, enabled ? 1 : 0, 1);
+    ubx_valset(builder, 0x209100d7, enabled ? 1 : 0, 1);
+    ubx_valset(builder, 0x209100c8, enabled ? 1 : 0, 1);
+    ubx_valset(builder, 0x20910404, enabled ? 1 : 0, 1);
+    ubx_valset(builder, 0x209100af, enabled ? 1 : 0, 1);
+    ubx_valset(builder, 0x209100eb, enabled ? 1 : 0, 1);
+    ubx_valset(builder, 0x209100b4, enabled ? 1 : 0, 1);
+    ubx_valset(builder, 0x209100dc, enabled ? 1 : 0, 1);
+    ubx_valset(builder, 0x209100f0, enabled ? 1 : 0, 1);
+    ubx_valset(builder, 0x209100f5, enabled ? 1 : 0, 1);
+    ubx_valset(builder, 0x209100fa, enabled ? 1 : 0, 1);
+    ubx_valset(builder, 0x2091025d, enabled ? 1 : 0, 1);
 }
 
-void ubx_set_pvt_enabled_spi(bool enabled)
+void ubx_set_pvt_enabled_spi(ubx_cfg_builder_t *builder, bool enabled)
 {
-    ubx_valset(0x2091000a, enabled ? 1 : 0, 1);
+    ubx_valset(builder, 0x2091000a, enabled ? 1 : 0, 1);
 }
 
-void ubx_set_nav_rate(uint16_t ms)
+void ubx_set_nav_rate(ubx_cfg_builder_t *builder, uint16_t ms)
 {
-    ubx_valset(0x30210001, ms, 2);
-    ubx_valset(0x30210002, 1, 2);
+    ubx_valset(builder, 0x30210001, ms, 2);
+    ubx_valset(builder, 0x30210002, 1, 2);
 }
 
-void ubx_set_airborne_dynamic_model(void)
+void ubx_set_airborne_dynamic_model(ubx_cfg_builder_t *builder)
 {
-    ubx_valset(0x20110021, 8, 1);
+    ubx_valset(builder, 0x20110021, 8, 1);
 }
 
 static size_t ubx_create_frame(uint8_t *frameBuffer, uint16_t frameBufferLen, uint8_t class, uint8_t id, const uint8_t *payload, uint16_t length)
 {
-    if (frameBufferLen < 6 + length + 2)
-    {
-        SYS_ASSERT(false);
-
-        return 0;
-    }
+    SYS_CHECK(frameBufferLen >= 6 + length + 2, return 0);
 
     frameBuffer[0] = UBX_PREAMBLE_SYNC_CHAR_1;
     frameBuffer[1] = UBX_PREAMBLE_SYNC_CHAR_2;
@@ -111,7 +107,7 @@ static size_t ubx_create_frame(uint8_t *frameBuffer, uint16_t frameBufferLen, ui
     return 6 + length + 2;
 }
 
-size_t ubx_valset_apply(uint8_t *cfg, uint16_t cfgLen)
+size_t ubx_valset_apply(ubx_cfg_builder_t *builder, uint8_t *cfg, uint16_t cfgLen)
 {
     uint8_t buffer[256];
     size_t i = 0;
@@ -121,11 +117,11 @@ size_t ubx_valset_apply(uint8_t *cfg, uint16_t cfgLen)
     buffer[i++] = 0x00;
     buffer[i++] = 0x00;
 
-    SYS_ASSERT(sizeof(buffer) - i >= g_cfgValBufferLen);
+    SYS_CHECK(sizeof(buffer) - i >= builder->len, return 0);
 
-    memcpy(buffer + i, g_cfgValBuffer, g_cfgValBufferLen);
-    i += g_cfgValBufferLen;
-    g_cfgValBufferLen = 0;
+    memcpy(buffer + i, builder->buffer, builder->len);
+    i += builder->len;
+    builder->len = 0;
 
     return ubx_create_frame(cfg, cfgLen, 0x06, 0x8a, buffer, i);
 }
