@@ -9,7 +9,7 @@ across RP2040, ESP32, and a host (SITL) target.
 [![DataLink Python](https://github.com/RocketScienceOfficial/rocket-codebase/actions/workflows/datalink-python-tests.yml/badge.svg)](https://github.com/RocketScienceOfficial/rocket-codebase/actions/workflows/datalink-python-tests.yml)
 [![DataLink C](https://github.com/RocketScienceOfficial/rocket-codebase/actions/workflows/datalink-c-tests.yml/badge.svg)](https://github.com/RocketScienceOfficial/rocket-codebase/actions/workflows/datalink-c-tests.yml)
 [![DataLink C#](https://github.com/RocketScienceOfficial/rocket-codebase/actions/workflows/datalink-csharp-tests.yml/badge.svg)](https://github.com/RocketScienceOfficial/rocket-codebase/actions/workflows/datalink-csharp-tests.yml)
-[![License: source-available](https://img.shields.io/badge/license-source--available-red.svg)](LICENSE.md)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE.md)
 
 ---
 
@@ -271,8 +271,4 @@ Built on these open-source projects: [FreeRTOS](https://www.freertos.org/), the
 
 ## License
 
-Copyright (c) 2026 Filip Gawlik. All rights reserved.
-
-This is a proprietary, source-available project. The source is published for review and evaluation; use,
-redistribution, and derivative works require the owner's written permission. See [LICENSE.md](LICENSE.md) for the
-full terms.
+MIT licensed. See [LICENSE.md](LICENSE.md) for the full terms.
