@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <hal/stdio_driver.h>
 
+/**
+ * @brief Assertion macro that checks an expression and calls the assertion handler if the expression is false.
+ */
 #ifndef NDEBUG
 
 #define SYS_ASSERT(expr)                                     \
@@ -32,6 +35,38 @@
 #define SYS_ASSERT(expr) ((void)sizeof(expr))
 #define SYS_ASSERT_MSG(expr, ...) ((void)sizeof(expr))
 
+#endif
+
+/**
+ * @brief Like SYS_ASSERT, but with a defined release-build fallback instead of no-op.
+ *
+ * In a debug build, behaves exactly like SYS_ASSERT(expr) -- fails fast on a broken invariant.
+ * In a release (NDEBUG) build, SYS_ASSERT is compiled out, so this instead runs `onFail` (e.g. a
+ * `return`, a clamp, a safe default assignment) whenever expr is false, so the invariant still
+ * holds afterward instead of being silently unchecked. Use this instead of a bare SYS_ASSERT
+ * wherever violating the check would be memory-unsafe or state-corrupting in production, not just
+ * a development-time bug to catch.
+ */
+#ifndef NDEBUG
+#define SYS_CHECK(expr, onFail) SYS_ASSERT(expr)
+#define SYS_CHECK_MSG(expr, onFail, ...) SYS_ASSERT_MSG(expr, __VA_ARGS__)
+#else
+#define SYS_CHECK(expr, onFail) \
+    do                          \
+    {                           \
+        if (!(expr))            \
+        {                       \
+            onFail;             \
+        }                       \
+    } while (0)
+#define SYS_CHECK_MSG(expr, onFail, ...) \
+    do                                   \
+    {                                    \
+        if (!(expr))                     \
+        {                                \
+            onFail;                      \
+        }                                \
+    } while (0)
 #endif
 
 #ifdef __cplusplus
