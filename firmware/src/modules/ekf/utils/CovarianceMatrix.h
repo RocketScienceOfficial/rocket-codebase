@@ -9,14 +9,16 @@ class CovarianceMatrix
 public:
     inline float &operator()(size_t row, size_t col)
     {
-        SYS_ASSERT(row < N && col < N);
+        SYS_CHECK(row < N, row = N - 1);
+        SYS_CHECK(col < N, col = N - 1);
 
         return row <= col ? m_Data[row * N - (row - 1) * row / 2 + col - row] : m_Data[col * N - (col - 1) * col / 2 + row - col];
     }
 
     inline const float &operator()(size_t row, size_t col) const
     {
-        SYS_ASSERT(row < N && col < N);
+        SYS_CHECK(row < N, row = N - 1);
+        SYS_CHECK(col < N, col = N - 1);
 
         return row <= col ? m_Data[row * N - (row - 1) * row / 2 + col - row] : m_Data[col * N - (col - 1) * col / 2 + row - col];
     }

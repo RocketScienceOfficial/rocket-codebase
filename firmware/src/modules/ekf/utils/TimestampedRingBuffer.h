@@ -19,9 +19,8 @@ public:
 
     const T &pop()
     {
-        SYS_ASSERT(!empty());
-        SYS_ASSERT_MSG(m_TailSeq < m_HeadSeq, "Buffer underflow");
-        SYS_ASSERT_MSG(m_TailSeq + N >= m_HeadSeq, "Buffer overflow");
+        SYS_CHECK_MSG(!empty(), return m_Buffer[m_TailSeq % N], "Buffer underflow");
+        SYS_CHECK_MSG(m_HeadSeq - m_TailSeq <= N, m_TailSeq = m_HeadSeq - N, "Buffer overflow");
 
         size_t idx = m_TailSeq % N;
 
@@ -42,7 +41,7 @@ public:
 
     T &get(size_t index)
     {
-        SYS_ASSERT_MSG(index < size(), "Index out of bounds");
+        SYS_CHECK_MSG(index < size(), index = empty() ? 0 : size() - 1, "Index out of bounds");
 
         size_t idx = (m_TailSeq + index) % N;
 
@@ -53,7 +52,7 @@ public:
 
     const T &getNewest() const
     {
-        SYS_ASSERT(!empty());
+        SYS_CHECK(!empty(), return m_Buffer[m_TailSeq % N]);
 
         return m_Buffer[(m_HeadSeq - 1) % N];
     }
@@ -66,8 +65,8 @@ public:
     }
 
 private:
-    T m_Buffer[N];
-    uint32_t m_TimestampsBuffer[N];
+    T m_Buffer[N]{};
+    uint32_t m_TimestampsBuffer[N]{};
     size_t m_HeadSeq = 0;
     size_t m_TailSeq = 0;
 };

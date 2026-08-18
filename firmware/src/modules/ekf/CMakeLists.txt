@@ -30,3 +30,10 @@ add_module(ekf
     maths
     geo
 )
+
+add_sys_test(ekf_tests
+    SOURCES
+    tests/ekf_tests.cpp
+    DEPENDS
+    app_modules_ekf
+)
