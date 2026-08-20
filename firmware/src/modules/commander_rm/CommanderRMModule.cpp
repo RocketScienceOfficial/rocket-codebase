@@ -42,7 +42,7 @@ void CommanderRMModule::processUARTMessage(const datalink_message_t &msg)
     }
 }
 
-void CommanderRMModule::processRadioMessage(const PubSub::Topics::LoRaRXData &data)
+void CommanderRMModule::processRadioMessage(const PubSub::Messages::LoRaRXData &data)
 {
     LOG_DEBUG("Received message from radio! (ID: %d, Payload Length: %d, RSSI: %d, Sequence: %d)", data.msg.msg_id, data.msg.len, data.rssi, data.sequence);
 

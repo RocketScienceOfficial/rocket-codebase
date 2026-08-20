@@ -38,7 +38,7 @@ private:
     uint32_t m_RadioTmpRXStartTime;
 
     void processSerialMessage(const datalink_message_t &msg);
-    void processRadioMessage(const PubSub::Topics::LoRaRXData &data);
+    void processRadioMessage(const PubSub::Messages::LoRaRXData &data);
 
     void checkPacketLossResetTimeout();
     void checkTelemetryResponseTimeout();

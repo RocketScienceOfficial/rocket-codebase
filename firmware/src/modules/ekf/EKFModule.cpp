@@ -35,7 +35,7 @@ void EKFModule::run()
     }
 }
 
-void EKFModule::processIMU(const PubSub::Topics::SensorsIMU &imuData)
+void EKFModule::processIMU(const PubSub::Messages::SensorsIMU &imuData)
 {
     uint32_t currentTime = osal_systime_get_ms();
 
@@ -108,7 +108,7 @@ void EKFModule::processIMU(const PubSub::Topics::SensorsIMU &imuData)
     }
 }
 
-void EKFModule::processGPS(const PubSub::Topics::SensorsGPS &gpsData)
+void EKFModule::processGPS(const PubSub::Messages::SensorsGPS &gpsData)
 {
     if (!gpsData.gpsIs3dFix || gpsData.pos.lat == 0 || gpsData.pos.lon == 0)
     {
@@ -183,7 +183,7 @@ void EKFModule::processGPS(const PubSub::Topics::SensorsGPS &gpsData)
     }
 }
 
-void EKFModule::processBaro(const PubSub::Topics::SensorsBaro &baroData)
+void EKFModule::processBaro(const PubSub::Messages::SensorsBaro &baroData)
 {
     if (baroData.baroHeight == 0)
     {
@@ -230,7 +230,7 @@ void EKFModule::processBaro(const PubSub::Topics::SensorsBaro &baroData)
     }
 }
 
-void EKFModule::processMag(const PubSub::Topics::SensorsMag &magData)
+void EKFModule::processMag(const PubSub::Messages::SensorsMag &magData)
 {
 #if EKF_USE_MAG
     if (!m_GPSOriginSet)

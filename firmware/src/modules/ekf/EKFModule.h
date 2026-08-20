@@ -67,10 +67,10 @@ private:
     TimestampedRingBuffer<EKFMagMeasurement, EKF_DELAY_HORIZON_SIZE_MAG> m_MagBuffer;
 
     // Processing functions
-    void processIMU(const PubSub::Topics::SensorsIMU &imuData);
-    void processGPS(const PubSub::Topics::SensorsGPS &gpsData);
-    void processBaro(const PubSub::Topics::SensorsBaro &baroData);
-    void processMag(const PubSub::Topics::SensorsMag &magData);
+    void processIMU(const PubSub::Messages::SensorsIMU &imuData);
+    void processGPS(const PubSub::Messages::SensorsGPS &gpsData);
+    void processBaro(const PubSub::Messages::SensorsBaro &baroData);
+    void processMag(const PubSub::Messages::SensorsMag &magData);
 
     // Output predictor functions
     void outputPredictorForward(const EKFIMUData &sample, uint32_t currentTime);

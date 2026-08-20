@@ -22,6 +22,6 @@ private:
     uint8_t m_Sequence;
 
     void processUARTMessage(const datalink_message_t &msg);
-    void processRadioMessage(const PubSub::Topics::LoRaRXData &data);
+    void processRadioMessage(const PubSub::Messages::LoRaRXData &data);
     void processRadioAck();
 };

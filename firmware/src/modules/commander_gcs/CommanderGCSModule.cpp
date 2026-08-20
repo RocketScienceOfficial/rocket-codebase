@@ -48,7 +48,7 @@ void CommanderGCSModule::processSerialMessage(const datalink_message_t &msg)
     }
 }
 
-void CommanderGCSModule::processRadioMessage(const PubSub::Topics::LoRaRXData &data)
+void CommanderGCSModule::processRadioMessage(const PubSub::Messages::LoRaRXData &data)
 {
     m_RadioRX++;
     m_RadioTmpRX++;

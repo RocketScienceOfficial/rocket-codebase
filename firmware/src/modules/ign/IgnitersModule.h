@@ -25,8 +25,8 @@ private:
     PubSub::Publisher<PubSub::Topics::ign_continuity_topic> m_IgnDetPublisher;
     PubSub::Publisher<PubSub::Topics::ign_fired_topic> m_IgnFiredPublisher;
 
-    PubSub::Topics::IgnContinuity m_CurrentIgnContinuityPubData;
-    PubSub::Topics::IgnFired m_CurrentIgnFiredPubData;
+    PubSub::Messages::IgnContinuity m_CurrentIgnContinuityPubData;
+    PubSub::Messages::IgnFired m_CurrentIgnFiredPubData;
 
     struct IgniterPinData
     {

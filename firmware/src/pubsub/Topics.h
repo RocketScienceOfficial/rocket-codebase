@@ -14,7 +14,7 @@ namespace PubSub
 {
     namespace Helpers
     {
-        static constexpr uint8_t IGN_CHANNELS_COUNT = 4;
+        inline constexpr uint8_t IGN_CHANNELS_COUNT = 4;
 
         enum IMUClippingFlags : uint8_t
         {
@@ -47,21 +47,12 @@ namespace PubSub
         };
     }
 
-    namespace Topics
+    namespace Messages
     {
         using DatalinkMessage = datalink_message_t;
-        PUBSUB_REGISTER_TOPIC_SIZE(DatalinkMessage, uart_rx, 4)
-        PUBSUB_REGISTER_TOPIC_SIZE(DatalinkMessage, uart_tx, 4)
-        PUBSUB_REGISTER_TOPIC_SIZE(DatalinkMessage, serial_rx, 4)
-        PUBSUB_REGISTER_TOPIC_SIZE(DatalinkMessage, serial_tx, 4)
-        PUBSUB_REGISTER_TOPIC_SIZE(DatalinkMessage, database_rx, 4)
-        PUBSUB_REGISTER_TOPIC_SIZE(DatalinkMessage, database_tx, 4)
 
         using TelemetryDataOBC = telemetry_data_obc;
-        PUBSUB_REGISTER_TOPIC(TelemetryDataOBC, telemetry_tx)
-
         using TelemetryResponse = telemetry_response;
-        PUBSUB_REGISTER_TOPIC(TelemetryResponse, telemetry_rx)
 
         struct LoRaRXData
         {
@@ -69,20 +60,17 @@ namespace PubSub
             int rssi;
             uint8_t sequence;
         };
-        PUBSUB_REGISTER_TOPIC(LoRaRXData, lora_rx)
 
         struct LoRaTXData
         {
             datalink_message_t msg;
             uint8_t sequence;
         };
-        PUBSUB_REGISTER_TOPIC(LoRaTXData, lora_tx)
 
         struct LoRaTXAck
         {
             uint8_t reserved;
         };
-        PUBSUB_REGISTER_TOPIC(LoRaTXAck, lora_tx_ack)
 
         struct SensorsIMU
         {
@@ -91,13 +79,11 @@ namespace PubSub
             vec3_t gyro;
             uint8_t clippingFlags; // Based on IMUClippingFlags enum
         };
-        PUBSUB_REGISTER_TOPIC(SensorsIMU, sensors_imu_1)
 
         struct SensorsMag
         {
             vec3_t mag;
         };
-        PUBSUB_REGISTER_TOPIC(SensorsMag, sensors_mag_1)
 
         struct SensorsBaro
         {
@@ -105,7 +91,6 @@ namespace PubSub
             float temp;
             float baroHeight;
         };
-        PUBSUB_REGISTER_TOPIC(SensorsBaro, sensors_baro_1)
 
         struct SensorsGPS
         {
@@ -118,10 +103,8 @@ namespace PubSub
             bool gpsIs3dFix;
             uint8_t gpsSatellitesCount;
         };
-        PUBSUB_REGISTER_TOPIC(SensorsGPS, sensors_gps_1)
 
         using SensorsSimplifiedGPS = geo_position_t;
-        PUBSUB_REGISTER_TOPIC(SensorsSimplifiedGPS, sensors_simplified_gps_1)
 
         struct SensorsBattery
         {
@@ -129,25 +112,21 @@ namespace PubSub
             uint8_t batPercent;
             uint8_t batNCells;
         };
-        PUBSUB_REGISTER_TOPIC(SensorsBattery, sensors_battery)
 
         struct IgnContinuity
         {
             uint8_t detectorsFlags[PubSub::Helpers::IGN_CHANNELS_COUNT]; // Based on IgnChannelContinuityFlags enum
         };
-        PUBSUB_REGISTER_TOPIC(IgnContinuity, ign_continuity)
 
         struct IgnFired
         {
             bool fired[PubSub::Helpers::IGN_CHANNELS_COUNT];
         };
-        PUBSUB_REGISTER_TOPIC(IgnFired, ign_fired)
 
         struct IgnAdcChannels
         {
             float volts[PubSub::Helpers::IGN_CHANNELS_COUNT];
         };
-        PUBSUB_REGISTER_TOPIC(IgnAdcChannels, ign_adc_channels)
 
         struct EKFState
         {
@@ -155,88 +134,124 @@ namespace PubSub
             vec3_t position;
             vec3_t velocity;
         };
-        PUBSUB_REGISTER_TOPIC(EKFState, ekf_state)
 
         struct AirbrakeState
         {
             float predictedApogee;
         };
-        PUBSUB_REGISTER_TOPIC(AirbrakeState, airbrake_state)
 
         struct StateMachineState
         {
             state_machine_state state;
         };
-        PUBSUB_REGISTER_TOPIC(StateMachineState, sm_state)
 
         struct StateMachineHeight
         {
             float height;
         };
-        PUBSUB_REGISTER_TOPIC(StateMachineHeight, sm_height)
 
         struct DatabaseReady
         {
             bool ready;
         };
-        PUBSUB_REGISTER_TOPIC(DatabaseReady, database_ready)
 
         struct VoltageState
         {
             uint8_t pingsFlags; // Based on VoltagePinsFlags enum
         };
-        PUBSUB_REGISTER_TOPIC(VoltageState, voltage_state)
 
         struct RadioAck
         {
             uint8_t reserved;
         };
-        PUBSUB_REGISTER_TOPIC(RadioAck, radio_ack)
 
         struct GCSRadioState
         {
             uint32_t rx;
             uint32_t tx;
         };
-        PUBSUB_REGISTER_TOPIC(GCSRadioState, gcs_radio_state)
 
         struct PMUState
         {
             float batteryVoltage;
             int batteryPercentage;
         };
-        PUBSUB_REGISTER_TOPIC(PMUState, pmu_state)
 
         struct GCSCommanderTimeout
         {
             uint8_t timeoutSec;
         };
-        PUBSUB_REGISTER_TOPIC(GCSCommanderTimeout, gcs_commander_timeout)
 
         struct CommanderState
         {
             uint8_t seq;
             PubSub::Helpers::CommanderStatus status;
         };
-        PUBSUB_REGISTER_TOPIC(CommanderState, commander_state)
 
         struct CommandArm
         {
             bool arm;
         };
-        PUBSUB_REGISTER_RPC(CommandArm, command_arm)
 
         struct CommandSetVoltage
         {
             PubSub::Helpers::VoltagePinsFlags pin;
             bool enabled;
         };
-        PUBSUB_REGISTER_RPC(CommandSetVoltage, command_set_voltage)
 
         struct CommandIgnite
         {
             uint8_t channel;
         };
-        PUBSUB_REGISTER_RPC(CommandIgnite, command_ignite)
+    }
+
+    namespace Topics
+    {
+        PUBSUB_REGISTER_TOPIC_SIZE(Messages::DatalinkMessage, uart_rx, 4)
+        PUBSUB_REGISTER_TOPIC_SIZE(Messages::DatalinkMessage, uart_tx, 4)
+        PUBSUB_REGISTER_TOPIC_SIZE(Messages::DatalinkMessage, serial_rx, 4)
+        PUBSUB_REGISTER_TOPIC_SIZE(Messages::DatalinkMessage, serial_tx, 4)
+        PUBSUB_REGISTER_TOPIC_SIZE(Messages::DatalinkMessage, database_rx, 4)
+        PUBSUB_REGISTER_TOPIC_SIZE(Messages::DatalinkMessage, database_tx, 4)
+
+        PUBSUB_REGISTER_TOPIC(Messages::TelemetryDataOBC, telemetry_tx)
+        PUBSUB_REGISTER_TOPIC(Messages::TelemetryResponse, telemetry_rx)
+
+        PUBSUB_REGISTER_TOPIC(Messages::LoRaRXData, lora_rx)
+        PUBSUB_REGISTER_TOPIC(Messages::LoRaTXData, lora_tx)
+        PUBSUB_REGISTER_TOPIC(Messages::LoRaTXAck, lora_tx_ack)
+
+        PUBSUB_REGISTER_TOPIC(Messages::SensorsIMU, sensors_imu_1)
+        PUBSUB_REGISTER_TOPIC(Messages::SensorsMag, sensors_mag_1)
+        PUBSUB_REGISTER_TOPIC(Messages::SensorsBaro, sensors_baro_1)
+        PUBSUB_REGISTER_TOPIC(Messages::SensorsGPS, sensors_gps_1)
+        PUBSUB_REGISTER_TOPIC(Messages::SensorsSimplifiedGPS, sensors_simplified_gps_1)
+        PUBSUB_REGISTER_TOPIC(Messages::SensorsBattery, sensors_battery)
+
+        PUBSUB_REGISTER_TOPIC(Messages::IgnContinuity, ign_continuity)
+        PUBSUB_REGISTER_TOPIC(Messages::IgnFired, ign_fired)
+        PUBSUB_REGISTER_TOPIC(Messages::IgnAdcChannels, ign_adc_channels)
+
+        PUBSUB_REGISTER_TOPIC(Messages::EKFState, ekf_state)
+        PUBSUB_REGISTER_TOPIC(Messages::AirbrakeState, airbrake_state)
+
+        PUBSUB_REGISTER_TOPIC(Messages::StateMachineState, sm_state)
+        PUBSUB_REGISTER_TOPIC(Messages::StateMachineHeight, sm_height)
+
+        PUBSUB_REGISTER_TOPIC(Messages::DatabaseReady, database_ready)
+
+        PUBSUB_REGISTER_TOPIC(Messages::VoltageState, voltage_state)
+
+        PUBSUB_REGISTER_TOPIC(Messages::RadioAck, radio_ack)
+        PUBSUB_REGISTER_TOPIC(Messages::GCSRadioState, gcs_radio_state)
+
+        PUBSUB_REGISTER_TOPIC(Messages::PMUState, pmu_state)
+
+        PUBSUB_REGISTER_TOPIC(Messages::GCSCommanderTimeout, gcs_commander_timeout)
+        PUBSUB_REGISTER_TOPIC(Messages::CommanderState, commander_state)
+
+        PUBSUB_REGISTER_RPC(Messages::CommandArm, command_arm)
+        PUBSUB_REGISTER_RPC(Messages::CommandSetVoltage, command_set_voltage)
+        PUBSUB_REGISTER_RPC(Messages::CommandIgnite, command_ignite)
     }
 }
