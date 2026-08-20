@@ -43,8 +43,8 @@ namespace PubSub
 
         bool copyData(bool latest)
         {
-            typename Topic::storage_type &s = Topic::store();
-            static constexpr size_t depth = Topic::storage_type::depth;
+            auto &s = Topic::storage;
+            static constexpr size_t depth = s.depth;
 
             uint32_t write_seq = 0;
 
@@ -65,7 +65,7 @@ namespace PubSub
                 {
                     if (write_seq - m_ReadSequence > depth)
                     {
-                        TooSlowHook::onTooSlow(Topic::topic_name(), m_ReadSequence, write_seq);
+                        TooSlowHook::onTooSlow(Topic::topic_name, m_ReadSequence, write_seq);
 
                         m_ReadSequence = write_seq - depth + 1;
                     }
