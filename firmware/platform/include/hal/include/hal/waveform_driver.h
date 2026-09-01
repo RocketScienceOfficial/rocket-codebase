@@ -14,6 +14,11 @@ typedef uint8_t hal_waveform_channel_t; /** Waveform channel (platform specific)
 /**
  * @brief Initializes a waveform channel (in timing ratio 2:5:3)
  * 
+ * 0 bit: 2 cycles HIGH, 8 (5 + 3) cycles LOW
+ * 1 bit: 7 (2 + 5) cycles HIGH, 3 cycles LOW
+ * 
+ * Total 10 cycles per symbol
+ * 
  * @param channel Waveform channel
  * @param pin GPIO pin to output the waveform
  * @param symbol_rate_hz Number of symbols transmitted per second
@@ -22,7 +27,7 @@ typedef uint8_t hal_waveform_channel_t; /** Waveform channel (platform specific)
 void hal_waveform_253_init(hal_waveform_channel_t channel, hal_gpio_pin_t pin, uint32_t symbol_rate_hz, uint8_t symbol_bits);
 
 /**
- * @brief Sends a waveform on a channel, blocking (in timing ratio 2:5:3)
+ * @brief Sends a waveform on a channel, blocking
  * 
  * @param channel Waveform channel
  * @param symbols Pointer to waveform symbols (MSB first, 1-32 valid bits per symbol)
