@@ -1,6 +1,6 @@
 #include "hal/i2c_driver.h"
 
-void hal_i2c_init(uint8_t i2c, uint8_t sda, uint8_t scl, uint32_t baudrate)
+void hal_i2c_init_bus(uint8_t i2c, uint8_t sda, uint8_t scl, uint32_t baudrate)
 {
     (void)i2c;
     (void)sda;

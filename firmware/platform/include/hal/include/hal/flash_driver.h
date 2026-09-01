@@ -17,7 +17,8 @@ void hal_flash_init(void);
  * @brief Read data from flash
  *
  * @param offset Offset in bytes of data
- * @param data pointer to data pointer
+ * @param dst Destination buffer to read into
+ * @param size Number of bytes to read
  */
 void hal_flash_read(size_t offset, uint8_t *dst, size_t size);
 

@@ -24,17 +24,17 @@ static void irq_handler(uint gpio, uint32_t events)
 void hal_gpio_init_pin(uint8_t pin, hal_gpio_direction_t dir)
 {
     gpio_init(pin);
-    gpio_set_dir(pin, dir == GPIO_INPUT ? GPIO_IN : GPIO_OUT);
+    gpio_set_dir(pin, dir == HAL_GPIO_INPUT ? GPIO_IN : GPIO_OUT);
 }
 
 void hal_gpio_set_pin_state(uint8_t pin, hal_gpio_state_t state)
 {
-    gpio_put(pin, state == GPIO_HIGH ? 1 : 0);
+    gpio_put(pin, state == HAL_GPIO_HIGH ? 1 : 0);
 }
 
 hal_gpio_state_t hal_gpio_get_pin_state(uint8_t pin)
 {
-    return gpio_get(pin) ? GPIO_HIGH : GPIO_LOW;
+    return gpio_get(pin) ? HAL_GPIO_HIGH : HAL_GPIO_LOW;
 }
 
 void hal_gpio_set_pin_function(uint8_t pin, hal_gpio_function_t function)
@@ -43,16 +43,16 @@ void hal_gpio_set_pin_function(uint8_t pin, hal_gpio_function_t function)
 
     switch (function)
     {
-    case GPIO_FUNCTION_I2C:
+    case HAL_GPIO_FUNCTION_I2C:
         func = GPIO_FUNC_I2C;
         break;
-    case GPIO_FUNCTION_SPI:
+    case HAL_GPIO_FUNCTION_SPI:
         func = GPIO_FUNC_SPI;
         break;
-    case GPIO_FUNCTION_UART:
+    case HAL_GPIO_FUNCTION_UART:
         func = GPIO_FUNC_UART;
         break;
-    case GPIO_FUNCTION_PWM:
+    case HAL_GPIO_FUNCTION_PWM:
         func = GPIO_FUNC_PWM;
         break;
     default:
@@ -71,11 +71,11 @@ void hal_gpio_attach_interrupt(uint8_t pin, void (*callback)(void), hal_gpio_irq
 {
     uint32_t pico_mode = 0;
 
-    if (mode & GPIO_IRQ_RISING_EDGE)
+    if (mode & HAL_GPIO_IRQ_RISING_EDGE)
     {
         pico_mode |= GPIO_IRQ_EDGE_RISE;
     }
-    if (mode & GPIO_IRQ_FALLING_EDGE)
+    if (mode & HAL_GPIO_IRQ_FALLING_EDGE)
     {
         pico_mode |= GPIO_IRQ_EDGE_FALL;
     }

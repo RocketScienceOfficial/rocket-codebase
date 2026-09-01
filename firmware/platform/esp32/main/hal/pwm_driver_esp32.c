@@ -6,107 +6,102 @@
 
 typedef struct
 {
-    uint8_t pin;
+    uint32_t frequency;
+} pwm_timer_state_t;
+
+typedef struct
+{
     bool in_use;
-    ledc_channel_t channel;
     ledc_timer_t timer;
-    float duty_multiplier;
-} pwm_config_t;
+} pwm_channel_state_t;
 
-static pwm_config_t g_configs[LEDC_CHANNEL_MAX];
+static pwm_timer_state_t g_timers[LEDC_TIMER_MAX];
+static pwm_channel_state_t g_channels[LEDC_CHANNEL_MAX];
 
-static pwm_config_t *get_pwm_config(uint8_t pin)
+bool hal_pwm_init_timer(hal_pwm_timer_t timer, uint32_t frequency)
 {
-    for (int i = 0; i < LEDC_CHANNEL_MAX; i++)
+    if (timer >= LEDC_TIMER_MAX)
     {
-        if (g_configs[i].in_use && g_configs[i].pin == pin)
-        {
-            return &g_configs[i];
-        }
+        return false;
     }
 
-    return NULL;
-}
-
-void hal_pwm_init_pin(uint8_t pin)
-{
-    if (get_pwm_config(pin) != NULL)
-    {
-        return;
-    }
-
-    pwm_config_t *state = NULL;
-
-    for (int i = 0; i < LEDC_CHANNEL_MAX; i++)
-    {
-        if (!g_configs[i].in_use)
-        {
-            state = &g_configs[i];
-            state->pin = pin;
-            state->in_use = true;
-            state->channel = (ledc_channel_t)i;
-            state->timer = (ledc_timer_t)(i % LEDC_TIMER_MAX);
-            state->duty_multiplier = 0.0f;
-            break;
-        }
-    }
-
-    if (!state)
-    {
-        return;
-    }
-
-    ledc_channel_config_t channel_conf = {
-        .gpio_num = pin,
+    ledc_timer_config_t timer_conf = {
         .speed_mode = LEDC_LOW_SPEED_MODE,
-        .channel = state->channel,
-        .intr_type = LEDC_INTR_DISABLE,
-        .timer_sel = state->timer,
-        .duty = 0,
-        .hpoint = 0,
+        .timer_num = (ledc_timer_t)timer,
+        .duty_resolution = PWM_RESOLUTION,
+        .freq_hz = frequency,
+        .clk_cfg = LEDC_AUTO_CLK,
     };
-    ledc_channel_config(&channel_conf);
 
-    hal_pwm_set_frequency(pin, 1000);
+    bool success = ledc_timer_config(&timer_conf) == ESP_OK;
+
+    g_timers[timer].frequency = frequency;
+
+    return success;
 }
 
-void hal_pwm_set_frequency(uint8_t pin, unsigned long frequency)
+void hal_pwm_set_timer_frequency(hal_pwm_timer_t timer, uint32_t frequency)
 {
-    pwm_config_t *state = get_pwm_config(pin);
-
-    if (!state || frequency == 0)
+    if (timer >= LEDC_TIMER_MAX || frequency == 0)
     {
         return;
     }
 
     ledc_timer_config_t timer_conf = {
         .speed_mode = LEDC_LOW_SPEED_MODE,
-        .timer_num = state->timer,
+        .timer_num = (ledc_timer_t)timer,
         .duty_resolution = PWM_RESOLUTION,
         .freq_hz = frequency,
         .clk_cfg = LEDC_AUTO_CLK,
     };
     ledc_timer_config(&timer_conf);
 
-    state->duty_multiplier = ((float)frequency * PWM_MAX_DUTY_RAW) / 1000000.0f;
+    g_timers[timer].frequency = frequency;
 }
 
-void hal_pwm_set_duty(uint8_t pin, float dutyCycleUs)
+bool hal_pwm_init_channel(hal_pwm_channel_t channel, hal_pwm_timer_t timer, hal_gpio_pin_t pin)
 {
-    pwm_config_t *state = get_pwm_config(pin);
+    if (channel >= LEDC_CHANNEL_MAX || timer >= LEDC_TIMER_MAX)
+    {
+        return false;
+    }
 
-    if (!state)
+    ledc_channel_config_t channel_conf = {
+        .gpio_num = pin,
+        .speed_mode = LEDC_LOW_SPEED_MODE,
+        .channel = (ledc_channel_t)channel,
+        .intr_type = LEDC_INTR_DISABLE,
+        .timer_sel = (ledc_timer_t)timer,
+        .duty = 0,
+        .hpoint = 0,
+    };
+
+    bool success = ledc_channel_config(&channel_conf) == ESP_OK;
+
+    g_channels[channel].in_use = true;
+    g_channels[channel].timer = (ledc_timer_t)timer;
+
+    return success;
+}
+
+void hal_pwm_set_channel_duty(hal_pwm_channel_t channel, float dutyCycleUs)
+{
+    if (channel >= LEDC_CHANNEL_MAX)
     {
         return;
     }
 
-    uint32_t raw_duty = (uint32_t)(dutyCycleUs * state->duty_multiplier);
+    ledc_timer_t timer = g_channels[channel].timer;
+    uint32_t frequency = g_timers[timer].frequency;
+
+    float duty_multiplier = ((float)frequency * PWM_MAX_DUTY_RAW) / 1000000.0f;
+    uint32_t raw_duty = (uint32_t)(dutyCycleUs * duty_multiplier);
 
     if (raw_duty > (uint32_t)PWM_MAX_DUTY_RAW)
     {
         raw_duty = (uint32_t)PWM_MAX_DUTY_RAW;
     }
 
-    ledc_set_duty(LEDC_LOW_SPEED_MODE, state->channel, raw_duty);
-    ledc_update_duty(LEDC_LOW_SPEED_MODE, state->channel);
+    ledc_set_duty(LEDC_LOW_SPEED_MODE, (ledc_channel_t)channel, raw_duty);
+    ledc_update_duty(LEDC_LOW_SPEED_MODE, (ledc_channel_t)channel);
 }

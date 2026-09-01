@@ -33,5 +33,6 @@ idf_component_register(SRCS
 target_link_libraries(${COMPONENT_LIB} PRIVATE
     platform_hal
     platform_osal
+    hal_adc_esp32
     app_main
 )

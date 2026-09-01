@@ -9,13 +9,13 @@ static spi_inst_t *get_spi(uint8_t spi)
     return (spi == 0 ? spi0 : spi1);
 }
 
-void hal_spi_init(uint8_t bus, uint8_t miso, uint8_t mosi, uint8_t sck, uint32_t baudrate)
+void hal_spi_init_bus(uint8_t bus, uint8_t miso, uint8_t mosi, uint8_t sck, uint32_t baudrate)
 {
     spi_init(get_spi(bus), baudrate);
 
-    hal_gpio_set_pin_function(miso, GPIO_FUNCTION_SPI);
-    hal_gpio_set_pin_function(mosi, GPIO_FUNCTION_SPI);
-    hal_gpio_set_pin_function(sck, GPIO_FUNCTION_SPI);
+    hal_gpio_set_pin_function(miso, HAL_GPIO_FUNCTION_SPI);
+    hal_gpio_set_pin_function(mosi, HAL_GPIO_FUNCTION_SPI);
+    hal_gpio_set_pin_function(sck, HAL_GPIO_FUNCTION_SPI);
 }
 
 bool hal_spi_transfer(uint8_t bus, const uint8_t *txData, uint8_t *rxData, size_t size)

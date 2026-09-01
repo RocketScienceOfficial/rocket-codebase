@@ -4,7 +4,7 @@
 
 static spi_device_handle_t g_spi_handles[SOC_SPI_PERIPH_NUM];
 
-void hal_spi_init(uint8_t bus, uint8_t miso, uint8_t mosi, uint8_t sck, uint32_t baudrate)
+void hal_spi_init_bus(uint8_t bus, uint8_t miso, uint8_t mosi, uint8_t sck, uint32_t baudrate)
 {
     spi_bus_config_t buscfg = {};
     buscfg.miso_io_num = miso;

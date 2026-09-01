@@ -1,7 +1,7 @@
 #include "hal/uart_driver.h"
 #include "driver/uart.h"
 
-void hal_uart_init(uint8_t bus, uint8_t rx, uint8_t tx, uint32_t baudrate)
+void hal_uart_init_bus(uint8_t bus, uint8_t rx, uint8_t tx, uint32_t baudrate)
 {
     uart_config_t cfg = {
         .baud_rate = baudrate,

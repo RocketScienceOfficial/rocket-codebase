@@ -1,13 +1,17 @@
 #ifndef _I2C_DRIVER_H
 #define _I2C_DRIVER_H
 
+#include "gpio_driver.h"
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
+
+typedef uint8_t hal_i2c_bus_t; /** I2C bus definition */
 
 /**
  * @brief Initialize I2C
@@ -17,11 +21,11 @@ extern "C" {
  * @param scl SCL pin
  * @param baudrate Baud rate
  */
-void hal_i2c_init(uint8_t bus, uint8_t sda, uint8_t scl, uint32_t baudrate);
+void hal_i2c_init_bus(hal_i2c_bus_t bus, hal_gpio_pin_t sda, hal_gpio_pin_t scl, uint32_t baudrate);
 
 /**
  * @brief Transfer data to/from I2C with blocking
- * 
+ *
  * @param bus I2C Instance
  * @param address Address of I2C
  * @param tx_buffer Data pointer to write, can be NULL if only reading
@@ -30,7 +34,7 @@ void hal_i2c_init(uint8_t bus, uint8_t sda, uint8_t scl, uint32_t baudrate);
  * @param rx_size Size of data to receive
  * @return true if success, false if failure
  */
-bool hal_i2c_transfer(uint8_t bus, uint8_t address, const uint8_t *tx_buffer, size_t tx_size, uint8_t *rx_buffer, size_t rx_size);
+bool hal_i2c_transfer(hal_i2c_bus_t bus, uint8_t address, const uint8_t *tx_buffer, size_t tx_size, uint8_t *rx_buffer, size_t rx_size);
 
 #ifdef __cplusplus
 }

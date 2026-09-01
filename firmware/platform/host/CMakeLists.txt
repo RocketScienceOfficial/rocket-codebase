@@ -66,7 +66,7 @@ target_link_libraries(host_sitl INTERFACE
     platform_osal
 )
 target_include_directories(host_sitl INTERFACE
-    ${CMAKE_CURRENT_LIST_DIR}/sitl
+    ${CMAKE_CURRENT_LIST_DIR}/sitl/include
 )
 
 # ============= ENABLE NETWORK LIB =============

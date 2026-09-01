@@ -1,6 +1,6 @@
 #include "hal/spi_driver.h"
 
-void hal_spi_init(uint8_t bus, uint8_t miso, uint8_t mosi, uint8_t sck, uint32_t baudrate)
+void hal_spi_init_bus(uint8_t bus, uint8_t miso, uint8_t mosi, uint8_t sck, uint32_t baudrate)
 {
     (void)bus;
     (void)miso;

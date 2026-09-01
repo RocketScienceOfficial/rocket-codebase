@@ -6,45 +6,98 @@
 
 typedef struct
 {
-    unsigned long slice_num;
     unsigned long clock_div;
-} pwm_config_t;
+} pwm_timer_state_t;
+
+typedef struct
+{
+    hal_gpio_pin_t pin;
+    hal_pwm_timer_t timer;
+    bool initialized;
+} pwm_channel_state_t;
 
 static const unsigned long PWM_FREQ_HZ = 125E6;
 static const unsigned long PWM_DEFAULT_WRAP = 65535;
 
-static pwm_config_t g_pwm_configs[NUM_BANK0_GPIOS] = {0};
+static pwm_timer_state_t g_pwm_timers[NUM_PWM_SLICES] = {0};
+static pwm_channel_state_t g_pwm_channels[NUM_BANK0_GPIOS] = {0};
 
-void hal_pwm_init_pin(uint8_t pin)
+static void compute_clkdiv_wrap(uint32_t frequency, unsigned long *clockDiv, unsigned long *wrap)
 {
-    hal_gpio_set_pin_function(pin, GPIO_FUNCTION_PWM);
-
-    unsigned long slice_num = pwm_gpio_to_slice_num(pin);
-    pwm_set_enabled(slice_num, true);
-
-    pwm_config_t *config = &g_pwm_configs[pin];
-    config->slice_num = slice_num;
-    config->clock_div = 1.0f;
+    *clockDiv = (unsigned long)ceilf((float)PWM_FREQ_HZ / (float)(PWM_DEFAULT_WRAP * frequency));
+    *wrap = (unsigned long)roundf((float)PWM_FREQ_HZ / (float)(*clockDiv * frequency));
 }
 
-void hal_pwm_set_frequency(uint8_t pin, unsigned long frequency)
+bool hal_pwm_init_timer(hal_pwm_timer_t timer, uint32_t frequency)
 {
-    pwm_config_t *config = &g_pwm_configs[pin];
+    if (timer >= NUM_PWM_SLICES)
+    {
+        return false;
+    }
 
-    unsigned long clockDiv = (unsigned long)ceilf((float)PWM_FREQ_HZ / (float)(PWM_DEFAULT_WRAP * frequency));
-    unsigned long wrap = (unsigned long)roundf((float)PWM_FREQ_HZ / (float)(clockDiv * frequency));
+    unsigned long clockDiv;
+    unsigned long wrap;
+    compute_clkdiv_wrap(frequency, &clockDiv, &wrap);
 
-    pwm_set_clkdiv(config->slice_num, clockDiv);
-    pwm_set_wrap(config->slice_num, wrap);
+    pwm_set_clkdiv(timer, clockDiv);
+    pwm_set_wrap(timer, wrap);
+    pwm_set_enabled(timer, true);
 
-    config->clock_div = clockDiv;
+    g_pwm_timers[timer].clock_div = clockDiv;
+
+    return true;
 }
 
-void hal_pwm_set_duty(uint8_t pin, float dutyCycleUs)
+void hal_pwm_set_timer_frequency(hal_pwm_timer_t timer, uint32_t frequency)
 {
-    pwm_config_t *config = &g_pwm_configs[pin];
+    if (timer >= NUM_PWM_SLICES)
+    {
+        return;
+    }
 
-    unsigned long wrap = (unsigned long)roundf(dutyCycleUs * (PWM_FREQ_HZ / 1e6) / config->clock_div);
+    unsigned long clockDiv;
+    unsigned long wrap;
+    compute_clkdiv_wrap(frequency, &clockDiv, &wrap);
 
-    pwm_set_gpio_level(pin, wrap);
+    pwm_set_clkdiv(timer, clockDiv);
+    pwm_set_wrap(timer, wrap);
+
+    g_pwm_timers[timer].clock_div = clockDiv;
+}
+
+bool hal_pwm_init_channel(hal_pwm_channel_t channel, hal_pwm_timer_t timer, hal_gpio_pin_t pin)
+{
+    if (channel >= NUM_BANK0_GPIOS || timer >= NUM_PWM_SLICES)
+    {
+        return false;
+    }
+
+    if (pwm_gpio_to_slice_num(pin) != timer)
+    {
+        return false;
+    }
+
+    hal_gpio_set_pin_function(pin, HAL_GPIO_FUNCTION_PWM);
+
+    pwm_channel_state_t *chan = &g_pwm_channels[channel];
+    chan->pin = pin;
+    chan->timer = timer;
+    chan->initialized = true;
+
+    return true;
+}
+
+void hal_pwm_set_channel_duty(hal_pwm_channel_t channel, float dutyCycleUs)
+{
+    if (channel >= NUM_BANK0_GPIOS)
+    {
+        return;
+    }
+
+    pwm_channel_state_t *chan = &g_pwm_channels[channel];
+    unsigned long clock_div = g_pwm_timers[chan->timer].clock_div;
+
+    unsigned long wrap = (unsigned long)roundf(dutyCycleUs * (PWM_FREQ_HZ / 1e6) / clock_div);
+
+    pwm_set_gpio_level(chan->pin, wrap);
 }

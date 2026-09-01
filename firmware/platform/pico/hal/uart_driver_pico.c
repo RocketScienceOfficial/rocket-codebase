@@ -65,14 +65,14 @@ static void dma_setup_tx(uart_context_t *ctx)
     dma_channel_configure(ctx->dma_chan_tx, &c_tx, &ctx->uart_hw->dr, NULL, 0, false);
 }
 
-void hal_uart_init(uint8_t bus, uint8_t rx, uint8_t tx, uint32_t baudrate)
+void hal_uart_init_bus(uint8_t bus, uint8_t rx, uint8_t tx, uint32_t baudrate)
 {
     uart_context_t *ctx = get_ctx(bus);
 
     uart_init(ctx->uart, baudrate);
 
-    hal_gpio_set_pin_function(rx, GPIO_FUNCTION_UART);
-    hal_gpio_set_pin_function(tx, GPIO_FUNCTION_UART);
+    hal_gpio_set_pin_function(rx, HAL_GPIO_FUNCTION_UART);
+    hal_gpio_set_pin_function(tx, HAL_GPIO_FUNCTION_UART);
 
     uart_set_fifo_enabled(ctx->uart, true);
 

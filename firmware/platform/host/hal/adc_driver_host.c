@@ -4,14 +4,14 @@ void hal_adc_init_all(void)
 {
 }
 
-void hal_adc_init_pin(uint8_t pin)
+void hal_adc_init_channel(hal_adc_channel_t channel)
 {
-    (void)pin;
+    (void)channel;
 }
 
-float hal_adc_read_voltage(uint8_t pin)
+float hal_adc_channel_read_voltage(hal_adc_channel_t channel)
 {
-    (void)pin;
-    
+    (void)channel;
+
     return 0;
 }

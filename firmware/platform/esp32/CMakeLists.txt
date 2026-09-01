@@ -17,6 +17,7 @@ add_library(platform_hal INTERFACE)
 
 target_include_directories(platform_hal INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}/../include/hal/include
+    ${CMAKE_CURRENT_LIST_DIR}/main/internal/include
 )
 
 # ============= SETUP OSAL LIB =============

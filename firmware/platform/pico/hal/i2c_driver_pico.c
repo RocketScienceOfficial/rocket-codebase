@@ -8,12 +8,12 @@ static i2c_inst_t *get_i2c(uint8_t i2c)
     return (i2c == 0 ? i2c0 : i2c1);
 }
 
-void hal_i2c_init(uint8_t i2c, uint8_t sda, uint8_t scl, uint32_t baudrate)
+void hal_i2c_init_bus(hal_i2c_bus_t i2c, hal_gpio_pin_t sda, hal_gpio_pin_t scl, uint32_t baudrate)
 {
     i2c_init(get_i2c(i2c), baudrate);
 
-    hal_gpio_set_pin_function(sda, GPIO_FUNCTION_I2C);
-    hal_gpio_set_pin_function(scl, GPIO_FUNCTION_I2C);
+    hal_gpio_set_pin_function(sda, HAL_GPIO_FUNCTION_I2C);
+    hal_gpio_set_pin_function(scl, HAL_GPIO_FUNCTION_I2C);
     hal_gpio_pull_up_pin(sda);
     hal_gpio_pull_up_pin(scl);
 }

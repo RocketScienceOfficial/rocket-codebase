@@ -16,7 +16,7 @@ hal_gpio_state_t hal_gpio_get_pin_state(uint8_t pin)
 {
     (void)pin;
 
-    return GPIO_LOW;
+    return HAL_GPIO_LOW;
 }
 
 void hal_gpio_set_pin_function(uint8_t pin, hal_gpio_function_t function)

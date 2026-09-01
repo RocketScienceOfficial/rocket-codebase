@@ -1,34 +1,52 @@
 #ifndef _PWM_DRIVER_H
 #define _PWM_DRIVER_H
 
+#include "gpio_driver.h"
 #include <stdint.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-/**
- * @brief Initialize PWM on pin
- *
- * @param pin Pin to intialize PWM on
- */
-void hal_pwm_init_pin(uint8_t pin);
+typedef uint8_t hal_pwm_timer_t;   /** PWM timer/slice definition - the shared frequency domain */
+typedef uint8_t hal_pwm_channel_t; /** PWM channel definition - the individual output with its own duty cycle */
 
 /**
- * @brief Sets frequency of PWM
+ * @brief Initialize a PWM timer at a given frequency. All channels on this timer share this frequency.
  *
- * @param pin PWM pin
- * @param frequency Frequency in Hz of PWM
+ * @param timer Timer to initialize
+ * @param frequency Frequency in Hz
+ * @return true if success, false if failure
  */
-void hal_pwm_set_frequency(uint8_t pin, unsigned long frequency);
+bool hal_pwm_init_timer(hal_pwm_timer_t timer, uint32_t frequency);
 
 /**
- * @brief Set duty cycle of PWM
+ * @brief Change the frequency of a PWM timer. Affects every channel using this timer.
  *
- * @param pin PWM pin
+ * @param timer Timer to update
+ * @param frequency Frequency in Hz
+ */
+void hal_pwm_set_timer_frequency(hal_pwm_timer_t timer, uint32_t frequency);
+
+/**
+ * @brief Initialize a PWM channel. The channel's timer must already be initialized with hal_pwm_init_timer.
+ *
+ * @param channel Channel to initialize
+ * @param timer Timer to use
+ * @param pin GPIO pin to route
+ * @return true if success, false if failure
+ */
+bool hal_pwm_init_channel(hal_pwm_channel_t channel, hal_pwm_timer_t timer, hal_gpio_pin_t pin);
+
+/**
+ * @brief Set duty cycle of a PWM channel
+ *
+ * @param channel Channel to set
  * @param dutyCycleUs Duty cycle in microseconds
  */
-void hal_pwm_set_duty(uint8_t pin, float dutyCycleUs);
+void hal_pwm_set_channel_duty(hal_pwm_channel_t channel, float dutyCycleUs);
 
 #ifdef __cplusplus
 }

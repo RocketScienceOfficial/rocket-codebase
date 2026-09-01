@@ -17,7 +17,7 @@ static i2c_master_bus_handle_t g_bus_handles[MAX_I2C_BUSES] = {NULL};
 static uint32_t g_bus_baudrates[MAX_I2C_BUSES] = {0};
 static i2c_device_node_t s_device_registry[MAX_I2C_DEVICES] = {0};
 
-void hal_i2c_init(uint8_t bus, uint8_t sda, uint8_t scl, uint32_t baudrate)
+void hal_i2c_init_bus(uint8_t bus, uint8_t sda, uint8_t scl, uint32_t baudrate)
 {
     i2c_master_bus_config_t bus_config = {
         .i2c_port = bus,
