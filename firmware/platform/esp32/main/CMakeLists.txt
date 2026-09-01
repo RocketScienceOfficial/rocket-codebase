@@ -9,7 +9,7 @@ idf_component_register(SRCS
     "hal/stdio_driver_esp32.c"
     "hal/time_driver_esp32.c"
     "hal/uart_driver_esp32.c"
-    "hal/ws2812b_driver_esp32.c"
+    "hal/waveform_driver_esp32.c"
     "osal/systime_esp32.c"
     "osal/task_esp32.c"
 

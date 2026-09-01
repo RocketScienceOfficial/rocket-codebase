@@ -33,7 +33,7 @@ add_library(platform_hal STATIC
     hal/spi_driver_host.c
     hal/stdio_driver_host.c
     hal/uart_driver_host.c
-    hal/ws2812b_driver_host.c
+    hal/waveform_driver_host.c
 )
 target_include_directories(platform_hal PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/../include/hal/include

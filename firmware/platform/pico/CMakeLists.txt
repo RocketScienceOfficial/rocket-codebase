@@ -26,6 +26,7 @@ add_library(platform_hal INTERFACE)
 
 target_include_directories(platform_hal INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}/../include/hal/include
+    ${CMAKE_CURRENT_LIST_DIR}/internal/include
 )
 
 # ============= SETUP OSAL LIB =============
@@ -58,7 +59,7 @@ add_executable(firmware
     hal/stdio_driver_pico.c
     hal/time_driver_pico.c
     hal/uart_driver_pico.c
-    hal/ws2812b_driver_pico.c
+    hal/waveform_driver_pico.c
 )
 target_link_libraries(firmware
     app_main
@@ -84,7 +85,7 @@ set(PICO_GEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/hal/generated)
 file(MAKE_DIRECTORY ${PICO_GEN_DIR})
 
 pico_generate_pio_header(firmware
-    ${CMAKE_CURRENT_LIST_DIR}/hal/ws2812b_driver_pico.pio
+    ${CMAKE_CURRENT_LIST_DIR}/hal/waveform_driver_pico.pio
     OUTPUT_DIR ${PICO_GEN_DIR}
 )
 
