@@ -11,7 +11,7 @@ class RadioLibHALPort : public RadioLibHal
 {
 public:
     RadioLibHALPort(uint8_t spi, uint8_t misoPin, uint8_t mosiPin, uint8_t sckPin, uint32_t spiSpeed = 500 * 1000)
-        : RadioLibHal(GPIO_INPUT, GPIO_OUTPUT, 0, 1, GPIO_IRQ_RISING_EDGE, GPIO_IRQ_FALLING_EDGE),
+        : RadioLibHal(HAL_GPIO_INPUT, HAL_GPIO_OUTPUT, 0, 1, HAL_GPIO_IRQ_RISING_EDGE, HAL_GPIO_IRQ_FALLING_EDGE),
           spiChannel(spi),
           spiSpeed(spiSpeed),
           misoPin(misoPin),
@@ -35,7 +35,7 @@ public:
             return;
         }
 
-        hal_gpio_init_pin(pin, mode == GpioModeInput ? GPIO_INPUT : GPIO_OUTPUT);
+        hal_gpio_init_pin(pin, mode == GpioModeInput ? HAL_GPIO_INPUT : HAL_GPIO_OUTPUT);
     }
 
     void digitalWrite(uint32_t pin, uint32_t value) override
@@ -45,7 +45,7 @@ public:
             return;
         }
 
-        hal_gpio_set_pin_state(pin, value ? GPIO_HIGH : GPIO_LOW);
+        hal_gpio_set_pin_state(pin, value ? HAL_GPIO_HIGH : HAL_GPIO_LOW);
     }
 
     uint32_t digitalRead(uint32_t pin) override
@@ -55,7 +55,7 @@ public:
             return 0;
         }
 
-        return hal_gpio_get_pin_state(pin) == GPIO_HIGH ? 1 : 0;
+        return hal_gpio_get_pin_state(pin) == HAL_GPIO_HIGH ? 1 : 0;
     }
 
     void attachInterrupt(uint32_t interruptNum, void (*interruptCb)(void), uint32_t mode) override
@@ -95,7 +95,7 @@ public:
             return 0;
         }
 
-        this->pinMode(pin, GPIO_INPUT);
+        this->pinMode(pin, HAL_GPIO_INPUT);
         uint32_t start = this->micros();
         uint32_t curtick = this->micros();
 
@@ -119,7 +119,7 @@ public:
 
     void spiBegin()
     {
-        hal_spi_init(spiChannel, misoPin, mosiPin, sckPin, spiSpeed);
+        hal_spi_init_bus(spiChannel, misoPin, mosiPin, sckPin, spiSpeed);
     }
 
     void spiBeginTransaction()
