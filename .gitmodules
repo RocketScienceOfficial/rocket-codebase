@@ -4,9 +4,9 @@
 [submodule "firmware/platform/pico/pico-sdk"]
 	path = firmware/platform/pico/pico-sdk
 	url = https://github.com/raspberrypi/pico-sdk.git
-[submodule "firmware/src/lib/drivers/radio/RadioLib"]
-	path = firmware/src/lib/drivers/radio/RadioLib
-	url = https://github.com/jgromes/RadioLib.git
 [submodule "firmware/src/modules/oled/u8g2"]
 	path = firmware/src/modules/oled/u8g2
 	url = https://github.com/olikraus/u8g2
+[submodule "firmware/src/lib/radio/RadioLib"]
+	path = firmware/src/lib/radio/RadioLib
+	url = https://github.com/jgromes/RadioLib

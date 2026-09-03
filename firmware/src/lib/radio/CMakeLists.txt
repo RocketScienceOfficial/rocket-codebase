@@ -1,14 +1,16 @@
+# ESP-IDF bypass
 set(ESP_PLATFORM OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(RadioLib SYSTEM)
 
 unset(ESP_PLATFORM CACHE)
 
+# Setup RadioLib
 target_compile_definitions(RadioLib PRIVATE
     RADIOLIB_STATIC_ONLY
 )
 
-add_library(drivers_radio STATIC
+add_library(radio_driver STATIC
     RadioLibHALPort.cpp
 )
 
@@ -28,7 +30,7 @@ else()
     )
 endif()
 
-target_link_libraries(drivers_radio PUBLIC
-    drivers_common
+target_link_libraries(radio_driver PUBLIC
     RadioLib
+    platform_hal
 )
