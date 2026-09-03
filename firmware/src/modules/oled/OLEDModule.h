@@ -9,8 +9,7 @@
 class OLEDModule
 {
 public:
-    OLEDModule(hal_i2c_bus_t i2cBus, hal_gpio_pin_t buttonPin)
-        : m_I2CBus(i2cBus), m_ButtonPin(buttonPin) {}
+    OLEDModule(hal_i2c_bus_t i2cBus, hal_gpio_pin_t buttonPin) : m_I2CBus(i2cBus), m_ButtonPin(buttonPin) {}
 
     void init();
     void run();
