@@ -2,7 +2,6 @@
 #include "sitl.h"
 #include "modules/common/ModuleLogger.h"
 #include <lib/debug/sys_assert.h>
-#include <board_config.h>
 
 SimSerialModule::~SimSerialModule()
 {
@@ -13,11 +12,14 @@ void SimSerialModule::init()
 {
     sitl_init_godmode();
 
-#ifndef CFG_SIM_SERIAL_SERVER
-    m_SerialSocket.createServer(CFG_SIM_SERIAL_PORT);
-#else
-    m_SerialSocket.createClient(CFG_SIM_SERIAL_SERVER, CFG_SIM_SERIAL_PORT);
-#endif
+    if (m_Host == NULL)
+    {
+        m_SerialSocket.createServer(m_Port);
+    }
+    else
+    {
+        m_SerialSocket.createClient(m_Host, m_Port);
+    }
 
     m_SerialSocket.setBlocking(false);
 }
@@ -50,7 +52,7 @@ void SimSerialModule::sendIfAvailable()
         m_Flushed = true;
         return;
     }
-    
+
     while (m_SerialSubscriber.poll())
     {
         const auto &data = m_SerialSubscriber.get();

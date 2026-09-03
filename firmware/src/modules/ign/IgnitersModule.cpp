@@ -1,6 +1,5 @@
 #include "IgnitersModule.h"
 #include "modules/common/ModuleLogger.h"
-#include <board_config.h>
 #include <osal/systime.h>
 #include <hal/gpio_driver.h>
 
@@ -14,12 +13,20 @@
 #define IGN_FUSE_NOT_WORKING_IGN_NOT_PRESENT_FACTOR 0.0383104f
 #define IGN_FUSE_CHECK_EPS 0.005f
 
+IgnitersModule::IgnitersModule(hal_gpio_pin_t ign1, hal_gpio_pin_t ign2, hal_gpio_pin_t ign3, hal_gpio_pin_t ign4)
+{
+    m_Igniters[0].pin = ign1;
+    m_Igniters[1].pin = ign2;
+    m_Igniters[2].pin = ign3;
+    m_Igniters[3].pin = ign4;
+}
+
 void IgnitersModule::init()
 {
-    initIgniterPin(m_Igniters[0], CFG_PIN_IGN_EN_1);
-    initIgniterPin(m_Igniters[1], CFG_PIN_IGN_EN_2);
-    initIgniterPin(m_Igniters[2], CFG_PIN_IGN_EN_3);
-    initIgniterPin(m_Igniters[3], CFG_PIN_IGN_EN_4);
+    initIgniterPin(m_Igniters[0]);
+    initIgniterPin(m_Igniters[1]);
+    initIgniterPin(m_Igniters[2]);
+    initIgniterPin(m_Igniters[3]);
 }
 
 void IgnitersModule::run()
@@ -99,16 +106,15 @@ void IgnitersModule::gatherData()
     m_EKFSubscriber.poll();
 }
 
-void IgnitersModule::initIgniterPin(IgniterPinData &data, uint8_t pin)
+void IgnitersModule::initIgniterPin(IgniterPinData &data)
 {
-    data.pin = pin;
     data.fired = false;
     data.finished = false;
 
-    hal_gpio_init_pin(pin, GPIO_OUTPUT);
-    hal_gpio_set_pin_state(pin, GPIO_LOW);
+    hal_gpio_init_pin(data.pin, HAL_GPIO_OUTPUT);
+    hal_gpio_set_pin_state(data.pin, HAL_GPIO_LOW);
 
-    LOG_INFO("Igniter pin %d initialized", pin);
+    LOG_INFO("Igniter pin %d initialized", data.pin);
 }
 
 void IgnitersModule::ignTestFire()
@@ -135,7 +141,7 @@ void IgnitersModule::ignFire(IgniterPinData &data)
 {
     if (!data.fired && !data.finished)
     {
-        hal_gpio_set_pin_state(data.pin, GPIO_HIGH);
+        hal_gpio_set_pin_state(data.pin, HAL_GPIO_HIGH);
 
         data.fired = true;
         data.fireTime = osal_systime_get_ms();
@@ -164,7 +170,7 @@ void IgnitersModule::ignUpdate(IgniterPinData &data)
 
 void IgnitersModule::ignFinish(IgniterPinData &data)
 {
-    hal_gpio_set_pin_state(data.pin, GPIO_LOW);
+    hal_gpio_set_pin_state(data.pin, HAL_GPIO_LOW);
 
     if (m_CurrentTestingIgniter && m_CurrentTestingIgniter->pin == data.pin)
     {

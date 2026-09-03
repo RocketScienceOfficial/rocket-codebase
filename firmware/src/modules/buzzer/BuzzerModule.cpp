@@ -1,13 +1,13 @@
 #include "BuzzerModule.h"
 #include "modules/common/ModuleLogger.h"
-#include <board_config.h>
 #include <osal/systime.h>
 
 void BuzzerModule::init()
 {
-    hal_pwm_init_pin(CFG_PIN_BUZZER);
+    hal_pwm_init_timer(m_BuzzerTimer, 1000);
+    hal_pwm_init_channel(m_BuzzerChannel, m_BuzzerTimer, m_BuzzerPin);
 
-    setTone(Tone::START);
+    setTone(ToneType::START);
 }
 
 void BuzzerModule::run()
@@ -20,7 +20,7 @@ void BuzzerModule::run()
             {
                 m_GPSPlayed = true;
 
-                setTone(Tone::GPS_FIX);
+                setTone(ToneType::GPS_FIX);
             }
         }
         else
@@ -33,15 +33,15 @@ void BuzzerModule::run()
     {
         if (m_SMSubscriber.get().state == DATALINK_SM_STATE_STANDING)
         {
-            setTone(Tone::DISARM);
+            setTone(ToneType::DISARM);
         }
         if (m_SMSubscriber.get().state == DATALINK_SM_STATE_ARMED)
         {
-            setTone(Tone::ARM);
+            setTone(ToneType::ARM);
         }
         if (m_SMSubscriber.get().state == DATALINK_SM_STATE_LANDED)
         {
-            setTone(Tone::LANDED);
+            setTone(ToneType::LANDED);
         }
     }
 
@@ -49,7 +49,7 @@ void BuzzerModule::run()
     {
         if (m_SMSubscriber.get().state == DATALINK_SM_STATE_LANDED)
         {
-            setTone(Tone::LANDED);
+            setTone(ToneType::LANDED);
         }
     }
 
@@ -72,7 +72,7 @@ void BuzzerModule::run()
     }
 }
 
-void BuzzerModule::setTone(Tone tone)
+void BuzzerModule::setTone(ToneType tone)
 {
     if (m_CurrentTone != NULL)
     {
@@ -81,23 +81,23 @@ void BuzzerModule::setTone(Tone tone)
 
     switch (tone)
     {
-    case Tone::START:
+    case ToneType::START:
         m_CurrentTone = s_StartupMusic;
         m_CurrentToneSize = sizeof(s_StartupMusic) / sizeof(BuzzerTone);
         break;
-    case Tone::ARM:
+    case ToneType::ARM:
         m_CurrentTone = s_ArmMusic;
         m_CurrentToneSize = sizeof(s_ArmMusic) / sizeof(BuzzerTone);
         break;
-    case Tone::DISARM:
+    case ToneType::DISARM:
         m_CurrentTone = s_DisarmMusic;
         m_CurrentToneSize = sizeof(s_DisarmMusic) / sizeof(BuzzerTone);
         break;
-    case Tone::GPS_FIX:
+    case ToneType::GPS_FIX:
         m_CurrentTone = s_GPSFixMusic;
         m_CurrentToneSize = sizeof(s_GPSFixMusic) / sizeof(BuzzerTone);
         break;
-    case Tone::LANDED:
+    case ToneType::LANDED:
         m_CurrentTone = s_LandedMusic;
         m_CurrentToneSize = sizeof(s_LandedMusic) / sizeof(BuzzerTone);
         break;
@@ -114,14 +114,14 @@ void BuzzerModule::playCurrentTone()
 {
     if (m_CurrentTone == NULL || m_CurrentTone->frequency == 0)
     {
-        hal_pwm_set_duty(CFG_PIN_BUZZER, 0);
+        hal_pwm_set_channel_duty(m_BuzzerChannel, 0);
 
         LOG_DEBUG("Silence for %d ms", m_CurrentTone != NULL ? m_CurrentTone->duration_ms : -1);
     }
     else
     {
-        hal_pwm_set_frequency(CFG_PIN_BUZZER, m_CurrentTone->frequency);
-        hal_pwm_set_duty(CFG_PIN_BUZZER, 1e6f * BUZZER_DUTY_CYCLE_RATIO / m_CurrentTone->frequency);
+        hal_pwm_set_timer_frequency(m_BuzzerTimer, m_CurrentTone->frequency);
+        hal_pwm_set_channel_duty(m_BuzzerChannel, 1e6f * BUZZER_DUTY_CYCLE_RATIO / m_CurrentTone->frequency);
 
         LOG_DEBUG("Playing tone with frequency %d Hz for %d ms", m_CurrentTone->frequency, m_CurrentTone->duration_ms);
     }

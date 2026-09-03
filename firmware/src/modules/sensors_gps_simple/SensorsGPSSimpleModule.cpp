@@ -1,18 +1,17 @@
-#include "SimpleGPSModule.h"
+#include "SensorsGPSSimpleModule.h"
 #include "modules/common/ModuleLogger.h"
-#include <board_config.h>
 #include <hal/uart_driver.h>
 #include <lib/debug/sys_assert.h>
 
-void SimpleGPSModule::init()
+void SensorsGPSSimpleModule::init()
 {
 }
 
-void SimpleGPSModule::run()
+void SensorsGPSSimpleModule::run()
 {
-    if (hal_uart_fifo_available(CFG_UART))
+    if (hal_uart_fifo_available(m_UARTBus))
     {
-        size_t bytes_read = hal_uart_read_fifo(CFG_UART, m_ReceiveFIFOBuffer, sizeof(m_ReceiveFIFOBuffer));
+        size_t bytes_read = hal_uart_read_fifo(m_UARTBus, m_ReceiveFIFOBuffer, sizeof(m_ReceiveFIFOBuffer));
 
         for (size_t i = 0; i < bytes_read; i++)
         {
@@ -52,7 +51,7 @@ static float get_lon_sign(char ew)
     return ew == 'W' ? -1 : 1;
 }
 
-void SimpleGPSModule::parseSentence()
+void SensorsGPSSimpleModule::parseSentence()
 {
     if (!nmea_check_sentence(m_CurrentSentence))
     {

@@ -20,25 +20,25 @@ private:
     PubSub::RPCHandler<PUBSUB_RPC_ID(command_arm)> m_RPC_ARM;
 
     // State
-    state_machine_state m_State;
-    float m_StartupBaseAlt;
-    bool m_StartupBaseAltSet;
-    uint32_t m_VerificationStartTime;
+    state_machine_state m_State = state_machine_state::DATALINK_SM_STATE_STANDING;
+    float m_StartupBaseAlt = 0.0f;
+    bool m_StartupBaseAltSet = false;
+    uint32_t m_VerificationStartTime = 0;
 
     // Baro data
-    float m_CurrentBaroHeight;
-    bool m_BaroHeightChanged;
+    float m_CurrentBaroHeight = 0.0f;
+    bool m_BaroHeightChanged = false;
 
     // IMU data
-    vec3_t m_CurrentIMUAcc;
-    bool m_IMUAccChanged;
+    vec3_t m_CurrentIMUAcc = {0};
+    bool m_IMUAccChanged = false;
 
     // Handlers utils
-    bool m_BaseAltSet;
-    float m_BaseAlt;
-    bool m_VerifyingStandingAlt;
-    float m_Apogee;
-    float m_LandingAlt;
+    bool m_BaseAltSet = false;
+    float m_BaseAlt = 0.0f;
+    bool m_VerifyingStandingAlt = false;
+    float m_Apogee = 0.0f;
+    float m_LandingAlt = 0.0f;
 
     // Utility functions
     void updateData();

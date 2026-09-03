@@ -18,7 +18,7 @@ private:
     PubSub::Publisher<PubSub::Topics::lora_tx_ack_topic> m_AckPublisher;
     PubSub::Subscriber<PubSub::Topics::lora_tx_topic> m_Subscriber;
 
-    bool m_Transmitting;
+    bool m_Transmitting = false;
     uint8_t m_ReceiveBuffer[LORA_BUFFER_SIZE];
     uint8_t m_TransmitBuffer[LORA_BUFFER_SIZE];
 

@@ -54,15 +54,16 @@
 template <class chipType>
 class XPowersCommon
 {
-    typedef int (*iic_fptr_t)(uint8_t devAddr, uint8_t regAddr, uint8_t *data, uint8_t len);
+    typedef int (*iic_fptr_t)(uint8_t bus, uint8_t devAddr, uint8_t regAddr, uint8_t *data, uint8_t len);
 
 public:
-    bool begin(uint8_t addr, iic_fptr_t readRegCallback, iic_fptr_t writeRegCallback)
+    bool begin(uint8_t bus, uint8_t addr, iic_fptr_t readRegCallback, iic_fptr_t writeRegCallback)
     {
         if (has_init)return thisChip().initImpl();
         has_init = true;
         thisReadRegCallback = readRegCallback;
         thisWriteRegCallback = writeRegCallback;
+        this->bus = bus;
         this->addr = addr;
         return thisChip().initImpl();
     }
@@ -71,7 +72,7 @@ public:
     {
         uint8_t val = 0;
         if (thisReadRegCallback) {
-            if (thisReadRegCallback(addr, reg, &val, 1) != 0) {
+            if (thisReadRegCallback(bus, addr, reg, &val, 1) != 0) {
                 return 0;
             }
             return val;
@@ -82,7 +83,7 @@ public:
     int writeRegister(uint8_t reg, uint8_t val)
     {
         if (thisWriteRegCallback) {
-            return thisWriteRegCallback(addr, reg, &val, 1);
+            return thisWriteRegCallback(bus, addr, reg, &val, 1);
         }
         return -1;
     }
@@ -90,7 +91,7 @@ public:
     int readRegister(uint8_t reg, uint8_t *buf, uint8_t lenght)
     {
         if (thisReadRegCallback) {
-            return thisReadRegCallback(addr, reg, buf, lenght);
+            return thisReadRegCallback(bus, addr, reg, buf, lenght);
         }
         return -1;
     }
@@ -98,7 +99,7 @@ public:
     int writeRegister(uint8_t reg, uint8_t *buf, uint8_t lenght)
     {
         if (thisWriteRegCallback) {
-            return thisWriteRegCallback(addr, reg, buf, lenght);
+            return thisWriteRegCallback(bus, addr, reg, buf, lenght);
         }
         return -1;
     }
@@ -193,7 +194,8 @@ protected:
     bool        has_init              = false;
     int         sda                   = -1;
     int         scl                   = -1;
+    uint8_t     bus                   = 0;
     uint8_t     addr                  = 0xFF;
-    iic_fptr_t  thisReadRegCallback     = NULL;
-    iic_fptr_t  thisWriteRegCallback    = NULL;
+    iic_fptr_t  thisReadRegCallback   = NULL;
+    iic_fptr_t  thisWriteRegCallback  = NULL;
 };

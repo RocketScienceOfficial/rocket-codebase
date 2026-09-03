@@ -14,5 +14,5 @@ private:
     PubSub::Subscriber<PubSub::Topics::ekf_state_topic> m_EKFSubscriber;
     PubSub::Publisher<PubSub::Topics::airbrake_state_topic> m_AirbrakePublisher;
 
-    float m_LastPredictedApogee;
+    float m_LastPredictedApogee = 0;
 };

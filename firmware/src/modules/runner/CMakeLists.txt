@@ -38,13 +38,12 @@ endif()
 # ===== ENTRY POINT SETUP -----=====
 add_library(app_main STATIC
     ${RUNNER_GEN_SOURCE}
-    ${HW_INIT_SOURCE}
 )
 
 target_link_libraries(app_main PUBLIC
     platform_hal
     platform_osal
-    platform_board
+    hw_info
     app_pubsub
 )
 

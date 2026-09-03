@@ -1,9 +1,7 @@
 #include "OLEDModule.h"
-#include <board_config.h>
-#include <hal/i2c_driver.h>
-#include <hal/gpio_driver.h>
 #include <hal/time_driver.h>
 #include <string.h>
+#include <stdint.h>
 
 static uint8_t u8x8_gpio_and_delay_hal(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
 {
@@ -46,7 +44,7 @@ static uint8_t u8x8_byte_hal_i2c(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, voi
         break;
 
     case U8X8_MSG_BYTE_END_TRANSFER:
-        hal_i2c_transfer(CFG_I2C, u8x8_GetI2CAddress(u8x8) >> 1, buffer, buf_idx, NULL, 0);
+        hal_i2c_transfer((hal_i2c_bus_t)(uintptr_t)u8x8_GetUserPtr(u8x8), u8x8_GetI2CAddress(u8x8) >> 1, buffer, buf_idx, NULL, 0);
         break;
     }
 
@@ -56,11 +54,12 @@ static uint8_t u8x8_byte_hal_i2c(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, voi
 void OLEDModule::initDisplay()
 {
     u8g2_Setup_ssd1306_i2c_128x64_noname_f(&m_Display, U8G2_R0, u8x8_byte_hal_i2c, u8x8_gpio_and_delay_hal);
+    u8g2_SetUserPtr(&m_Display, (void *)(uintptr_t)m_I2CBus);
 
-    hal_gpio_init_pin(CFG_BUTTON_PIN, GPIO_INPUT);
+    hal_gpio_init_pin(m_ButtonPin, HAL_GPIO_INPUT);
 }
 
 bool OLEDModule::shouldChangeState()
 {
-    return hal_gpio_get_pin_state(CFG_BUTTON_PIN) == GPIO_LOW;
+    return hal_gpio_get_pin_state(m_ButtonPin) == HAL_GPIO_LOW;
 }

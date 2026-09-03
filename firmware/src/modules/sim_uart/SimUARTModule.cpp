@@ -2,7 +2,6 @@
 #include "sitl.h"
 #include "modules/common/ModuleLogger.h"
 #include <lib/debug/sys_assert.h>
-#include <board_config.h>
 
 SimUARTModule::~SimUARTModule()
 {
@@ -13,11 +12,14 @@ void SimUARTModule::init()
 {
     sitl_init_godmode();
 
-#ifndef CFG_SIM_UART_SERVER
-    m_UARTSocket.createServer(CFG_SIM_UART_PORT);
-#else
-    m_UARTSocket.createClient(CFG_SIM_UART_SERVER, CFG_SIM_UART_PORT);
-#endif
+    if (m_Host == NULL)
+    {
+        m_UARTSocket.createServer(m_Port);
+    }
+    else
+    {
+        m_UARTSocket.createClient(m_Host, m_Port);
+    }
 
     m_UARTSocket.setBlocking(false);
 }
@@ -54,7 +56,7 @@ void SimUARTModule::sendIfAvailable()
     while (m_UARTSubscriber.poll())
     {
         const auto &data = m_UARTSubscriber.get();
-        
+
         m_UARTSocket.send(&data);
     }
 }

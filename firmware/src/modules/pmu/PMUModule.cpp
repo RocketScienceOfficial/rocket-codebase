@@ -1,27 +1,25 @@
 #include "PMUModule.h"
-#include <board_config.h>
-#include <hal/i2c_driver.h>
 #include <string.h>
 
-static int i2c_read_reg(uint8_t devAddr, uint8_t regAddr, uint8_t *data, uint8_t len)
+static int i2c_read_reg(uint8_t bus, uint8_t devAddr, uint8_t regAddr, uint8_t *data, uint8_t len)
 {
-    return hal_i2c_transfer(CFG_I2C, devAddr, &regAddr, 1, data, len) == false;
+    return hal_i2c_transfer((hal_i2c_bus_t)bus, devAddr, &regAddr, 1, data, len) == false;
 }
 
-static int i2c_write_reg(uint8_t devAddr, uint8_t regAddr, uint8_t *data, uint8_t len)
+static int i2c_write_reg(uint8_t bus, uint8_t devAddr, uint8_t regAddr, uint8_t *data, uint8_t len)
 {
     static uint8_t buf[256];
 
     memcpy(buf, &regAddr, 1);
     memcpy(buf + 1, data, len);
 
-    return hal_i2c_transfer(CFG_I2C, devAddr, buf, len + 1, NULL, 0) == false;
+    return hal_i2c_transfer((hal_i2c_bus_t)bus, devAddr, buf, len + 1, NULL, 0) == false;
 }
 
 // REF: https://github.com/Xinyuan-LilyGO/LilyGo-LoRa-Series/blob/master/examples/PMU/LoRaBoards.cpp
 void PMUModule::init()
 {
-    m_Device.begin(AXP2101_SLAVE_ADDRESS, i2c_read_reg, i2c_write_reg);
+    m_Device.begin((uint8_t)m_I2CBus, AXP2101_SLAVE_ADDRESS, i2c_read_reg, i2c_write_reg);
 
     m_Device.setChargingLedMode(XPOWERS_CHG_LED_BLINK_1HZ);
     m_Device.setPowerKeyPressOffTime(XPOWERS_POWEROFF_4S);
@@ -71,7 +69,8 @@ void PMUModule::run()
     float batteryVoltage = m_Device.getBattVoltage() / 1000.0f;
     int batteryPercentage = m_Device.getBatteryPercent();
 
-    batteryPercentage = batteryPercentage < 0 ? 0 : batteryPercentage > 100 ? 100 : batteryPercentage;
+    batteryPercentage = batteryPercentage < 0 ? 0 : batteryPercentage > 100 ? 100
+                                                                            : batteryPercentage;
 
     m_Publisher.publish({batteryVoltage, batteryPercentage});
 }

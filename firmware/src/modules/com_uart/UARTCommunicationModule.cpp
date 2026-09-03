@@ -1,6 +1,5 @@
 #include "UARTCommunicationModule.h"
 #include "modules/common/ModuleLogger.h"
-#include <board_config.h>
 #include <lib/debug/sys_assert.h>
 #include <hal/uart_driver.h>
 
@@ -18,7 +17,7 @@ void UARTCommunicationModule::run()
 
 void UARTCommunicationModule::drainTXBuffer()
 {
-    if (!hal_uart_is_writable(CFG_UART))
+    if (!hal_uart_is_writable(m_UARTBus))
     {
         return;
     }
@@ -34,7 +33,7 @@ void UARTCommunicationModule::drainTXBuffer()
 
     if (i > 0 && m_CurrentSendBufferSize > 0)
     {
-        hal_uart_write(CFG_UART, m_SendBuffer, m_CurrentSendBufferSize);
+        hal_uart_write(m_UARTBus, m_SendBuffer, m_CurrentSendBufferSize);
 
         LOG_DEBUG("Sent %d messages over UART (%lu bytes)", i, (unsigned long)m_CurrentSendBufferSize);
 
@@ -44,12 +43,12 @@ void UARTCommunicationModule::drainTXBuffer()
 
 void UARTCommunicationModule::drainRXBuffer()
 {
-    if (!hal_uart_fifo_available(CFG_UART))
+    if (!hal_uart_fifo_available(m_UARTBus))
     {
         return;
     }
 
-    size_t bytes_read = hal_uart_read_fifo(CFG_UART, m_ReceiveFIFOBuffer, sizeof(m_ReceiveFIFOBuffer));
+    size_t bytes_read = hal_uart_read_fifo(m_UARTBus, m_ReceiveFIFOBuffer, sizeof(m_ReceiveFIFOBuffer));
 
     for (size_t i = 0; i < bytes_read; i++)
     {
@@ -103,9 +102,9 @@ void UARTCommunicationModule::flushStartup()
         uint8_t i = 0;
         uint8_t dummyBuffer[UART_MAX_BYTES_PER_TICK];
 
-        while (hal_uart_fifo_available(CFG_UART) && i++ < UART_STARTUP_FLUSH_MAX_TRIES)
+        while (hal_uart_fifo_available(m_UARTBus) && i++ < UART_STARTUP_FLUSH_MAX_TRIES)
         {
-            hal_uart_read_fifo(CFG_UART, dummyBuffer, sizeof(dummyBuffer));
+            hal_uart_read_fifo(m_UARTBus, dummyBuffer, sizeof(dummyBuffer));
         }
 
         SYS_ASSERT_MSG(i < UART_STARTUP_FLUSH_MAX_TRIES, "UART startup flush exceeded max tries, possible continuous data stream on UART");

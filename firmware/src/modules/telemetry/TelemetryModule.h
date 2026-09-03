@@ -24,12 +24,12 @@ private:
     PubSub::Subscriber<PubSub::Topics::voltage_state_topic> m_VoltageStateSubscriber;
     PubSub::Subscriber<PubSub::Topics::ign_continuity_topic> m_IgnitionContinuitySubscriber;
 
-    uint32_t m_RadioTXDoneRecoveryTimeOffset;
-    uint32_t m_RadioResponseRecoveryTimeOffset;
-    uint32_t m_PacketTimer;
-    bool m_WaitingToSendPacket;
-    int m_PacketCounterForResponse;
-    bool m_WaitingForResponse;
+    uint32_t m_RadioTXDoneRecoveryTimeOffset = 0;
+    uint32_t m_RadioResponseRecoveryTimeOffset = 0;
+    uint32_t m_PacketTimer = 0;
+    bool m_WaitingToSendPacket = false;
+    int m_PacketCounterForResponse = 0;
+    bool m_WaitingForResponse = false;
 
     void handleAck();
     void handleResponse();

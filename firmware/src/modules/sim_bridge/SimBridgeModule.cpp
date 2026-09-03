@@ -2,7 +2,6 @@
 #include "sitl.h"
 #include "modules/common/ModuleLogger.h"
 #include <lib/debug/sys_assert.h>
-#include <board_config.h>
 
 SimBridgeModule::~SimBridgeModule()
 {
@@ -13,7 +12,7 @@ void SimBridgeModule::init()
 {
     sitl_init_godmode();
 
-    m_PhysicsSocket.createServer(CFG_SIM_BRIDGE_PORT);
+    m_PhysicsSocket.createServer(m_Port);
     m_PhysicsSocket.setBlocking(true);
 }
 
@@ -109,48 +108,48 @@ void SimBridgeModule::sendPhysicsResponseData()
         return;
     }
 
-    m_responseData.responseFlags = 0;
+    m_ResponseData.responseFlags = 0;
 
     if (m_EKFStateSubscriber.poll())
     {
         const auto &ekfState = m_EKFStateSubscriber.get();
 
-        m_responseData.responseFlags |= DATALINK_FLAGS_SITL_RESP_EKF;
-        m_responseData.posN = ekfState.position.x;
-        m_responseData.posE = ekfState.position.y;
-        m_responseData.posD = ekfState.position.z;
-        m_responseData.velN = ekfState.velocity.x;
-        m_responseData.velE = ekfState.velocity.y;
-        m_responseData.velD = ekfState.velocity.z;
-        m_responseData.qw = ekfState.orientation.w;
-        m_responseData.qx = ekfState.orientation.x;
-        m_responseData.qy = ekfState.orientation.y;
-        m_responseData.qz = ekfState.orientation.z;
+        m_ResponseData.responseFlags |= DATALINK_FLAGS_SITL_RESP_EKF;
+        m_ResponseData.posN = ekfState.position.x;
+        m_ResponseData.posE = ekfState.position.y;
+        m_ResponseData.posD = ekfState.position.z;
+        m_ResponseData.velN = ekfState.velocity.x;
+        m_ResponseData.velE = ekfState.velocity.y;
+        m_ResponseData.velD = ekfState.velocity.z;
+        m_ResponseData.qw = ekfState.orientation.w;
+        m_ResponseData.qx = ekfState.orientation.x;
+        m_ResponseData.qy = ekfState.orientation.y;
+        m_ResponseData.qz = ekfState.orientation.z;
     }
     if (m_StateMachineStateSubscriber.poll())
     {
         const auto &stateMachineState = m_StateMachineStateSubscriber.get();
 
-        m_responseData.smState = stateMachineState.state;
+        m_ResponseData.smState = stateMachineState.state;
     }
     if (m_IGNSubscriber.poll())
     {
         const auto &ignState = m_IGNSubscriber.get();
 
-        m_responseData.ignFiredFlags = 0;
+        m_ResponseData.ignFiredFlags = 0;
 
         for (int i = 0; i < PubSub::Helpers::IGN_CHANNELS_COUNT; i++)
         {
-            m_responseData.ignFiredFlags |= (ignState.fired[i] ? (1 << i) : 0);
+            m_ResponseData.ignFiredFlags |= (ignState.fired[i] ? (1 << i) : 0);
         }
     }
     if (m_AirbrakeStateSubscriber.poll())
     {
-        m_responseData.predictedApogee = m_AirbrakeStateSubscriber.get().predictedApogee;
+        m_ResponseData.predictedApogee = m_AirbrakeStateSubscriber.get().predictedApogee;
     }
 
     datalink_message_t msg;
-    datalink_pack_sitl_response_data(&m_responseData, &msg);
+    datalink_pack_sitl_response_data(&m_ResponseData, &msg);
 
     m_PhysicsSocket.send(&msg);
 }

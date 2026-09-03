@@ -2,7 +2,6 @@
 #include "sitl.h"
 #include "modules/common/ModuleLogger.h"
 #include <lib/debug/sys_assert.h>
-#include <board_config.h>
 
 #define MOCK_RSSI -50
 
@@ -15,11 +14,14 @@ void SimLoRaModule::init()
 {
     sitl_init_godmode();
 
-#ifndef CFG_SIM_LORA_SERVER
-    m_LoRaSocket.createServer(CFG_SIM_LORA_PORT);
-#else
-    m_LoRaSocket.createClient(CFG_SIM_LORA_SERVER, CFG_SIM_LORA_PORT);
-#endif
+    if (m_Host == NULL)
+    {
+        m_LoRaSocket.createServer(m_Port);
+    }
+    else
+    {
+        m_LoRaSocket.createClient(m_Host, m_Port);
+    }
 
     m_LoRaSocket.setBlocking(false);
 }

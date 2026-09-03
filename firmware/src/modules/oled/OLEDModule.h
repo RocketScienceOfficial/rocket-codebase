@@ -2,11 +2,16 @@
 
 #include <pubsub/Topics.h>
 #include <pubsub/Subscriber.h>
+#include <hal/i2c_driver.h>
+#include <hal/gpio_driver.h>
 #include <u8g2.h>
 
 class OLEDModule
 {
 public:
+    OLEDModule(hal_i2c_bus_t i2cBus, hal_gpio_pin_t buttonPin)
+        : m_I2CBus(i2cBus), m_ButtonPin(buttonPin) {}
+
     void init();
     void run();
 
@@ -16,6 +21,9 @@ private:
     PubSub::Subscriber<PubSub::Topics::gcs_commander_timeout_topic> m_GCSCommanderTimeoutSubscriber;
     PubSub::Subscriber<PubSub::Topics::lora_rx_topic> m_RadioSubscriber;
     PubSub::Subscriber<PubSub::Topics::gcs_radio_state_topic> m_GCSRadioStateSubscriber;
+
+    const hal_i2c_bus_t m_I2CBus;
+    const hal_gpio_pin_t m_ButtonPin;
 
     u8g2_t m_Display;
     uint32_t m_LogoDisableTime;

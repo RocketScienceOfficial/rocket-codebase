@@ -22,7 +22,7 @@ private:
 
     uint8_t m_SendBuffer[SERIAL_BUFFER_SIZE];
     uint8_t m_ReceiveBuffer[SERIAL_BUFFER_SIZE];
-    size_t m_CurrentReceiveBufferSize;
+    size_t m_CurrentReceiveBufferSize = 0;
     bool m_SerialStartFlushed = false;
 
     void drainTXBuffer();

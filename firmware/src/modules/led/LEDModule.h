@@ -2,14 +2,16 @@
 
 #include <pubsub/Topics.h>
 #include <pubsub/Subscriber.h>
-#include <hal/ws2812b_driver.h>
+#include "ws2812b_driver.h"
 
 #define DIODES_COUNT 7
-#define BRIGHTNESS 0.05f
 
 class LEDModule
 {
 public:
+    LEDModule(const hal_waveform_channel_t ledChannel, const hal_gpio_pin_t ledPin)
+        : m_LEDChannel(ledChannel), m_LEDPin(ledPin) {}
+
     void init();
     void run();
 
@@ -19,8 +21,11 @@ private:
     PubSub::Subscriber<PubSub::Topics::database_ready_topic> m_ReadySubscriber;
     PubSub::Subscriber<PubSub::Topics::sm_state_topic> m_StateSubscriber;
 
-    hal_ws2812b_color_t m_DiodesColors[DIODES_COUNT];
-    bool m_Updated;
+    const hal_waveform_channel_t m_LEDChannel;
+    const hal_gpio_pin_t m_LEDPin;
+
+    ws2812b_color_t m_DiodesColors[DIODES_COUNT];
+    bool m_Updated = false;
 
     void setIgniterValue(uint8_t igniterNumber, bool fuseWorking, bool ignPresent);
     void setArmState(bool armed);

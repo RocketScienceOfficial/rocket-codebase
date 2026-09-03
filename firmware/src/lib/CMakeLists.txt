@@ -8,5 +8,5 @@ add_subdirectory(network)
 # Internal libs
 add_subdirectory(maths)
 add_subdirectory(geo)
-add_subdirectory(battery)
-add_subdirectory(drivers)
+add_subdirectory(gps)
+add_subdirectory(drivers_utils)

@@ -4,6 +4,7 @@
 #include <pubsub/Subscriber.h>
 #include <pubsub/Publisher.h>
 #include <pubsub/RPCHandler.h>
+#include <hal/gpio_driver.h>
 
 #define IGN_COUNT 4
 
@@ -12,6 +13,8 @@ static_assert(PubSub::Helpers::IGN_CHANNELS_COUNT == IGN_COUNT, "IGN_CHANNELS_CO
 class IgnitersModule
 {
 public:
+    IgnitersModule(hal_gpio_pin_t ign1, hal_gpio_pin_t ign2, hal_gpio_pin_t ign3, hal_gpio_pin_t ign4);
+
     void init();
     void run();
 
@@ -30,7 +33,7 @@ private:
 
     struct IgniterPinData
     {
-        uint8_t pin;
+        hal_gpio_pin_t pin;
         bool fired;
         uint32_t fireTime;
         bool finished;
@@ -40,10 +43,10 @@ private:
 
     bool m_ADCUpdate;
     bool m_ApogeeReached;
-    IgniterPinData* m_CurrentTestingIgniter;
+    IgniterPinData *m_CurrentTestingIgniter;
 
     void gatherData();
-    void initIgniterPin(IgniterPinData &data, uint8_t pin);
+    void initIgniterPin(IgniterPinData &data);
     void ignTestFire();
     void ignFire(IgniterPinData &data);
     void ignUpdate(IgniterPinData &data);

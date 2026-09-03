@@ -5,7 +5,6 @@
 #include <lib/maths/vector.h>
 #include <lib/maths/quaternion.h>
 #include <lib/geo/wgs84.h>
-#include <board_config.h>
 
 #define SECTORS_OFFSET_METADATA 128
 #define SECTORS_OFFSET_STANDING_BUFFER 129

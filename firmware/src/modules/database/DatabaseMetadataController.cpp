@@ -1,6 +1,5 @@
 #include "DatabaseMetadataController.h"
 #include "modules/common/ModuleLogger.h"
-#include <board_config.h>
 #include <datalink.h>
 #include <hal/flash_driver.h>
 #include <string.h>

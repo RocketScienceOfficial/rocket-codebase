@@ -8,6 +8,7 @@
 class SimBridgeModule
 {
 public:
+    SimBridgeModule(uint16_t port) : m_Port(port) {}
     ~SimBridgeModule();
 
     void init();
@@ -26,8 +27,9 @@ private:
     PubSub::Subscriber<PubSub::Topics::sm_state_topic> m_StateMachineStateSubscriber;
     PubSub::Subscriber<PubSub::Topics::airbrake_state_topic> m_AirbrakeStateSubscriber;
 
-    sitl_response_data m_responseData;
+    sitl_response_data m_ResponseData;
 
+    const uint16_t m_Port;
     network::TCPSocket m_PhysicsSocket;
 
     void receivePhysicsData();
