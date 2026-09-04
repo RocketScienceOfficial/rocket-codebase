@@ -106,6 +106,11 @@ namespace PubSub
 
         using SensorsSimplifiedGPS = geo_position_t;
 
+        struct SensorsBatteryRaw
+        {
+            float rawVoltage;
+        };
+
         struct SensorsBattery
         {
             float batVolts;
@@ -226,6 +231,7 @@ namespace PubSub
         PUBSUB_REGISTER_TOPIC(Messages::SensorsBaro, sensors_baro_1)
         PUBSUB_REGISTER_TOPIC(Messages::SensorsGPS, sensors_gps_1)
         PUBSUB_REGISTER_TOPIC(Messages::SensorsSimplifiedGPS, sensors_simplified_gps_1)
+        PUBSUB_REGISTER_TOPIC(Messages::SensorsBatteryRaw, sensors_battery_raw)
         PUBSUB_REGISTER_TOPIC(Messages::SensorsBattery, sensors_battery)
 
         PUBSUB_REGISTER_TOPIC(Messages::IgnContinuity, ign_continuity)
