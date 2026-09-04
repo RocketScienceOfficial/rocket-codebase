@@ -3,7 +3,7 @@
 #include <hal/spi_driver.h>
 #include <hal/i2c_driver.h>
 
-void bus_utils_init_spi_device(bus_com_device_t *device, uint8_t spi, uint8_t cs, uint8_t readMask, uint8_t multipleReadMask, uint8_t writeMask)
+void bus_utils_init_spi_device(bus_com_device_t *device, hal_spi_bus_t spi, hal_gpio_pin_t cs, uint8_t readMask, uint8_t multipleReadMask, uint8_t writeMask)
 {
     device->useSPI = true;
     device->spi = spi;
@@ -15,7 +15,7 @@ void bus_utils_init_spi_device(bus_com_device_t *device, uint8_t spi, uint8_t cs
     spi_utils_cs_init(cs);
 }
 
-void bus_utils_init_i2c_device(bus_com_device_t *device, uint8_t i2c, uint8_t address, uint8_t readMask, uint8_t multipleReadMask, uint8_t writeMask)
+void bus_utils_init_i2c_device(bus_com_device_t *device, hal_i2c_bus_t i2c, uint8_t address, uint8_t readMask, uint8_t multipleReadMask, uint8_t writeMask)
 {
     device->useSPI = false;
     device->i2c = i2c;

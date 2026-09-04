@@ -1,6 +1,8 @@
 #ifndef _BUS_UTILS_H
 #define _BUS_UTILS_H
 
+#include <hal/spi_driver.h>
+#include <hal/i2c_driver.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -15,9 +17,9 @@ extern "C" {
 typedef struct
 {
     bool useSPI;
-    uint8_t spi;
-    uint8_t cs;
-    uint8_t i2c;
+    hal_spi_bus_t spi;
+    hal_gpio_pin_t cs;
+    hal_i2c_bus_t i2c;
     uint8_t i2cAddress;
     uint8_t readMask;
     uint8_t multipleReadMask;
@@ -34,7 +36,7 @@ typedef struct
  * @param multipleReadMask Mask to apply to register address for multiple read operations
  * @param writeMask Mask to apply to register address for write operations
  */
-void bus_utils_init_spi_device(bus_com_device_t *device, uint8_t spi, uint8_t cs, uint8_t readMask, uint8_t multipleReadMask, uint8_t writeMask);
+void bus_utils_init_spi_device(bus_com_device_t *device, hal_spi_bus_t spi, hal_gpio_pin_t cs, uint8_t readMask, uint8_t multipleReadMask, uint8_t writeMask);
 
 /**
  * @brief Initializes I2C bus communication device
@@ -46,7 +48,7 @@ void bus_utils_init_spi_device(bus_com_device_t *device, uint8_t spi, uint8_t cs
  * @param multipleReadMask Mask to apply to register address for multiple read operations
  * @param writeMask Mask to apply to register address for write operations
  */
-void bus_utils_init_i2c_device(bus_com_device_t *device, uint8_t i2c, uint8_t address, uint8_t readMask, uint8_t multipleReadMask, uint8_t writeMask);
+void bus_utils_init_i2c_device(bus_com_device_t *device, hal_i2c_bus_t i2c, uint8_t address, uint8_t readMask, uint8_t multipleReadMask, uint8_t writeMask);
 
 /**
  * @brief Writes register field
