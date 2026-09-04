@@ -27,7 +27,7 @@ void hal_flash_read(size_t offset, uint8_t *dst, size_t size);
  *
  * @param offsetPages Offset pages of data
  * @param buffer Data to write (Buffer must be at least total pages size!)
- * @param pagesCount Number of pages to write (see board_config.h for exact page size)
+ * @param pagesCount Number of pages to write (see board for exact page size)
  */
 void hal_flash_write_pages(size_t offsetPages, const uint8_t *buffer, size_t pagesCount);
 
@@ -35,7 +35,7 @@ void hal_flash_write_pages(size_t offsetPages, const uint8_t *buffer, size_t pag
  * @brief Erase data from flash sector.
  *
  * @param sectorsOffset Offset sectors of data
- * @param sectorsCount Number of sectors to erase (see board_config.h for exact page size)
+ * @param sectorsCount Number of sectors to erase (see board for exact page size)
  */
 void hal_flash_erase_sectors(size_t sectorsOffset, size_t sectorsCount);
 
