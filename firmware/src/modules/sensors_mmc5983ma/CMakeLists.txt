@@ -1,8 +1,8 @@
-add_library(drivers_mag STATIC
+add_module(sensors_mmc5983ma
+    SOURCES
+    mmc5983ma_Module.cpp
     mmc5983ma_driver.c
-)
-
-target_link_libraries(drivers_mag PUBLIC
-    drivers_common
+    DEPENDS
+    driver_utils
     maths
 )

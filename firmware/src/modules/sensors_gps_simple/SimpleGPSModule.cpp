@@ -1,13 +1,13 @@
-#include "SensorsGPSSimpleModule.h"
+#include "SimpleGPSModule.h"
 #include "modules/common/ModuleLogger.h"
 #include <hal/uart_driver.h>
 #include <lib/debug/sys_assert.h>
 
-void SensorsGPSSimpleModule::init()
+void SimpleGPSModule::init()
 {
 }
 
-void SensorsGPSSimpleModule::run()
+void SimpleGPSModule::run()
 {
     if (hal_uart_fifo_available(m_UARTBus))
     {
@@ -51,7 +51,7 @@ static float get_lon_sign(char ew)
     return ew == 'W' ? -1 : 1;
 }
 
-void SensorsGPSSimpleModule::parseSentence()
+void SimpleGPSModule::parseSentence()
 {
     if (!nmea_check_sentence(m_CurrentSentence))
     {

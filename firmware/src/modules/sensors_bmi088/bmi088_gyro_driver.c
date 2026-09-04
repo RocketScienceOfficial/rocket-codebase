@@ -1,11 +1,11 @@
 #include "bmi088_gyro_driver.h"
-#include "time_utils.h"
+#include <lib/drivers_utils/time_utils.h>
 #include <lib/debug/sys_assert.h>
 #include <lib/geo/physical_constants.h>
 #include <lib/maths/math_constants.h>
 #include <math.h>
 
-void bmi088_gyro_init_spi(bmi088_gyro_device_t *device, uint8_t spi, uint8_t cs)
+void bmi088_gyro_init_spi(bmi088_gyro_device_t *device, hal_spi_bus_t spi, hal_gpio_pin_t cs)
 {
     SYS_ASSERT(device != NULL);
 
@@ -14,7 +14,7 @@ void bmi088_gyro_init_spi(bmi088_gyro_device_t *device, uint8_t spi, uint8_t cs)
     bus_utils_init_spi_device(&device->device, spi, cs, BMI088_GYRO_READ_MASK, BMI088_GYRO_READ_MASK, BMI088_GYRO_WRITE_MASK);
 }
 
-void bmi088_gyro_init_i2c(bmi088_gyro_device_t *device, uint8_t i2c, bool sdo1Grounded)
+void bmi088_gyro_init_i2c(bmi088_gyro_device_t *device, hal_i2c_bus_t i2c, bool sdo1Grounded)
 {
     SYS_ASSERT(device != NULL);
 

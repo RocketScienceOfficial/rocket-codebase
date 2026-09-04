@@ -1,6 +1,8 @@
 #ifndef _ADS786X_DRIVER_H
 #define _ADS786X_DRIVER_H
 
+#include <hal/spi_driver.h>
+#include <hal/gpio_driver.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -22,8 +24,8 @@ typedef enum
  */
 typedef struct
 {
-    uint8_t spi;
-    uint8_t cs;
+    hal_spi_bus_t spi;
+    hal_gpio_pin_t cs;
     uint8_t adcBits;
     float vRef;
 } ads786x_device_t;
@@ -37,7 +39,7 @@ typedef struct
  * @param type Type
  * @param vRef Reference voltage
  */
-void ads786x_init(ads786x_device_t *device, uint8_t spi, uint8_t cs, ads786x_type_t type, float vRef);
+void ads786x_init(ads786x_device_t *device, hal_spi_bus_t spi, hal_gpio_pin_t cs, ads786x_type_t type, float vRef);
 
 /**
  * @brief Read ADS786X voltage

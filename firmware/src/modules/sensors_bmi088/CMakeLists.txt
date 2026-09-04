@@ -1,10 +1,10 @@
-add_library(drivers_imu STATIC
+add_module(sensors_bmi088
+    SOURCES
+    bmi088_Module.cpp
     bmi088_acc_driver.c
     bmi088_gyro_driver.c
-)
-
-target_link_libraries(drivers_imu PUBLIC
-    drivers_common
+    DEPENDS
+    drivers_utils
     maths
     geo
 )

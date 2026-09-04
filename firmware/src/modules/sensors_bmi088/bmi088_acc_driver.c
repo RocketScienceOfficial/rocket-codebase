@@ -1,5 +1,5 @@
 #include "bmi088_acc_driver.h"
-#include "time_utils.h"
+#include <lib/drivers_utils/time_utils.h>
 #include <lib/debug/sys_assert.h>
 #include <lib/geo/physical_constants.h>
 #include <lib/maths/math_constants.h>
@@ -53,7 +53,7 @@ static void bmi088_acc_init_base(bmi088_acc_device_t *device)
     bmi088_acc_set_mode(device, true);
 }
 
-void bmi088_acc_init_spi(bmi088_acc_device_t *device, uint8_t spi, uint8_t cs)
+void bmi088_acc_init_spi(bmi088_acc_device_t *device, hal_spi_bus_t spi, hal_gpio_pin_t cs)
 {
     SYS_ASSERT(device != NULL);
 
@@ -64,7 +64,7 @@ void bmi088_acc_init_spi(bmi088_acc_device_t *device, uint8_t spi, uint8_t cs)
     bmi088_acc_init_base(device);
 }
 
-void bmi088_acc_init_i2c(bmi088_acc_device_t *device, uint8_t i2c, bool sdo1Grounded)
+void bmi088_acc_init_i2c(bmi088_acc_device_t *device, hal_i2c_bus_t i2c, bool sdo1Grounded)
 {
     SYS_ASSERT(device != NULL);
 

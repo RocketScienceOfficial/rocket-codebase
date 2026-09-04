@@ -1,7 +1,7 @@
-add_library(battery STATIC
+add_module(battery
+    SOURCES
+    BatteryModule.cpp
     battery_interp_model.c
-)
-
-target_link_libraries(battery PUBLIC
-    sys_debug
+    DEPENDS
+    maths
 )

@@ -7,7 +7,7 @@
  */
 
 #include "bmi088_acc_driver_defs.h"
-#include "bus_utils.h"
+#include <lib/drivers_utils/bus_utils.h>
 #include <lib/maths/vector.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -68,7 +68,7 @@ typedef enum
  * @param spi SPI
  * @param cs CS
  */
-void bmi088_acc_init_spi(bmi088_acc_device_t *device, uint8_t spi, uint8_t cs);
+void bmi088_acc_init_spi(bmi088_acc_device_t *device, hal_spi_bus_t spi, hal_gpio_pin_t cs);
 
 /**
  * @brief Initialize BMI088 accelerometer
@@ -77,7 +77,7 @@ void bmi088_acc_init_spi(bmi088_acc_device_t *device, uint8_t spi, uint8_t cs);
  * @param i2c I2C
  * @param sdo1Grounded Is SDO1 pulled to GND
  */
-void bmi088_acc_init_i2c(bmi088_acc_device_t *device, uint8_t i2c, bool sdo1Grounded);
+void bmi088_acc_init_i2c(bmi088_acc_device_t *device, hal_i2c_bus_t i2c, bool sdo1Grounded);
 
 /**
  * @brief Validate BMI088 accelerometer device

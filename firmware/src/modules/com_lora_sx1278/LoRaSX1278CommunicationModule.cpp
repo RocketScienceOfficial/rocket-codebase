@@ -1,4 +1,4 @@
-#include "LoRaSX1268CommunicationModule.h"
+#include "LoRaSX1278CommunicationModule.h"
 #include "modules/common/ModuleLogger.h"
 #include <hal/gpio_driver.h>
 #include <lib/debug/sys_assert.h>
@@ -11,25 +11,16 @@ static void set_radio_op_done_flag(void)
     g_radio_op_done_flag = true;
 }
 
-void LoRaSX1268CommunicationModule::init()
+void LoRaSX1278CommunicationModule::init()
 {
     // Lock other instances
-    SYS_ASSERT_MSG(g_radio_is_initialized == false, "LoRa radio already initialized! / Duplicate module instance?");
+    SYS_ASSERT_MSG(g_radio_is_initialized == false, "LoRa radio already initialized!");
     g_radio_is_initialized = true;
 
-    // Init tx/rx enable pins
-    LOG_INFO("Using TX/RX enable pins for LoRa radio...");
-
-    hal_gpio_init_pin(m_TxenPin, HAL_GPIO_OUTPUT);
-    hal_gpio_set_pin_state(m_TxenPin, HAL_GPIO_LOW);
-
-    hal_gpio_init_pin(m_RxenPin, HAL_GPIO_OUTPUT);
-    hal_gpio_set_pin_state(m_RxenPin, HAL_GPIO_LOW);
-
     // Setup radio
-    int state = m_Radio.begin(m_RadioFrequency, m_RadioBandwidth, m_RadioSpreadingFactor, 5, 0x12, m_RadioTransmitPower, 8, 3.3f, false);
+    int state = m_Radio.begin(m_RadioFrequency, m_RadioBandwidth, m_RadioSpreadingFactor, 5, 0x12, m_RadioTransmitPower, 8);
     SYS_ASSERT_MSG(state == RADIOLIB_ERR_NONE, "Failed to initialize LoRa radio! Code: %d", state);
-    m_Radio.setDio1Action(set_radio_op_done_flag);
+    m_Radio.setDio0Action(set_radio_op_done_flag, HAL_GPIO_IRQ_RISING_EDGE);
 
     // Epilogue
     setRX();
@@ -37,13 +28,13 @@ void LoRaSX1268CommunicationModule::init()
     LOG_INFO("LoRa radio initialized successfully!");
 }
 
-void LoRaSX1268CommunicationModule::run()
+void LoRaSX1278CommunicationModule::run()
 {
     checkIncomingMessages();
     checkRadio();
 }
 
-void LoRaSX1268CommunicationModule::checkIncomingMessages()
+void LoRaSX1278CommunicationModule::checkIncomingMessages()
 {
     if (m_Subscriber.poll())
     {
@@ -65,7 +56,7 @@ void LoRaSX1268CommunicationModule::checkIncomingMessages()
     }
 }
 
-void LoRaSX1268CommunicationModule::checkRadio()
+void LoRaSX1278CommunicationModule::checkRadio()
 {
     if (!g_radio_op_done_flag)
     {
@@ -94,7 +85,7 @@ void LoRaSX1268CommunicationModule::checkRadio()
     }
 }
 
-void LoRaSX1268CommunicationModule::handleTX()
+void LoRaSX1278CommunicationModule::handleTX()
 {
     m_Radio.finishTransmit();
 
@@ -105,7 +96,7 @@ void LoRaSX1268CommunicationModule::handleTX()
     m_AckPublisher.publish({0});
 }
 
-void LoRaSX1268CommunicationModule::handleRX()
+void LoRaSX1278CommunicationModule::handleRX()
 {
     size_t packetLength = m_Radio.getPacketLength();
 
@@ -142,21 +133,15 @@ void LoRaSX1268CommunicationModule::handleRX()
     }
 }
 
-void LoRaSX1268CommunicationModule::setTX()
+void LoRaSX1278CommunicationModule::setTX()
 {
-    hal_gpio_set_pin_state(m_TxenPin, HAL_GPIO_HIGH);
-    hal_gpio_set_pin_state(m_RxenPin, HAL_GPIO_LOW);
-
     m_Transmitting = true;
 
     LOG_INFO("Started transmitting mode...");
 }
 
-void LoRaSX1268CommunicationModule::setRX()
+void LoRaSX1278CommunicationModule::setRX()
 {
-    hal_gpio_set_pin_state(m_TxenPin, HAL_GPIO_LOW);
-    hal_gpio_set_pin_state(m_RxenPin, HAL_GPIO_HIGH);
-
     m_Radio.startReceive();
 
     m_Transmitting = false;

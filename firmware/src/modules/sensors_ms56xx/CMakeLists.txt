@@ -1,7 +1,8 @@
-add_library(drivers_baro STATIC
+add_module(sensors_ms56xx
+    SOURCES
+    ms56xx_Module.cpp
     ms56xx_driver.c
-)
-
-target_link_libraries(drivers_baro PUBLIC
-    drivers_common
+    DEPENDS
+    drivers_utils
+    geo
 )

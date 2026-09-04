@@ -1,6 +1,6 @@
-add_module(com_lora
+add_module(com_lora_sx1268
     SOURCES
-    LoRaCommunicationModule.cpp
+    LoRaSX1268CommunicationModule.cpp
     DEPENDS
-    drivers_radio
+    radio_driver
 )

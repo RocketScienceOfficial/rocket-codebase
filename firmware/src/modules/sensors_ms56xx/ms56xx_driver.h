@@ -2,6 +2,8 @@
 #define _MS56XX_DRIVER_H
 
 #include "ms56xx_driver_defs.h"
+#include <hal/spi_driver.h>
+#include <hal/gpio_driver.h>
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -41,8 +43,8 @@ typedef struct
  */
 typedef struct
 {
-    uint8_t spi;
-    uint8_t cs;
+    hal_spi_bus_t spi;
+    hal_gpio_pin_t cs;
     bool version_5611;
     ms56xx_osr_t pressOSR;
     ms56xx_osr_t tempOSR;
@@ -60,7 +62,7 @@ typedef struct
  * @param cs CS
  * @param version_5611 True if the device is MS5611, false otherwise
  */
-void ms56xx_init_spi(ms56xx_device_t *device, uint8_t spi, uint8_t cs, bool version_5611);
+void ms56xx_init_spi(ms56xx_device_t *device, hal_spi_bus_t spi, hal_gpio_pin_t cs, bool version_5611);
 
 /**
  * @brief Sets OSR

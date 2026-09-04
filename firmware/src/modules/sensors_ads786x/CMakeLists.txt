@@ -1,7 +1,7 @@
-add_library(drivers_adc STATIC
+add_module(sensors_ads786x
+    SOURCES
+    ads786x_Module.cpp
     ads786x_driver.c
-)
-
-target_link_libraries(drivers_adc PUBLIC
-    drivers_common
+    DEPENDS
+    drivers_utils
 )

@@ -1,7 +1,6 @@
 #include "ads786x_driver.h"
-#include "spi_utils.h"
-#include <hal/spi_driver.h>
 #include <hal/time_driver.h>
+#include <lib/drivers_utils/spi_utils.h>
 #include <lib/debug/sys_assert.h>
 
 static uint8_t ads786x_get_adc_bits(ads786x_type_t type)
@@ -19,7 +18,7 @@ static uint8_t ads786x_get_adc_bits(ads786x_type_t type)
     }
 }
 
-void ads786x_init(ads786x_device_t *device, uint8_t spi, uint8_t cs, ads786x_type_t type, float vRef)
+void ads786x_init(ads786x_device_t *device, hal_spi_bus_t spi, hal_gpio_pin_t cs, ads786x_type_t type, float vRef)
 {
     SYS_ASSERT(device != NULL);
 

@@ -24,7 +24,7 @@ static void mmc5983ma_base_init(const mmc5983ma_device_t *device)
     mmc5983ma_reset(device);
 }
 
-void mmc5983ma_init_spi(mmc5983ma_device_t *device, uint8_t spi, uint8_t cs)
+void mmc5983ma_init_spi(mmc5983ma_device_t *device, hal_spi_bus_t spi, hal_gpio_pin_t cs)
 {
     SYS_ASSERT(device != NULL);
     
@@ -33,7 +33,7 @@ void mmc5983ma_init_spi(mmc5983ma_device_t *device, uint8_t spi, uint8_t cs)
     mmc5983ma_base_init(device);
 }
 
-void mmc5983ma_init_i2c(mmc5983ma_device_t *device, uint8_t i2c)
+void mmc5983ma_init_i2c(mmc5983ma_device_t *device, hal_i2c_bus_t i2c)
 {
     SYS_ASSERT(device != NULL);
 

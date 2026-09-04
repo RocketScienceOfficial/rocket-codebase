@@ -1,25 +1,28 @@
-#include "Driver_bmi088.h"
+#include "bmi088_Module.h"
+#include <hal/time_driver.h>
 #include <lib/geo/physical_constants.h>
-#include <board_config.h>
 #include <cmath>
 
-static constexpr float ACC_CLIPPING_THRESHOLD = 12.0f * EARTH_GRAVITY * 0.95f;
-static constexpr float GYRO_CLIPPING_THRESHOLD = 500.0f * 0.95f;
+static constexpr float CLIPPING_THRESHOLD_FACTOR = 0.95f;
+static constexpr float ACC_CLIPPING_THRESHOLD = 12.0f * EARTH_GRAVITY * CLIPPING_THRESHOLD_FACTOR;
+static constexpr float GYRO_CLIPPING_THRESHOLD = 500.0f * CLIPPING_THRESHOLD_FACTOR;
 
-void Driver_bmi088::initialize()
+void bmi088_Module::init()
 {
-    bmi088_acc_init_spi(&m_AccDevice, CFG_SPI, CFG_PIN_CS_BMI_ACC);
+    bmi088_acc_init_spi(&m_AccDevice, m_SPI, m_CS_acc);
     bmi088_acc_set_conf(&m_AccDevice, BMI088_ACC_ODR_800HZ, BMI088_ACC_OSR_NORMAL);
     bmi088_acc_set_range(&m_AccDevice, BMI088_ACC_RANGE_12G);
 
-    bmi088_gyro_init_spi(&m_GyroDevice, CFG_SPI, CFG_PIN_CS_BMI_GYRO);
+    bmi088_gyro_init_spi(&m_GyroDevice, m_SPI, m_CS_gyro);
     bmi088_gyro_set_bandwidth(&m_GyroDevice, BMI088_GYRO_ODR_1000_BW_116HZ);
     bmi088_gyro_set_range(&m_GyroDevice, BMI088_GYRO_RANGE_500DPS);
 }
 
-void Driver_bmi088::readAndPublish(float dt)
+void bmi088_Module::run()
 {
-    m_CurrentFrame.dt = dt;
+    uint64_t currentTimeUs = hal_time_get_us_since_boot();
+    m_CurrentFrame.dt = (currentTimeUs - m_LastReadTimeUs) * 1e-6f;
+    m_LastReadTimeUs = currentTimeUs;
 
     bmi088_acc_read(&m_AccDevice, &m_CurrentFrame.acc);
     bmi088_gyro_read(&m_GyroDevice, &m_CurrentFrame.gyro);

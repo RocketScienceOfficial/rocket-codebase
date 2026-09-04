@@ -7,7 +7,7 @@
  */
 
 #include "mmc5983ma_driver_defs.h"
-#include "bus_utils.h"
+#include <lib/drivers_utils/bus_utils.h>
 #include <lib/maths/vector.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -45,7 +45,7 @@ typedef struct
  * @param spi SPI instance
  * @param cs CS pin
  */
-void mmc5983ma_init_spi(mmc5983ma_device_t *device, uint8_t spi, uint8_t cs);
+void mmc5983ma_init_spi(mmc5983ma_device_t *device, hal_spi_bus_t spi, hal_gpio_pin_t cs);
 
 /**
  * @brief MMC5983MA Magnetometer initialization using I2C
@@ -53,7 +53,7 @@ void mmc5983ma_init_spi(mmc5983ma_device_t *device, uint8_t spi, uint8_t cs);
  * @param device MMC5983MA device
  * @param i2c I2C instance
  */
-void mmc5983ma_init_i2c(mmc5983ma_device_t *device, uint8_t i2c);
+void mmc5983ma_init_i2c(mmc5983ma_device_t *device, hal_i2c_bus_t i2c);
 
 /**
  * @brief Check if product id is valid

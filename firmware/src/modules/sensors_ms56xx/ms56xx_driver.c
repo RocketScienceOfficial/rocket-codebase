@@ -1,6 +1,6 @@
 #include "ms56xx_driver.h"
-#include "spi_utils.h"
-#include "time_utils.h"
+#include <lib/drivers_utils/spi_utils.h>
+#include <lib/drivers_utils/time_utils.h>
 #include <lib/debug/sys_assert.h>
 #include <hal/spi_driver.h>
 #include <hal/time_driver.h>
@@ -93,7 +93,7 @@ static bool ms56xx_read_coefficents(ms56xx_device_t *device)
     return true;
 }
 
-void ms56xx_init_spi(ms56xx_device_t *device, uint8_t spi, uint8_t cs, bool version_5611)
+void ms56xx_init_spi(ms56xx_device_t *device, hal_spi_bus_t spi, hal_gpio_pin_t cs, bool version_5611)
 {
     SYS_ASSERT(device != NULL);
 

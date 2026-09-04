@@ -17,7 +17,6 @@ function(add_module module_name)
     target_link_libraries(${lib_name} PUBLIC
         platform_hal
         platform_osal
-        platform_board
         app_pubsub
         app_modules_common
     )

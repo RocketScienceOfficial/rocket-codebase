@@ -2,16 +2,15 @@
 
 #include <pubsub/Topics.h>
 #include <pubsub/Publisher.h>
-#include <lib/drivers/gps/nmea.h>
+#include <lib/gps/nmea.h>
 #include <hal/uart_driver.h>
 
 #define UART_MAX_BYTES_PER_TICK 256
 
-class SensorsGPSSimpleModule
+class SimpleGPSModule
 {
 public:
-    SensorsGPSSimpleModule(hal_uart_bus_t uartBus)
-        : m_UARTBus(uartBus) {}
+    SimpleGPSModule(hal_uart_bus_t uartBus) : m_UARTBus(uartBus) {}
 
     void init();
     void run();

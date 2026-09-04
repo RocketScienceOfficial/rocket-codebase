@@ -1,6 +1,6 @@
 add_module(sensors_gps_simple
     SOURCES
-    SensorsGPSSimpleModule.cpp
+    SimpleGPSModule.cpp
     DEPENDS
-    drivers_gps
+    gps
 )

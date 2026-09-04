@@ -9,31 +9,26 @@
 
 #define LORA_BUFFER_SIZE 512
 
-class LoRaSX1268CommunicationModule
+class LoRaSX1278CommunicationModule
 {
 public:
-    LoRaSX1268CommunicationModule(hal_spi_bus_t spi,
+    LoRaSX1278CommunicationModule(hal_spi_bus_t spi,
                                   hal_gpio_pin_t cs,
-                                  hal_gpio_pin_t dio1,
+                                  hal_gpio_pin_t dio0,
                                   hal_gpio_pin_t reset,
-                                  hal_gpio_pin_t busy,
                                   uint32_t frequency,
                                   uint32_t bandwidth,
                                   uint8_t spreadingFactor,
                                   uint8_t transmitPower,
-                                  hal_gpio_pin_t txen,
-                                  hal_gpio_pin_t rxen,
                                   uint8_t srcId,
                                   uint8_t dstId)
         : m_RadioHAL(spi),
-          m_RadioModule(&m_RadioHAL, cs, dio1, reset, busy),
+          m_RadioModule(&m_RadioHAL, cs, dio0, reset),
           m_Radio(&m_RadioModule),
           m_RadioFrequency(frequency),
           m_RadioBandwidth(bandwidth),
           m_RadioSpreadingFactor(spreadingFactor),
           m_RadioTransmitPower(transmitPower),
-          m_TxenPin(txen),
-          m_RxenPin(rxen),
           m_srcId(srcId),
           m_dstId(dstId) {}
 
@@ -49,13 +44,11 @@ private:
     // Radio config
     RadioLibHALPort m_RadioHAL;
     Module m_RadioModule;
-    SX1268 m_Radio;
+    SX1278 m_Radio;
     const uint32_t m_RadioFrequency;
     const uint32_t m_RadioBandwidth;
     const uint8_t m_RadioSpreadingFactor;
     const uint8_t m_RadioTransmitPower;
-    const hal_gpio_pin_t m_TxenPin;
-    const hal_gpio_pin_t m_RxenPin;
     const uint8_t m_srcId;
     const uint8_t m_dstId;
 
