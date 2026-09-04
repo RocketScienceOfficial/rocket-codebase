@@ -28,14 +28,14 @@ private:
 
     GCSCommandHandler<PubSub::Topics::serial_tx_topic, PubSub::Topics::gcs_commander_timeout_topic> m_CommandHandler;
 
-    uint8_t m_RXSequence;
-    uint8_t m_TXSequence;
-    uint32_t m_PacketsLost;
-    uint32_t m_RadioRX;
-    uint32_t m_RadioTmpRX;
-    uint32_t m_RadioTX;
-    uint32_t m_ResponseStartTime;
-    uint32_t m_RadioTmpRXStartTime;
+    uint8_t m_RXSequence = 0;
+    uint8_t m_TXSequence = 0;
+    uint32_t m_PacketsLost = 0;
+    uint32_t m_RadioRX = 0;
+    uint32_t m_RadioTmpRX = 0;
+    uint32_t m_RadioTX = 0;
+    uint32_t m_ResponseStartTime = 0;
+    uint32_t m_RadioTmpRXStartTime = 0;
 
     void processSerialMessage(const datalink_message_t &msg);
     void processRadioMessage(const PubSub::Messages::LoRaRXData &data);

@@ -25,8 +25,8 @@ private:
     const hal_gpio_pin_t m_ButtonPin;
 
     u8g2_t m_Display;
-    uint32_t m_LogoDisableTime;
-    uint32_t m_LastUpdateTime;
+    uint32_t m_LogoDisableTime = 0;
+    uint32_t m_LastUpdateTime = 0;
 
     struct PanelData
     {
@@ -40,9 +40,9 @@ private:
         int batteryPercentage;
         float batteryVoltage;
     };
-    PanelData m_RocketData;
-    PanelData m_GCSData;
-    const PanelData *m_CurrentData;
+    PanelData m_RocketData{};
+    PanelData m_GCSData{};
+    const PanelData *m_CurrentData = nullptr;
 
     enum class OLEDState
     {
@@ -50,9 +50,9 @@ private:
         GCS,
         LAST_DO_NOT_USE,
     };
-    OLEDState m_CurrentState;
-    bool m_StateInitialized;
-    bool m_ButtonPressed;
+    OLEDState m_CurrentState = OLEDState::ROCKET;
+    bool m_StateInitialized = false;
+    bool m_ButtonPressed = false;
 
     void initDisplay();
     bool shouldChangeState();

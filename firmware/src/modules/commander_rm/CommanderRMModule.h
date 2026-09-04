@@ -19,7 +19,7 @@ private:
     PubSub::Subscriber<PubSub::Topics::lora_tx_ack_topic> m_AckSubscriber;
     PubSub::Publisher<PubSub::Topics::lora_tx_topic> m_RadioPublisher;
 
-    uint8_t m_Sequence;
+    uint8_t m_Sequence = 0;
 
     void processUARTMessage(const datalink_message_t &msg);
     void processRadioMessage(const PubSub::Messages::LoRaRXData &data);

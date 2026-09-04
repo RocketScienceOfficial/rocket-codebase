@@ -25,46 +25,46 @@ private:
     PubSub::Publisher<PubSub::Topics::ekf_state_topic> m_EKFPublisher;
 
     // EKF instance
-    EKF m_EKF;
-    bool m_EKFInitialized;
-    bool m_EKFEnabled;
-    uint32_t m_LastUpdateTime;
+    EKF m_EKF{};
+    bool m_EKFInitialized = false;
+    bool m_EKFEnabled = false;
+    uint32_t m_LastUpdateTime = 0;
 
     // Output Predictor
-    EKFNominalState m_CurrentOPState;
-    vec3_t m_AttitudeCorrection;
-    TimestampedRingBuffer<EKFNominalState, EKF_DELAY_HORIZON_SIZE_IMU> m_OutputPredictorBuffer;
+    EKFNominalState m_CurrentOPState{};
+    vec3_t m_AttitudeCorrection{};
+    TimestampedRingBuffer<EKFNominalState, EKF_DELAY_HORIZON_SIZE_IMU> m_OutputPredictorBuffer{};
 
     // IMU
-    vec3_t m_AccelAccum;
-    vec3_t m_GyroAccum;
-    uint8_t m_IMUClippingFlagsAccum;
-    float m_IMUDtAccum;
-    size_t m_IMUSamplesCount;
-    TimestampedRingBuffer<EKFIMUData, EKF_DELAY_HORIZON_SIZE_IMU> m_IMUBuffer;
+    vec3_t m_AccelAccum{};
+    vec3_t m_GyroAccum{};
+    uint8_t m_IMUClippingFlagsAccum{};
+    float m_IMUDtAccum = 0;
+    size_t m_IMUSamplesCount = 0;
+    TimestampedRingBuffer<EKFIMUData, EKF_DELAY_HORIZON_SIZE_IMU> m_IMUBuffer{};
 
     // GPS
-    equirect_projection_t m_Projection;
-    bool m_GPSOriginSet;
-    RunningStats<double> m_GPSNStats;
-    RunningStats<double> m_GPSEStats;
-    RunningStats<double> m_GPSDStats;
-    bool m_GPSInitialized;
-    TimestampedRingBuffer<EKFGPSPosMeasurement, EKF_DELAY_HORIZON_SIZE_GPS> m_GPSPosBuffer;
-    TimestampedRingBuffer<EKFGPSVelMeasurement, EKF_DELAY_HORIZON_SIZE_GPS> m_GPSVelBuffer;
+    equirect_projection_t m_Projection{};
+    bool m_GPSOriginSet = false;
+    RunningStats<double> m_GPSNStats{};
+    RunningStats<double> m_GPSEStats{};
+    RunningStats<double> m_GPSDStats{};
+    bool m_GPSInitialized = false;
+    TimestampedRingBuffer<EKFGPSPosMeasurement, EKF_DELAY_HORIZON_SIZE_GPS> m_GPSPosBuffer{};
+    TimestampedRingBuffer<EKFGPSVelMeasurement, EKF_DELAY_HORIZON_SIZE_GPS> m_GPSVelBuffer{};
 
     // Barometer
-    float m_BaroOffset;
-    bool m_BaroOffsetSet;
-    RunningStats<float> m_BaroStats;
-    TimestampedRingBuffer<EKFBaroMeasurement, EKF_DELAY_HORIZON_SIZE_BARO> m_BaroBuffer;
+    float m_BaroOffset = 0;
+    bool m_BaroOffsetSet = false;
+    RunningStats<float> m_BaroStats{};
+    TimestampedRingBuffer<EKFBaroMeasurement, EKF_DELAY_HORIZON_SIZE_BARO> m_BaroBuffer{};
 
     // Magnetometer
-    RunningStats<float> m_MagXStats;
-    RunningStats<float> m_MagYStats;
-    RunningStats<float> m_MagZStats;
-    bool m_MagInitDone;
-    TimestampedRingBuffer<EKFMagMeasurement, EKF_DELAY_HORIZON_SIZE_MAG> m_MagBuffer;
+    RunningStats<float> m_MagXStats{};
+    RunningStats<float> m_MagYStats{};
+    RunningStats<float> m_MagZStats{};
+    bool m_MagInitDone = false;
+    TimestampedRingBuffer<EKFMagMeasurement, EKF_DELAY_HORIZON_SIZE_MAG> m_MagBuffer{};
 
     // Processing functions
     void processIMU(const PubSub::Messages::SensorsIMU &imuData);

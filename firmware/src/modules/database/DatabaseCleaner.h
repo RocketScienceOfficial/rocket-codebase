@@ -19,9 +19,9 @@ private:
     PubSub::Publisher<PubSub::Topics::database_tx_topic> &m_TXPublisher;
     DatabaseMetadataController &m_MetadataController;
 
-    bool m_Initialized;
-    bool m_Terminated;
-    size_t m_CurrentIndex;
+    bool m_Initialized = false;
+    bool m_Terminated = false;
+    size_t m_CurrentIndex = 0;
 
     void onInit();
     void onUpdate();

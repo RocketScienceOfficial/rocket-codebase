@@ -19,14 +19,14 @@ private:
     PubSub::Publisher<PubSub::Topics::database_tx_topic> &m_TXPublisher;
     const DatabaseMetadataController &m_MetadataController;
 
-    bool m_RecoverMode;
-    bool m_Initialized;
-    bool m_Terminated;
-    size_t m_CurrentStandingFrameCount;
-    size_t m_CurrentSavedFrameCount;
-    size_t m_CurrentFrameCount;
-    size_t m_CurrentDataOffset;
-    bool m_NewSectionInitialized;
+    bool m_RecoverMode = false;
+    bool m_Initialized = false;
+    bool m_Terminated = false;
+    size_t m_CurrentStandingFrameCount = 0;
+    size_t m_CurrentSavedFrameCount = 0;
+    size_t m_CurrentFrameCount = 0;
+    size_t m_CurrentDataOffset = 0;
+    bool m_NewSectionInitialized = false;
 
     void onInit();
     void onUpdate();

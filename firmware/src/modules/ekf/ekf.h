@@ -20,11 +20,11 @@ public:
     float &getCovarianceElement(size_t i, size_t j) { return P_current(i, j); }
 
 private:
-    EKFNominalState m_NominalState;
-    EKFErrorState m_ErrorState;
+    EKFNominalState m_NominalState{};
+    EKFErrorState m_ErrorState{};
 
-    CovarianceMatrix<EKF_NUM_ERROR_STATES> P_current;
-    CovarianceMatrix<EKF_NUM_ERROR_STATES> P_next;
+    CovarianceMatrix<EKF_NUM_ERROR_STATES> P_current{};
+    CovarianceMatrix<EKF_NUM_ERROR_STATES> P_next{};
 
     float _K[EKF_NUM_ERROR_STATES];
     float _H[EKF_NUM_ERROR_STATES];

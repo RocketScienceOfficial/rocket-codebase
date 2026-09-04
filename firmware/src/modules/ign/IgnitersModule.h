@@ -28,8 +28,8 @@ private:
     PubSub::Publisher<PubSub::Topics::ign_continuity_topic> m_IgnDetPublisher;
     PubSub::Publisher<PubSub::Topics::ign_fired_topic> m_IgnFiredPublisher;
 
-    PubSub::Messages::IgnContinuity m_CurrentIgnContinuityPubData;
-    PubSub::Messages::IgnFired m_CurrentIgnFiredPubData;
+    PubSub::Messages::IgnContinuity m_CurrentIgnContinuityPubData{};
+    PubSub::Messages::IgnFired m_CurrentIgnFiredPubData{};
 
     struct IgniterPinData
     {
@@ -41,9 +41,9 @@ private:
 
     IgniterPinData m_Igniters[IGN_COUNT];
 
-    bool m_ADCUpdate;
-    bool m_ApogeeReached;
-    IgniterPinData *m_CurrentTestingIgniter;
+    bool m_ADCUpdate = false;
+    bool m_ApogeeReached = false;
+    IgniterPinData *m_CurrentTestingIgniter = nullptr;
 
     void gatherData();
     void initIgniterPin(IgniterPinData &data);

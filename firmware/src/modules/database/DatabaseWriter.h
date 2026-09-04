@@ -22,11 +22,11 @@ private:
     DatabaseMetadataController &m_MetadataController;
 
     uint8_t m_SaveBuffer[BOARD_FLASH_PAGE_SIZE];
-    size_t m_SaveBufferSize;
-    size_t m_SaveFlashOffsetPages;
-    size_t m_SavedFramesCount;
+    size_t m_SaveBufferSize = 0;
+    size_t m_SaveFlashOffsetPages = 0;
+    size_t m_SavedFramesCount = 0;
 
     DatabaseFrameRaw m_StandingBuffer[STANDING_BUFFER_LENGTH];
-    size_t m_StandingBufferLength;
-    size_t m_StandingBufferIndex;
+    size_t m_StandingBufferLength = 0;
+    size_t m_StandingBufferIndex = 0;
 };

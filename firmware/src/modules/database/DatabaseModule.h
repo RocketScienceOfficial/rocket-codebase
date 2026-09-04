@@ -41,10 +41,10 @@ private:
         TERMINATED
     };
 
-    DatamanState m_CurrentState;
-    state_machine_state m_CurrentFlightState;
-    uint64_t m_LastSaveTime;
-    size_t m_LandingBufferIndex;
+    DatamanState m_CurrentState = DatamanState::LANDED_WRITE;
+    state_machine_state m_CurrentFlightState = DATALINK_SM_STATE_STANDING;
+    uint64_t m_LastSaveTime = 0;
+    size_t m_LandingBufferIndex = 0;
 
     DatabaseMetadataController m_MetadataController{m_ReadyPublisher};
     DatabaseWriter m_Writer{m_MetadataController};

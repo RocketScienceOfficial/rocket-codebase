@@ -17,7 +17,7 @@ public:
 private:
     PubSub::Publisher<PubSub::Topics::database_ready_topic> &m_ReadyPublisher;
 
-    DatabaseMetadata m_CurrentMetadata;
+    DatabaseMetadata m_CurrentMetadata{};
 
     void sendReadyNotification();
     bool validateInfo(const DatabaseMetadataRaw *info);

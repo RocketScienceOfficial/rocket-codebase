@@ -22,12 +22,12 @@ private:
     PubSub::Publisher<SerialTopic> &m_SerialPublisher;
     PubSub::Publisher<TimeoutTopic> &m_CommandTimeoutPublisher;
 
-    uint8_t m_CurrentCMD;
-    uint8_t m_CurrentCommandSeq;
-    uint8_t m_RemoteCommandSeq;
-    bool m_CommandActive;
-    uint32_t m_CommandStartTime;
-    uint8_t m_ElapsedTimeSec;
+    uint8_t m_CurrentCMD = 0;
+    uint8_t m_CurrentCommandSeq = 0;
+    uint8_t m_RemoteCommandSeq = 0;
+    bool m_CommandActive = false;
+    uint32_t m_CommandStartTime = 0;
+    uint8_t m_ElapsedTimeSec = 0;
 
     void handleCommandElapsedTime();
 
