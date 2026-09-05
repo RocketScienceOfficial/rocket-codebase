@@ -12,7 +12,7 @@
         "rate": 100,
         "priority": "high",
         "modules": [
-            { "name": "com_lora_sx1278", "stack_size": 1024, "args": ["g_cfg_spi", "g_cfg_lora_cs_pin", "g_cfg_lora_dio0_pin", "g_cfg_lora_reset_pin", "CFG_LORA_FREQ", "CFG_LORA_BANDWIDTH", "CFG_LORA_SF", "CFG_LORA_TX_POWER", "CFG_LORA_SRC_ID", "CFG_LORA_DST_ID"] }
+            { "name": "com_lora_sx1278", "stack_size": 1024, "args": ["g_cfg_spi", "g_cfg_lora_cs_pin", "g_cfg_lora_dio0_pin", "g_cfg_lora_reset_pin", "CFG_LORA_FREQ_MHZ", "CFG_LORA_BANDWIDTH_KHZ", "CFG_LORA_SF", "CFG_LORA_TX_POWER", "CFG_LORA_GCS_ID", "CFG_LORA_OBC_ID"] }
         ]
     },
     {

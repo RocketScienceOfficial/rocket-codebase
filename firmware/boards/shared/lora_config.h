@@ -1,0 +1,12 @@
+#ifndef _LORA_CONFIG_H_
+#define _LORA_CONFIG_H_
+
+#define CFG_LORA_FREQ_MHZ 433
+#define CFG_LORA_BANDWIDTH_KHZ 250
+#define CFG_LORA_SF 7
+#define CFG_LORA_TX_POWER 17
+
+#define CFG_LORA_OBC_ID 0x11
+#define CFG_LORA_GCS_ID 0xDF
+
+#endif

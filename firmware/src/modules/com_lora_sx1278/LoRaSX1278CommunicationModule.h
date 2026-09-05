@@ -16,8 +16,8 @@ public:
                                   hal_gpio_pin_t cs,
                                   hal_gpio_pin_t dio0,
                                   hal_gpio_pin_t reset,
-                                  uint32_t frequency,
-                                  uint32_t bandwidth,
+                                  uint32_t frequency_mhz,
+                                  uint32_t bandwidth_khz,
                                   uint8_t spreadingFactor,
                                   uint8_t transmitPower,
                                   uint8_t srcId,
@@ -25,8 +25,8 @@ public:
         : m_RadioHAL(spi),
           m_RadioModule(&m_RadioHAL, cs, dio0, reset),
           m_Radio(&m_RadioModule),
-          m_RadioFrequency(frequency),
-          m_RadioBandwidth(bandwidth),
+          m_RadioFrequencyMHz(frequency_mhz),
+          m_RadioBandwidthKHz(bandwidth_khz),
           m_RadioSpreadingFactor(spreadingFactor),
           m_RadioTransmitPower(transmitPower),
           m_srcId(srcId),
@@ -45,8 +45,8 @@ private:
     RadioLibHALPort m_RadioHAL;
     Module m_RadioModule;
     SX1278 m_Radio;
-    const uint32_t m_RadioFrequency;
-    const uint32_t m_RadioBandwidth;
+    const uint32_t m_RadioFrequencyMHz;
+    const uint32_t m_RadioBandwidthKHz;
     const uint8_t m_RadioSpreadingFactor;
     const uint8_t m_RadioTransmitPower;
     const uint8_t m_srcId;

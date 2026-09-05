@@ -18,7 +18,7 @@ void LoRaSX1278CommunicationModule::init()
     g_radio_is_initialized = true;
 
     // Setup radio
-    int state = m_Radio.begin(m_RadioFrequency, m_RadioBandwidth, m_RadioSpreadingFactor, 5, 0x12, m_RadioTransmitPower, 8);
+    int state = m_Radio.begin(m_RadioFrequencyMHz, m_RadioBandwidthKHz, m_RadioSpreadingFactor, 5, 0x12, m_RadioTransmitPower, 8);
     SYS_ASSERT_MSG(state == RADIOLIB_ERR_NONE, "Failed to initialize LoRa radio! Code: %d", state);
     m_Radio.setDio0Action(set_radio_op_done_flag, HAL_GPIO_IRQ_RISING_EDGE);
 
