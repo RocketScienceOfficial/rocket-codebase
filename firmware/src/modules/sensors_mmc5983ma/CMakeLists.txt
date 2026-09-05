@@ -3,6 +3,6 @@ add_module(sensors_mmc5983ma
     mmc5983ma_Module.cpp
     mmc5983ma_driver.c
     DEPENDS
-    driver_utils
+    drivers_utils
     maths
 )

@@ -2,6 +2,7 @@
 
 #include <pubsub/Topics.h>
 #include <pubsub/Publisher.h>
+#include <pubsub/Subscriber.h>
 #include "battery_interp_model.h"
 
 #define BATTERY_READINGS_COUNT 10

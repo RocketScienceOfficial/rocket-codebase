@@ -30,7 +30,7 @@ private:
     bool m_BaroHeightChanged = false;
 
     // IMU data
-    vec3_t m_CurrentIMUAcc = {0};
+    vec3_t m_CurrentIMUAcc{};
     bool m_IMUAccChanged = false;
 
     // Handlers utils

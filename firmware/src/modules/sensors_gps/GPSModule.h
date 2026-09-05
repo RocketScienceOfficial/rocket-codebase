@@ -2,6 +2,7 @@
 
 #include <pubsub/Topics.h>
 #include <pubsub/Publisher.h>
+#include <lib/gps/ubx.h>
 #include <hal/spi_driver.h>
 #include <hal/gpio_driver.h>
 

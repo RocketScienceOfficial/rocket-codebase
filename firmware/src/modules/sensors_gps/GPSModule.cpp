@@ -1,6 +1,5 @@
 #include "GPSModule.h"
 #include <lib/drivers_utils/spi_utils.h>
-#include <lib/gps/ubx.h>
 #include <cstring>
 
 #define MAX_READ_BYTES 32
@@ -55,7 +54,7 @@ void GPSModule::run()
 
 void GPSModule::configureSPI()
 {
-    ubx_cfg_builder_t cfgBuilder = {0};
+    ubx_cfg_builder_t cfgBuilder = {};
 
     ubx_set_nmea_enabled_spi(&cfgBuilder, false);
     ubx_set_pvt_enabled_spi(&cfgBuilder, true);
