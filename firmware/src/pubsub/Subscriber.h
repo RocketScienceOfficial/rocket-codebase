@@ -7,13 +7,20 @@ namespace PubSub
 {
     struct NoOpRetryHook
     {
-        static void afterCopy() { (void)0; }
+        static void afterCopy()
+        {
+            (void)0;
+        }
     };
 
     struct DefaultTooSlowHook
     {
         static void onTooSlow(const char *topicName, uint32_t readSeq, uint32_t writeSeq)
         {
+            (void)topicName;
+            (void)readSeq;
+            (void)writeSeq;
+
             SYS_ASSERT_MSG(false, "Subscriber is too slow and has missed messages on topic '%s' (read_sequence: %u, write_sequence: %u)", topicName, readSeq, writeSeq);
         }
     };
