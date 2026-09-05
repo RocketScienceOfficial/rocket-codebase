@@ -10,6 +10,7 @@ idf_component_register(SRCS
     "hal/time_driver_esp32.c"
     "hal/uart_driver_esp32.c"
     "hal/waveform_driver_esp32.c"
+    "${HW_INIT_SRC}"
     "osal/systime_esp32.c"
     "osal/task_esp32.c"
 
@@ -33,6 +34,7 @@ idf_component_register(SRCS
 target_link_libraries(${COMPONENT_LIB} PRIVATE
     platform_hal
     platform_osal
+    platform_hw
     hal_adc_esp32
     app_main
 )

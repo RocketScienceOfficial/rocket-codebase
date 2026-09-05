@@ -4,7 +4,7 @@
         "rate": 100,
         "priority": "high",
         "modules": [
-            "com_serial"
+            { "name": "com_serial", "stack_size": 1024, "args": [] }
         ]
     },
     {
@@ -12,7 +12,7 @@
         "rate": 100,
         "priority": "high",
         "modules": [
-            "com_lora"
+            { "name": "com_lora_sx1278", "stack_size": 1024, "args": ["g_cfg_spi", "g_cfg_lora_cs_pin", "g_cfg_lora_dio0_pin", "g_cfg_lora_reset_pin", "CFG_LORA_FREQ", "CFG_LORA_BANDWIDTH", "CFG_LORA_SF", "CFG_LORA_TX_POWER", "CFG_LORA_SRC_ID", "CFG_LORA_DST_ID"] }
         ]
     },
     {
@@ -20,7 +20,7 @@
         "rate": 50,
         "priority": "high",
         "modules": [
-            "commander_gcs"
+            { "name": "commander_gcs", "stack_size": 1024, "args": [] }
         ]
     },
     {
@@ -28,7 +28,7 @@
         "rate": 50,
         "priority": "normal",
         "modules": [
-            "oled"
+            { "name": "oled", "stack_size": 2048, "args": ["g_cfg_i2c", "g_cfg_button_pin"] }
         ]
     },
     {
@@ -36,7 +36,7 @@
         "rate": 10,
         "priority": "low",
         "modules": [
-            "pmu"
+            { "name": "pmu", "stack_size": 512, "args": ["g_cfg_i2c"] }
         ]
     },
     {
@@ -44,7 +44,7 @@
         "rate": 1000,
         "priority": "high",
         "modules": [
-            "gps_simple"
+            { "name": "gps_simple", "stack_size": 1024, "args": ["g_cfg_uart"] }
         ]
     }
 ]

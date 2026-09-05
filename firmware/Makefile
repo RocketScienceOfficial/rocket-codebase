@@ -12,7 +12,6 @@ obc:
 		-B build/obc \
 		-G Ninja \
 		-D BOARD_NAME=obc \
-		-D RUNNER_PROFILE=obc_flight \
 		-D CMAKE_BUILD_TYPE=$(BUILD_TYPE) \
 		-D LOG_LEVEL=$(LOG_LEVEL)
 	ninja -C build/obc
@@ -22,8 +21,7 @@ obc_sitl:
 		-S platform/host \
 		-B build/obc_sitl \
 		-G Ninja \
-		-D BOARD_NAME=obc \
-		-D RUNNER_PROFILE=obc_sitl \
+		-D BOARD_NAME=obc_sitl \
 		-D CMAKE_BUILD_TYPE=$(BUILD_TYPE) \
 		-D LOG_LEVEL=$(LOG_LEVEL) \
 		-D SITL_FREERUN=OFF
@@ -34,8 +32,7 @@ obc_sitl_freerun:
 		-S platform/host \
 		-B build/obc_sitl \
 		-G Ninja \
-		-D BOARD_NAME=obc \
-		-D RUNNER_PROFILE=obc_sitl \
+		-D BOARD_NAME=obc_sitl \
 		-D CMAKE_BUILD_TYPE=$(BUILD_TYPE) \
 		-D LOG_LEVEL=$(LOG_LEVEL) \
 		-D SITL_FREERUN=ON
@@ -51,7 +48,6 @@ radio_module:
 		-B build/radio_module \
 		-G Ninja \
 		-D BOARD_NAME=radio_module \
-		-D RUNNER_PROFILE=radio_module_flight \
 		-D CMAKE_BUILD_TYPE=$(BUILD_TYPE) \
 		-D LOG_LEVEL=$(LOG_LEVEL)
 	ninja -C build/radio_module
@@ -61,8 +57,7 @@ radio_module_sitl:
 		-S platform/host \
 		-B build/radio_module_sitl \
 		-G Ninja \
-		-D BOARD_NAME=radio_module \
-		-D RUNNER_PROFILE=radio_module_sitl \
+		-D BOARD_NAME=radio_module_sitl \
 		-D CMAKE_BUILD_TYPE=$(BUILD_TYPE) \
 		-D LOG_LEVEL=$(LOG_LEVEL) \
 		-D SITL_FREERUN=ON
@@ -77,7 +72,6 @@ gcs:
 		-C platform/esp32 \
 		-B build/gcs \
 		-D BOARD_NAME=gcs \
-		-D RUNNER_PROFILE=gcs_flight \
 		-D CMAKE_BUILD_TYPE=$(BUILD_TYPE) \
 		-D LOG_LEVEL=$(LOG_LEVEL) \
 		build
@@ -98,8 +92,7 @@ gcs_sitl:
 		-S platform/host \
 		-B build/gcs_sitl \
 		-G Ninja \
-		-D BOARD_NAME=gcs \
-		-D RUNNER_PROFILE=gcs_sitl \
+		-D BOARD_NAME=gcs_sitl \
 		-D CMAKE_BUILD_TYPE=$(BUILD_TYPE) \
 		-D LOG_LEVEL=$(LOG_LEVEL) \
 		-D OLED_TEST_MODE=$(OLED_TEST_MODE) \
@@ -115,8 +108,7 @@ test:
 		-S platform/host \
 		-B build/test \
 		-G Ninja \
-		-D BOARD_NAME=obc \
-		-D RUNNER_PROFILE=obc_sitl \
+		-D BOARD_NAME=obc_sitl \
 		-D CMAKE_BUILD_TYPE=Debug \
 		-D LOG_LEVEL=OFF \
 		-D SITL_FREERUN=OFF \

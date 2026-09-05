@@ -4,46 +4,71 @@ import sys
 from pathlib import Path
 
 
+def round_up_pow2(n):
+    if n <= 1:
+        return 1
+
+    return 1 << (n - 1).bit_length()
+
+
+def loop_stack_size(loop):
+    for module in loop["modules"]:
+        if "stack_size" not in module:
+            print(f"Module '{module['name']}' in loop '{loop['name']}' is missing 'stack_size'")
+            sys.exit(1)
+
+    return round_up_pow2(max(module["stack_size"] for module in loop["modules"]))
+
+
 def gen_source(profile):
     names_cache = {}
+    loop_stack_sizes = {loop["name"]: loop_stack_size(loop) for loop in profile}
 
-    def get_module_include_name(module):
-        if module in names_cache:
-            return names_cache[module]
+    def get_module_include_name(module_name):
+        if module_name in names_cache:
+            return names_cache[module_name]
 
-        module_path = Path(__file__).parent.parent.resolve() / module
+        module_path = Path(__file__).parent.parent.resolve() / module_name
 
         if not module_path.exists():
-            print(f"Module '{module}' does not exist (path: {module_path})")
+            print(f"Module '{module_name}' does not exist (path: {module_path})")
             sys.exit(1)
 
         for file in module_path.iterdir():
             if file.is_file() and file.suffix in ['.h', '.hpp'] and file.stem.endswith("Module"):
-                names_cache[module] = file.stem
+                names_cache[module_name] = file.stem
                 return file.stem
 
-        print(f"Module '{module}' has no header file ending with 'Module'")
+        print(f"Module '{module_name}' has no header file ending with 'Module'")
         sys.exit(1)
 
     def gen_header(profile):
         s = ""
         s += "#include <osal/task.h>\n"
         s += "#include <osal/systime.h>\n"
+        s += "#include <hw_info.h>\n"
 
         for loop in profile:
             for module in loop["modules"]:
-                s += "#include \"modules/{module}/{module_include}.h\"\n".format(module=module, module_include=get_module_include_name(module))
+                s += "#include \"modules/{module}/{module_include}.h\"\n".format(module=module["name"], module_include=get_module_include_name(module["name"]))
 
         s += "\n"
 
-        s += f"static uint8_t g_stackBuffer[4096 * {len(profile)}];\n"
+        total_stack = sum(loop_stack_sizes[loop["name"]] for loop in profile)
+        s += f"static uint8_t g_stackBuffer[{total_stack}];\n"
         s += "static size_t g_stackBufferOffset = 0;\n"
 
         s += "\n"
 
         for loop in profile:
             for module in loop["modules"]:
-                s += "static {module_include} {module_include}Instance;\n".format(module_include=get_module_include_name(module))
+                module_include = get_module_include_name(module["name"])
+                args = ", ".join(module.get("args", []))
+
+                if args:
+                    s += "static {mi} {mi}Instance({args});\n".format(mi=module_include, args=args)
+                else:
+                    s += "static {mi} {mi}Instance;\n".format(mi=module_include)
 
         s += "\n"
 
@@ -58,7 +83,7 @@ def gen_source(profile):
         s += "    (void)arg;\n\n"
 
         for module in data["modules"]:
-            s += "    {module_include}Instance.init();\n".format(module_include=get_module_include_name(module))
+            s += "    {module_include}Instance.init();\n".format(module_include=get_module_include_name(module["name"]))
 
         if not rateless:
             s += "\n    uint32_t lastWakeTime = osal_systime_get_ms();\n\n"
@@ -66,7 +91,7 @@ def gen_source(profile):
         s += "    while (osal_task_should_run())\n    {\n"
 
         for module in data["modules"]:
-            s += "        {module_include}Instance.run();\n".format(module_include=get_module_include_name(module))
+            s += "        {module_include}Instance.run();\n".format(module_include=get_module_include_name(module["name"]))
 
         if not rateless:
             s += "\n        osal_task_delay_until(&lastWakeTime, {rate});\n".format(rate=int(1000 / data["rate"]))
@@ -95,7 +120,7 @@ static void spawnTask(void (*taskFunc)(void *), const char *name, size_t stack_s
         }
 
         for loop in profile:
-            s += "    spawnTask(main_{name}, \"{name}\", 4096, {priority});\n".format(name=loop["name"], priority=priority_mapping[loop["priority"]])
+            s += "    spawnTask(main_{name}, \"{name}\", {stack_size}, {priority});\n".format(name=loop["name"], stack_size=loop_stack_sizes[loop["name"]], priority=priority_mapping[loop["priority"]])
 
         s += "\n    osal_task_start_scheduler();\n"
 
@@ -105,7 +130,7 @@ static void spawnTask(void (*taskFunc)(void *), const char *name, size_t stack_s
 
     def gen_main():
         s = ""
-        s += "\n\nextern \"C\" void hw_init(void);\n\n"
+        s += "\n"
         s += "void core_main()\n{\n"
         s += "    hw_init();\n"
         s += "    start_tasks();\n"
@@ -133,14 +158,14 @@ def gen_cmake(profile):
 
     for loop in profile:
         for module in loop["modules"]:
-            s += "add_subdirectory(../{module} ${{CMAKE_CURRENT_BINARY_DIR}}/../{module})\n".format(module=module)
+            s += "add_subdirectory(../{module} ${{CMAKE_CURRENT_BINARY_DIR}}/../{module})\n".format(module=module["name"])
 
     s += "\n"
     s += "target_link_libraries(app_main PUBLIC\n"
 
     for loop in profile:
         for module in loop["modules"]:
-            s += "    app_modules_{module}\n".format(module=module)
+            s += "    app_modules_{module}\n".format(module=module["name"])
 
     s += ")\n"
 

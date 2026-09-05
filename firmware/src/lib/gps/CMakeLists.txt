@@ -1,5 +1,4 @@
 add_library(gps STATIC
-    gps_driver.c
     nmea.c
     ubx.c
 )

@@ -1,0 +1,26 @@
+[
+    {
+        "name": "uart",
+        "rate": 1000,
+        "priority": "high",
+        "modules": [
+            { "name": "com_uart", "stack_size": 1024, "args": ["g_cfg_uart"] }
+        ]
+    },
+    {
+        "name": "lora",
+        "rate": 1000,
+        "priority": "high",
+        "modules": [
+            { "name": "com_lora_sx1268", "stack_size": 1024, "args": ["g_cfg_spi", "g_cfg_lora_cs_pin", "g_cfg_lora_dio1_pin", "g_cfg_lora_reset_pin", "g_cfg_lora_busy_pin", "CFG_LORA_FREQ", "CFG_LORA_BANDWIDTH", "CFG_LORA_SF", "CFG_LORA_TX_POWER", "g_cfg_lora_txen_pin", "g_cfg_lora_rxen_pin", "CFG_LORA_SRC_ID", "CFG_LORA_DST_ID"] }
+        ]
+    },
+    {
+        "name": "commander",
+        "rate": 50,
+        "priority": "high",
+        "modules": [
+            { "name": "commander_rm", "stack_size": 1024, "args": [] }
+        ]
+    }
+]

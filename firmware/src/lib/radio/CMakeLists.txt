@@ -33,4 +33,5 @@ endif()
 target_link_libraries(radio_driver PUBLIC
     RadioLib
     platform_hal
+    platform_osal
 )

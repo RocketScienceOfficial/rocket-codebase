@@ -23,6 +23,13 @@ if(BUILD_TESTS)
     FetchContent_MakeAvailable(googletest)
 endif()
 
+# ============= SETUP HW LIB =============
+add_library(platform_hw INTERFACE)
+
+target_include_directories(platform_hw INTERFACE
+    ${HW_INFO_DIR}
+)
+
 # ============= SETUP HAL LIB =============
 add_library(platform_hal STATIC
     hal/adc_driver_host.c
@@ -33,10 +40,14 @@ add_library(platform_hal STATIC
     hal/spi_driver_host.c
     hal/stdio_driver_host.c
     hal/uart_driver_host.c
-    hal/waveform_driver_host.c
+    hal/waveform_driver_host.c    
+    ${HW_INIT_SRC}
 )
 target_include_directories(platform_hal PUBLIC
-    ${CMAKE_CURRENT_LIST_DIR}/../include/hal/include
+    ${CMAKE_CURRENT_LIST_DIR}/../include/hal/include    
+)
+target_link_libraries(platform_hal PRIVATE
+    platform_hw
 )
 
 # ============= SETUP OSAL LIB =============
@@ -59,14 +70,14 @@ target_include_directories(platform_osal PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/../include/osal/include
 )
 
-# ============= SETUP SITL LIB =============
+# ============= SETUP SITL LIB (INTERFACE) =============
 add_library(host_sitl INTERFACE)
 
 target_link_libraries(host_sitl INTERFACE
     platform_osal
 )
 target_include_directories(host_sitl INTERFACE
-    ${CMAKE_CURRENT_LIST_DIR}/sitl/include
+    ${CMAKE_CURRENT_LIST_DIR}/sitl
 )
 
 # ============= ENABLE NETWORK LIB =============

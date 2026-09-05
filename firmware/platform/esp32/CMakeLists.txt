@@ -12,6 +12,13 @@ project(firmware C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 20)
 
+# ============= SETUP HW LIB =============
+add_library(platform_hw INTERFACE)
+
+target_include_directories(platform_hw INTERFACE
+    ${HW_INFO_DIR}
+)
+
 # ============= SETUP HAL LIB =============
 add_library(platform_hal INTERFACE)
 

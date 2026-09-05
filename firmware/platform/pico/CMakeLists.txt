@@ -21,6 +21,13 @@ set(CMAKE_CXX_STANDARD 20)
 # ============= PICO INIT =============
 pico_sdk_init()
 
+# ============= SETUP HW LIB =============
+add_library(platform_hw INTERFACE)
+
+target_include_directories(platform_hw INTERFACE
+    ${HW_INFO_DIR}
+)
+
 # ============= SETUP HAL LIB =============
 add_library(platform_hal INTERFACE)
 
@@ -60,11 +67,13 @@ add_executable(firmware
     hal/time_driver_pico.c
     hal/uart_driver_pico.c
     hal/waveform_driver_pico.c
+    ${HW_INIT_SRC}
 )
 target_link_libraries(firmware
     app_main
     platform_hal
     platform_osal
+    platform_hw
     freertos_osal
     hardware_adc
     hardware_i2c

@@ -3,14 +3,14 @@
         "name": "serial",
         "priority": "high",
         "modules": [
-            "sim_serial"
+            { "name": "sim_serial", "stack_size": 1024, "args": ["CFG_SIM_SERIAL_PORT"] }
         ]
     },
     {
         "name": "lora",
         "priority": "high",
         "modules": [
-            "sim_lora"
+            { "name": "sim_lora", "stack_size": 1024, "args": ["CFG_SIM_LORA_PORT"] }
         ]
     },
     {
@@ -18,7 +18,7 @@
         "rate": 50,
         "priority": "high",
         "modules": [
-            "commander_gcs"
+            { "name": "commander_gcs", "stack_size": 1024, "args": [] }
         ]
     },
     {
@@ -26,7 +26,7 @@
         "rate": 50,
         "priority": "normal",
         "modules": [
-            "oled"
+            { "name": "oled", "stack_size": 2048, "args": ["0", "0"] }
         ]
     },
     {
@@ -34,7 +34,7 @@
         "rate": 10,
         "priority": "low",
         "modules": [
-            "pmu"
+            { "name": "pmu", "stack_size": 512, "args": ["0"] }
         ]
     },
     {
@@ -42,7 +42,7 @@
         "rate": 1000,
         "priority": "high",
         "modules": [
-            "gps_simple"
+            { "name": "gps_simple", "stack_size": 1024, "args": ["0"] }
         ]
     }
 ]

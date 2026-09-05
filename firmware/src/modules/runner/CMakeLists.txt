@@ -1,9 +1,12 @@
 # ===== CHECK FOR REBUILD =====
-message(STATUS "Runner profile: ${RUNNER_PROFILE}")
+if(NOT DEFINED RUNNER_PROFILE_FILE)
+    message(FATAL_ERROR "RUNNER_PROFILE_FILE is not defined. Please set it to a valid profile file path.")
+else()
+    message(STATUS "Runner profile: ${RUNNER_PROFILE_FILE}")
+endif()
 
 set(RUNNER_OUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated)
 set(RUNNER_GEN_PY ${CMAKE_CURRENT_LIST_DIR}/runner_gen.py)
-set(RUNNER_PROFILE_FILE ${CMAKE_CURRENT_LIST_DIR}/profiles/${RUNNER_PROFILE}.json)
 set(RUNNER_GEN_SOURCE ${RUNNER_OUT_DIR}/runner.cpp)
 set(RUNNER_GEN_CMAKE ${RUNNER_OUT_DIR}/runner.cmake)
 set(RUNNER_GEN_STAMP ${RUNNER_OUT_DIR}/runner.stamp)
@@ -22,7 +25,7 @@ endif()
 
 if(RUNNER_NEEDS_GEN)
     message(STATUS "Generating runner code using profile ${RUNNER_PROFILE_FILE}...")
-    
+
     execute_process(
         COMMAND ${Python3_EXECUTABLE} ${RUNNER_GEN_PY} --profile ${RUNNER_PROFILE_FILE} --output-source ${RUNNER_GEN_SOURCE} --output-cmake ${RUNNER_GEN_CMAKE}
         RESULT_VARIABLE RUNNER_GEN_RESULT
@@ -43,7 +46,7 @@ add_library(app_main STATIC
 target_link_libraries(app_main PUBLIC
     platform_hal
     platform_osal
-    hw_info
+    platform_hw
     app_pubsub
 )
 

@@ -7,6 +7,11 @@
 #include <hal/adc_driver.h>
 #include <hal/pwm_driver.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 // --- BUSES ---
 extern const hal_spi_bus_t g_cfg_spi;
 extern const hal_uart_bus_t g_cfg_uart;
@@ -37,15 +42,18 @@ extern const hal_gpio_pin_t g_cfg_vbat_pin;
 extern const hal_gpio_pin_t g_cfg_5v_pin;
 extern const hal_gpio_pin_t g_cfg_3v3_pin;
 
-// --- ADC ---
-#define CFG_ADC_VREF 2.5f
-
-// --- SIM ---
-#define CFG_SIM_BRIDGE_PORT 12345
-#define CFG_SIM_UART_PORT 12346
-#define CFG_SIM_SERIAL_PORT 12347
+// --- ADC / CALIB ---
+#define CFG_EXTERNAL_ADC_VREF 2.5f
+#define CFG_EXTERNAL_ADC_CALIB_SCALE 11.0f
+#define CFG_EXTERNAL_ADC_CALIB_OFFSET 0.1f
+#define CFG_INTERNAL_ADC_CALIB_SCALE 1.035f
+#define CFG_INTERNAL_ADC_CALIB_OFFSET 0.036f
 
 // --- INIT FUNCTION ---
 void hw_init(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
