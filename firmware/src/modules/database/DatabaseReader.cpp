@@ -76,7 +76,7 @@ void DatabaseReader::onUpdate()
 
         if (!m_NewSectionInitialized)
         {
-            m_CurrentDataOffset = SECTORS_OFFSET_STANDING_BUFFER * BOARD_FLASH_SECTOR_SIZE;
+            m_CurrentDataOffset = SECTORS_OFFSET_STANDING_BUFFER * HAL_FLASH_SECTOR_SIZE;
             m_NewSectionInitialized = true;
         }
 
@@ -93,7 +93,7 @@ void DatabaseReader::onUpdate()
 
         if (!m_NewSectionInitialized)
         {
-            m_CurrentDataOffset = SECTORS_OFFSET_DATA * BOARD_FLASH_SECTOR_SIZE;
+            m_CurrentDataOffset = SECTORS_OFFSET_DATA * HAL_FLASH_SECTOR_SIZE;
             m_NewSectionInitialized = true;
         }
 

@@ -5,19 +5,33 @@
 #include <lib/maths/vector.h>
 #include <lib/maths/quaternion.h>
 #include <lib/geo/wgs84.h>
+#include <hal/flash_driver.h>
 
-#define SECTORS_OFFSET_METADATA 128
-#define SECTORS_OFFSET_STANDING_BUFFER 129
-#define SECTORS_OFFSET_DATA 144
+// Settings
+#define PROGRAM_RESERVED_SIZE_BYTES (512UL * 1024UL) /** Space reserved for the firmware image/bootloader before the database region begins. */
+#define SECTORS_COUNT_STANDING_BUFFER 16             /** Number of sectors reserved for the standing buffer. */
+#define DATA_SAVE_RATE_US 20000                      /** Data save rate in microseconds. */
+#define DATA_RECOVERY_MAX_FRAMES 150000              /** Maximum number of frames that can be recovered. */
 
-#define SECTORS_COUNT_STANDING_BUFFER ((SECTORS_OFFSET_DATA) - (SECTORS_OFFSET_STANDING_BUFFER))
-#define SECTORS_COUNT_DATA 3500
+// Derived constants
+#define SECTORS_OFFSET_METADATA (PROGRAM_RESERVED_SIZE_BYTES / HAL_FLASH_SECTOR_SIZE)
+#define SECTORS_OFFSET_STANDING_BUFFER (SECTORS_OFFSET_METADATA + 1)
+#define SECTORS_OFFSET_DATA (SECTORS_OFFSET_STANDING_BUFFER + SECTORS_COUNT_STANDING_BUFFER)
 
-#define DATA_SAVE_RATE_US 20000
-#define DATA_RECOVERY_MAX_FRAMES 150000
+// Sector-page conversions, computed once instead of repeated at every call site.
+#define PAGES_PER_SECTOR (HAL_FLASH_SECTOR_SIZE / HAL_FLASH_PAGE_SIZE)
+#define OFFSET_PAGES_METADATA (SECTORS_OFFSET_METADATA * PAGES_PER_SECTOR)
+#define OFFSET_PAGES_STANDING_BUFFER (SECTORS_OFFSET_STANDING_BUFFER * PAGES_PER_SECTOR)
+#define OFFSET_PAGES_DATA (SECTORS_OFFSET_DATA * PAGES_PER_SECTOR)
 
-#define STANDING_BUFFER_LENGTH (BOARD_FLASH_PAGE_SIZE)
-#define LANDING_BUFFER_LENGTH (BOARD_FLASH_PAGE_SIZE)
+// Fills whatever flash remains on this board past the data region's start.
+#define SECTORS_COUNT_DATA (((BOARD_FLASH_SIZE) / (HAL_FLASH_SECTOR_SIZE)) - (SECTORS_OFFSET_DATA))
+
+#define STANDING_BUFFER_LENGTH (HAL_FLASH_PAGE_SIZE) // Ensure the number of elements is divisible by page size so we can easily write entire buffer
+#define LANDING_BUFFER_LENGTH (HAL_FLASH_PAGE_SIZE)  // Ensure the number of elements is divisible by page size so we can easily write entire buffer
+
+// Check if we can fit the database in the flash memory of this board.
+static_assert(SECTORS_OFFSET_DATA * HAL_FLASH_SECTOR_SIZE <= BOARD_FLASH_SIZE);
 
 struct __attribute__((__packed__)) DatabaseFrame
 {

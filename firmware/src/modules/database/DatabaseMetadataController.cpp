@@ -7,7 +7,7 @@
 void DatabaseMetadataController::read()
 {
     DatabaseMetadataRaw info;
-    hal_flash_read(SECTORS_OFFSET_METADATA * BOARD_FLASH_SECTOR_SIZE, (uint8_t *)&info, sizeof(info));
+    hal_flash_read(SECTORS_OFFSET_METADATA * HAL_FLASH_SECTOR_SIZE, (uint8_t *)&info, sizeof(info));
 
     if (validateInfo(&info))
     {
@@ -34,12 +34,12 @@ void DatabaseMetadataController::save(const DatabaseMetadata &metadata)
 
     m_CurrentMetadata = metadata;
 
-    uint8_t data[256];
+    uint8_t data[HAL_FLASH_PAGE_SIZE];
     memset(data, 0xff, sizeof(data));
     memcpy(data, &rawMetadata, sizeof(DatabaseMetadataRaw));
 
     hal_flash_erase_sectors(SECTORS_OFFSET_METADATA, 1);
-    hal_flash_write_pages(SECTORS_OFFSET_METADATA * BOARD_FLASH_SECTOR_SIZE / BOARD_FLASH_PAGE_SIZE, data, 1);
+    hal_flash_write_pages(OFFSET_PAGES_METADATA, data, 1);
 
     sendReadyNotification();
 

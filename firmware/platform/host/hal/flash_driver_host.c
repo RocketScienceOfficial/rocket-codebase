@@ -51,8 +51,8 @@ void hal_flash_read(size_t offset, uint8_t *dst, size_t size)
 
 void hal_flash_write_pages(size_t offsetPages, const uint8_t *buffer, size_t pagesCount)
 {
-    size_t byte_offset = offsetPages * BOARD_FLASH_PAGE_SIZE;
-    size_t byte_length = pagesCount * BOARD_FLASH_PAGE_SIZE;
+    size_t byte_offset = offsetPages * HAL_FLASH_PAGE_SIZE;
+    size_t byte_length = pagesCount * HAL_FLASH_PAGE_SIZE;
 
     for (size_t i = 0; i < byte_length; i++)
     {
@@ -64,8 +64,8 @@ void hal_flash_write_pages(size_t offsetPages, const uint8_t *buffer, size_t pag
 
 void hal_flash_erase_sectors(size_t sectorsOffset, size_t sectorsCount)
 {
-    size_t byte_offset = sectorsOffset * BOARD_FLASH_SECTOR_SIZE;
-    size_t byte_length = sectorsCount * BOARD_FLASH_SECTOR_SIZE;
+    size_t byte_offset = sectorsOffset * HAL_FLASH_SECTOR_SIZE;
+    size_t byte_length = sectorsCount * HAL_FLASH_SECTOR_SIZE;
 
     memset(&g_flashMemory[byte_offset], 0xFF, byte_length);
 

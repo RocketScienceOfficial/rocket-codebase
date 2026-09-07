@@ -64,9 +64,9 @@ void DatabaseWriter::saveFrame(const DatabaseFrame &frame)
             m_SaveBufferSize += tmpLen;
         }
 
-        size_t pages = m_SaveBufferSize / BOARD_FLASH_PAGE_SIZE;
+        size_t pages = m_SaveBufferSize / HAL_FLASH_PAGE_SIZE;
 
-        hal_flash_write_pages(SECTORS_OFFSET_DATA * BOARD_FLASH_SECTOR_SIZE / BOARD_FLASH_PAGE_SIZE + m_SaveFlashOffsetPages, m_SaveBuffer, pages);
+        hal_flash_write_pages(OFFSET_PAGES_DATA + m_SaveFlashOffsetPages, m_SaveBuffer, pages);
 
         m_SaveFlashOffsetPages += pages;
 
@@ -99,7 +99,7 @@ DatabaseFrameRaw DatabaseWriter::getFrame(const DatabaseFrame &frame)
 
 bool DatabaseWriter::canSaveData() const
 {
-    return m_SaveFlashOffsetPages + sizeof(m_SaveBuffer) / BOARD_FLASH_PAGE_SIZE <= SECTORS_COUNT_DATA * BOARD_FLASH_SECTOR_SIZE / BOARD_FLASH_PAGE_SIZE;
+    return m_SaveFlashOffsetPages + sizeof(m_SaveBuffer) / HAL_FLASH_PAGE_SIZE <= SECTORS_COUNT_DATA * PAGES_PER_SECTOR;
 }
 
 void DatabaseWriter::flushData()
@@ -110,7 +110,7 @@ void DatabaseWriter::flushData()
         {
             memset(m_SaveBuffer + m_SaveBufferSize, 0, sizeof(m_SaveBuffer) - m_SaveBufferSize);
 
-            hal_flash_write_pages(SECTORS_OFFSET_DATA * BOARD_FLASH_SECTOR_SIZE / BOARD_FLASH_PAGE_SIZE + m_SaveFlashOffsetPages, m_SaveBuffer, sizeof(m_SaveBuffer) / BOARD_FLASH_PAGE_SIZE);
+            hal_flash_write_pages(OFFSET_PAGES_DATA + m_SaveFlashOffsetPages, m_SaveBuffer, sizeof(m_SaveBuffer) / HAL_FLASH_PAGE_SIZE);
         }
 
         LOG_INFO("Flash save buffer has been flushed. %d bytes were written", m_SaveBufferSize);
@@ -129,9 +129,9 @@ void DatabaseWriter::flushStandingBuffer()
     }
 
     uint8_t *data = (uint8_t *)m_StandingBuffer;
-    size_t pages = sizeof(m_StandingBuffer) / BOARD_FLASH_PAGE_SIZE;
+    size_t pages = sizeof(m_StandingBuffer) / HAL_FLASH_PAGE_SIZE;
 
-    hal_flash_write_pages(SECTORS_OFFSET_STANDING_BUFFER * BOARD_FLASH_SECTOR_SIZE / BOARD_FLASH_PAGE_SIZE, data, pages);
+    hal_flash_write_pages(OFFSET_PAGES_STANDING_BUFFER, data, pages);
 
     LOG_INFO("Standing buffer has been flushed. %d frames (%d bytes) were written", m_StandingBufferLength, m_StandingBufferLength * sizeof(DatabaseFrameRaw));
 }

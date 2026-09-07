@@ -4,6 +4,10 @@
 #include <stdint.h>
 #include <stddef.h>
 
+// SPI NOR flash geometry
+#define HAL_FLASH_PAGE_SIZE 256
+#define HAL_FLASH_SECTOR_SIZE 4096
+
 #ifdef __cplusplus
 extern "C" {
 #endif

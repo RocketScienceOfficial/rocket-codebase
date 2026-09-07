@@ -1,6 +1,4 @@
 add_compile_definitions(
-    BOARD_FLASH_PAGE_SIZE=256
-    BOARD_FLASH_SECTOR_SIZE=4096
     BOARD_FLASH_SIZE=4194304
 )
 

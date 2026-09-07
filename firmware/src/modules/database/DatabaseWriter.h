@@ -21,7 +21,7 @@ private:
 
     DatabaseMetadataController &m_MetadataController;
 
-    uint8_t m_SaveBuffer[BOARD_FLASH_PAGE_SIZE];
+    uint8_t m_SaveBuffer[HAL_FLASH_PAGE_SIZE];
     size_t m_SaveBufferSize = 0;
     size_t m_SaveFlashOffsetPages = 0;
     size_t m_SavedFramesCount = 0;
