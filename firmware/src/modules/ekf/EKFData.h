@@ -42,6 +42,7 @@ struct EKFMagMeasurement
     float var;
 };
 
+// TODO: Add airspeed to state (pitot measurements)
 struct EKFNominalState
 {
     quat_t attitude;

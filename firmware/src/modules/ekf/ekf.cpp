@@ -25,6 +25,7 @@ void EKF::predictState(const EKFIMUData &imu)
     const float &dt = imu.dt;
 
     // Attitude prediction
+    // TODO: Quaternion exponential map for better accuracy (check if it's worth it)
     quat_t dq = {
         .w = 1.0f,
         .x = 0.5f * (imu.delta_angle.x - m_NominalState.bias_gyro.x * dt),
@@ -177,6 +178,7 @@ void EKF::updateCovariancePostFusion()
 
 bool EKF::shouldFuseMeasurement(float innov, float innov_var, float gate_threshold)
 {
+    // TODO: Add some system for failed gate check recovery
     // Chi-square gate test for 1 degree of freedom: innov^2 < gate_threshold^2 * innov_var
     return (innov * innov) < (gate_threshold * gate_threshold * innov_var);
 }

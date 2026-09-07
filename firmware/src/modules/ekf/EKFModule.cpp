@@ -39,6 +39,7 @@ void EKFModule::processIMU(const PubSub::Messages::SensorsIMU &imuData)
 {
     uint32_t currentTime = osal_systime_get_ms();
 
+    // TODO: Integrate accel with quaternion to get more accurate data (fine for small measurement-to-update ratio)
     m_AccelAccum.x += imuData.acc.x * imuData.dt;
     m_AccelAccum.y += imuData.acc.y * imuData.dt;
     m_AccelAccum.z += imuData.acc.z * imuData.dt;
@@ -223,9 +224,10 @@ void EKFModule::processBaro(const PubSub::Messages::SensorsBaro &baroData)
 
     if (m_EKFEnabled)
     {
+        // TODO: Compensate for dynamic pressure here / driver
         EKFBaroMeasurement baroMeas;
         baroMeas.height = -(baroData.baroHeight - m_BaroOffset); // Negative because baro height is typically positive upwards, while NED z is positive downwards
-        baroMeas.var = VARIANCE(EKF_NOISE_BARO);
+        baroMeas.var = VARIANCE(EKF_NOISE_BARO); // TODO: Change variance with Mach number
         m_BaroBuffer.push(baroMeas, osal_systime_get_ms() - EKF_DELAY_MS_BARO);
     }
 }
@@ -305,6 +307,8 @@ void EKFModule::processMag(const PubSub::Messages::SensorsMag &magData)
 
     if (m_EKFEnabled)
     {
+        // TODO: Run multiple mini Gaussian Sum Filters (GSF) for yaw
+        // TODO: Dual GPS fusion for yaw observation
         EKFMagMeasurement magMeas;
         magMeas.mag = magData.mag;
         magMeas.var = VARIANCE(EKF_NOISE_MAG);
@@ -346,6 +350,7 @@ void EKFModule::outputPredictorCalculateState(const EKFIMUData &sample)
     m_AttitudeCorrection.z -= attCorrThisStep.z;
 
     // Gyro integration: body-frame rotation, applied from the right.
+    // TODO: Quaternion exponential map for better accuracy (check if it's worth it)
     quat_t dq = {
         .w = 1.0f,
         .x = 0.5f * (sample.delta_angle.x - m_EKF.getState().bias_gyro.x * dt),
@@ -507,6 +512,7 @@ void EKFModule::updateEKF()
         }
         else if (!m_MagBuffer.empty() && m_MagBuffer.peekTimestamp() <= minMeasTimestamp)
         {
+            // TODO: Check it 2D or 3D fusion is better for mag, and implement 2D fusion if needed
             if (!m_EKF.fuseMag(m_MagBuffer.pop(), EKF_GATE_THRESHOLD_MAG))
             {
                 LOG_WARN("Mag fusion failed gate check");

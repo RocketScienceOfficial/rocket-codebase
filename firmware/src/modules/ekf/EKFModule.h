@@ -10,6 +10,7 @@
 #include "utils/TimestampedRingBuffer.h"
 #include "utils/RunningStats.h"
 
+// TODO: Multiple instances of EKS (like PX4) and selector of the best one
 class EKFModule
 {
 public:
