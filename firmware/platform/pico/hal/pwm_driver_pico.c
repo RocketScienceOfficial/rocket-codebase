@@ -17,12 +17,6 @@ static const unsigned long PWM_DEFAULT_WRAP = 65535;
 
 static pwm_timer_state_t g_pwm_timers[NUM_PWM_SLICES] = {0};
 
-static void compute_clkdiv_wrap(uint32_t frequency, unsigned long *clockDiv, unsigned long *wrap)
-{
-    *clockDiv = (unsigned long)ceilf((float)PWM_FREQ_HZ / (float)(PWM_DEFAULT_WRAP * frequency));
-    *wrap = (unsigned long)roundf((float)PWM_FREQ_HZ / (float)(*clockDiv * frequency));
-}
-
 bool hal_pwm_init_timer(hal_pwm_timer_t timer, uint32_t frequency)
 {
     if (timer >= NUM_PWM_SLICES)
@@ -30,15 +24,9 @@ bool hal_pwm_init_timer(hal_pwm_timer_t timer, uint32_t frequency)
         return false;
     }
 
-    unsigned long clockDiv;
-    unsigned long wrap;
-    compute_clkdiv_wrap(frequency, &clockDiv, &wrap);
+    hal_pwm_set_timer_frequency(timer, frequency);
 
-    pwm_set_clkdiv(timer, clockDiv);
-    pwm_set_wrap(timer, wrap);
     pwm_set_enabled(timer, true);
-
-    g_pwm_timers[timer].clock_div = clockDiv;
 
     return true;
 }
@@ -50,9 +38,8 @@ void hal_pwm_set_timer_frequency(hal_pwm_timer_t timer, uint32_t frequency)
         return;
     }
 
-    unsigned long clockDiv;
-    unsigned long wrap;
-    compute_clkdiv_wrap(frequency, &clockDiv, &wrap);
+    unsigned long clockDiv = (unsigned long)ceilf((float)PWM_FREQ_HZ / (float)(PWM_DEFAULT_WRAP * frequency));
+    unsigned long wrap = (unsigned long)roundf((float)PWM_FREQ_HZ / (float)(clockDiv * frequency));
 
     pwm_set_clkdiv(timer, clockDiv);
     pwm_set_wrap(timer, wrap);
@@ -85,10 +72,9 @@ void hal_pwm_set_channel_duty(hal_pwm_channel_t channel, hal_pwm_timer_t timer, 
     {
         return;
     }
-    
+
     hal_gpio_pin_t pin = g_pwm_timers[timer].channels_pins[channel];
     unsigned long clock_div = g_pwm_timers[timer].clock_div;
-
     unsigned long wrap = (unsigned long)roundf(dutyCycleUs * (PWM_FREQ_HZ / 1e6) / clock_div);
 
     pwm_set_gpio_level(pin, wrap);
