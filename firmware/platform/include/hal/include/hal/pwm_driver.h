@@ -44,9 +44,10 @@ bool hal_pwm_init_channel(hal_pwm_channel_t channel, hal_pwm_timer_t timer, hal_
  * @brief Set duty cycle of a PWM channel
  *
  * @param channel Channel to set
+ * @param timer Timer to use
  * @param dutyCycleUs Duty cycle in microseconds
  */
-void hal_pwm_set_channel_duty(hal_pwm_channel_t channel, float dutyCycleUs);
+void hal_pwm_set_channel_duty(hal_pwm_channel_t channel, hal_pwm_timer_t timer, float dutyCycleUs);
 
 #ifdef __cplusplus
 }

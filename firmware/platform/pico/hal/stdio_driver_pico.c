@@ -17,12 +17,12 @@ bool hal_stdio_is_usb_connected(void)
     return stdio_usb_connected();
 }
 
-void hal_stdio_printf(const char *fmt, ...)
+bool hal_stdio_printf(const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
 
-    vprintf(fmt, args);
+    int result = vprintf(fmt, args);
 
     va_end(args);
 
@@ -30,12 +30,16 @@ void hal_stdio_printf(const char *fmt, ...)
     {
         putchar('\r');
     }
+
+    return result >= 0;
 }
 
-void hal_stdio_send_buffer(const uint8_t *buffer, size_t len)
+bool hal_stdio_send_buffer(const uint8_t *buffer, size_t len)
 {
-    fwrite(buffer, 1, len, stdout);
+    size_t result = fwrite(buffer, 1, len, stdout);
     fflush(stdout);
+
+    return result == len;
 }
 
 bool hal_stdio_read_byte(uint8_t *byte)

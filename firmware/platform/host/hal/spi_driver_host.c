@@ -1,6 +1,6 @@
 #include "hal/spi_driver.h"
 
-void hal_spi_init_bus(uint8_t bus, uint8_t miso, uint8_t mosi, uint8_t sck, uint32_t baudrate)
+void hal_spi_init_bus(hal_spi_bus_t bus, hal_gpio_pin_t miso, hal_gpio_pin_t mosi, hal_gpio_pin_t sck, uint32_t baudrate)
 {
     (void)bus;
     (void)miso;
@@ -9,7 +9,7 @@ void hal_spi_init_bus(uint8_t bus, uint8_t miso, uint8_t mosi, uint8_t sck, uint
     (void)baudrate;
 }
 
-bool hal_spi_transfer(uint8_t bus, const uint8_t *outData, uint8_t *inData, size_t size)
+bool hal_spi_transfer(hal_spi_bus_t bus, const uint8_t *outData, uint8_t *inData, size_t size)
 {
     (void)bus;
     (void)outData;

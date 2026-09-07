@@ -114,14 +114,14 @@ void BuzzerModule::playCurrentTone()
 {
     if (m_CurrentTone == NULL || m_CurrentTone->frequency == 0)
     {
-        hal_pwm_set_channel_duty(m_BuzzerChannel, 0);
+        hal_pwm_set_channel_duty(m_BuzzerChannel, m_BuzzerTimer, 0);
 
         LOG_DEBUG("Silence for %d ms", m_CurrentTone != NULL ? m_CurrentTone->duration_ms : -1);
     }
     else
     {
         hal_pwm_set_timer_frequency(m_BuzzerTimer, m_CurrentTone->frequency);
-        hal_pwm_set_channel_duty(m_BuzzerChannel, 1e6f * BUZZER_DUTY_CYCLE_RATIO / m_CurrentTone->frequency);
+        hal_pwm_set_channel_duty(m_BuzzerChannel, m_BuzzerTimer, 1e6f * BUZZER_DUTY_CYCLE_RATIO / m_CurrentTone->frequency);
 
         LOG_DEBUG("Playing tone with frequency %d Hz for %d ms", m_CurrentTone->frequency, m_CurrentTone->duration_ms);
     }

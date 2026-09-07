@@ -3,7 +3,7 @@
 #include "hardware/i2c.h"
 #include "pico/stdlib.h"
 
-static i2c_inst_t *get_i2c(uint8_t i2c)
+static i2c_inst_t *get_i2c(hal_i2c_bus_t i2c)
 {
     return (i2c == 0 ? i2c0 : i2c1);
 }
@@ -18,14 +18,14 @@ void hal_i2c_init_bus(hal_i2c_bus_t i2c, hal_gpio_pin_t sda, hal_gpio_pin_t scl,
     hal_gpio_pull_up_pin(scl);
 }
 
-bool hal_i2c_transfer(uint8_t bus, uint8_t address, const uint8_t *tx_buffer, size_t tx_size, uint8_t *rx_buffer, size_t rx_size)
+bool hal_i2c_transfer(hal_i2c_bus_t bus, uint8_t address, const uint8_t *tx_buffer, size_t tx_size, uint8_t *rx_buffer, size_t rx_size)
 {
     bool do_write = tx_buffer != NULL && tx_size > 0;
     bool do_read = rx_buffer != NULL && rx_size > 0;
 
     if (do_write)
     {
-        if (!i2c_write_blocking(get_i2c(bus), address, tx_buffer, tx_size, do_read))
+        if (i2c_write_blocking(get_i2c(bus), address, tx_buffer, tx_size, do_read) != (int)tx_size)
         {
             return false;
         }
@@ -33,7 +33,7 @@ bool hal_i2c_transfer(uint8_t bus, uint8_t address, const uint8_t *tx_buffer, si
 
     if (do_read)
     {
-        if (!i2c_read_blocking(get_i2c(bus), address, rx_buffer, rx_size, false))
+        if (i2c_read_blocking(get_i2c(bus), address, rx_buffer, rx_size, false) != (int)rx_size)
         {
             return false;
         }

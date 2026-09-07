@@ -84,14 +84,13 @@ bool hal_pwm_init_channel(hal_pwm_channel_t channel, hal_pwm_timer_t timer, hal_
     return success;
 }
 
-void hal_pwm_set_channel_duty(hal_pwm_channel_t channel, float dutyCycleUs)
+void hal_pwm_set_channel_duty(hal_pwm_channel_t channel, hal_pwm_timer_t timer, float dutyCycleUs)
 {
-    if (channel >= LEDC_CHANNEL_MAX)
+    if (channel >= LEDC_CHANNEL_MAX || timer >= LEDC_TIMER_MAX)
     {
         return;
     }
 
-    ledc_timer_t timer = g_channels[channel].timer;
     uint32_t frequency = g_timers[timer].frequency;
 
     float duty_multiplier = ((float)frequency * PWM_MAX_DUTY_RAW) / 1000000.0f;

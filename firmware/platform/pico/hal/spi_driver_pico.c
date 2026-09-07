@@ -4,12 +4,12 @@
 #include "pico/stdlib.h"
 #include <stdbool.h>
 
-static spi_inst_t *get_spi(uint8_t spi)
+static spi_inst_t *get_spi(hal_spi_bus_t spi)
 {
     return (spi == 0 ? spi0 : spi1);
 }
 
-void hal_spi_init_bus(uint8_t bus, uint8_t miso, uint8_t mosi, uint8_t sck, uint32_t baudrate)
+void hal_spi_init_bus(hal_spi_bus_t bus, hal_gpio_pin_t miso, hal_gpio_pin_t mosi, hal_gpio_pin_t sck, uint32_t baudrate)
 {
     spi_init(get_spi(bus), baudrate);
 
@@ -18,7 +18,7 @@ void hal_spi_init_bus(uint8_t bus, uint8_t miso, uint8_t mosi, uint8_t sck, uint
     hal_gpio_set_pin_function(sck, HAL_GPIO_FUNCTION_SPI);
 }
 
-bool hal_spi_transfer(uint8_t bus, const uint8_t *txData, uint8_t *rxData, size_t size)
+bool hal_spi_transfer(hal_spi_bus_t bus, const uint8_t *txData, uint8_t *rxData, size_t size)
 {
     if (txData == NULL)
     {

@@ -8,7 +8,7 @@
 typedef struct
 {
     bool in_use;
-    uint8_t bus;
+    hal_i2c_bus_t bus;
     uint8_t address;
     i2c_master_dev_handle_t handle;
 } i2c_device_node_t;
@@ -17,8 +17,13 @@ static i2c_master_bus_handle_t g_bus_handles[MAX_I2C_BUSES] = {NULL};
 static uint32_t g_bus_baudrates[MAX_I2C_BUSES] = {0};
 static i2c_device_node_t s_device_registry[MAX_I2C_DEVICES] = {0};
 
-void hal_i2c_init_bus(uint8_t bus, uint8_t sda, uint8_t scl, uint32_t baudrate)
+void hal_i2c_init_bus(hal_i2c_bus_t bus, hal_gpio_pin_t sda, hal_gpio_pin_t scl, uint32_t baudrate)
 {
+    if (bus >= MAX_I2C_BUSES)
+    {
+        return;
+    }
+
     i2c_master_bus_config_t bus_config = {
         .i2c_port = bus,
         .sda_io_num = sda,
@@ -34,7 +39,7 @@ void hal_i2c_init_bus(uint8_t bus, uint8_t sda, uint8_t scl, uint32_t baudrate)
     }
 }
 
-static i2c_master_dev_handle_t get_device_handle(uint8_t bus, uint8_t address)
+static i2c_master_dev_handle_t get_device_handle(hal_i2c_bus_t bus, uint8_t address)
 {
     if (bus >= MAX_I2C_BUSES || g_bus_handles[bus] == NULL)
     {
@@ -82,7 +87,7 @@ static i2c_master_dev_handle_t get_device_handle(uint8_t bus, uint8_t address)
     return NULL;
 }
 
-bool hal_i2c_transfer(uint8_t bus, uint8_t address, const uint8_t *tx_buffer, size_t tx_size, uint8_t *rx_buffer, size_t rx_size)
+bool hal_i2c_transfer(hal_i2c_bus_t bus, uint8_t address, const uint8_t *tx_buffer, size_t tx_size, uint8_t *rx_buffer, size_t rx_size)
 {
     i2c_master_dev_handle_t dev = get_device_handle(bus, address);
 

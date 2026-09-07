@@ -4,8 +4,13 @@
 
 static spi_device_handle_t g_spi_handles[SOC_SPI_PERIPH_NUM];
 
-void hal_spi_init_bus(uint8_t bus, uint8_t miso, uint8_t mosi, uint8_t sck, uint32_t baudrate)
+void hal_spi_init_bus(hal_spi_bus_t bus, hal_gpio_pin_t miso, hal_gpio_pin_t mosi, hal_gpio_pin_t sck, uint32_t baudrate)
 {
+    if (bus >= SOC_SPI_PERIPH_NUM)
+    {
+        return;
+    }
+
     spi_bus_config_t buscfg = {};
     buscfg.miso_io_num = miso;
     buscfg.mosi_io_num = mosi;
@@ -24,8 +29,13 @@ void hal_spi_init_bus(uint8_t bus, uint8_t miso, uint8_t mosi, uint8_t sck, uint
     spi_bus_add_device((spi_host_device_t)bus, &devcfg, &g_spi_handles[bus]);
 }
 
-bool hal_spi_transfer(uint8_t bus, const uint8_t *txData, uint8_t *rxData, size_t size)
+bool hal_spi_transfer(hal_spi_bus_t bus, const uint8_t *txData, uint8_t *rxData, size_t size)
 {
+    if (bus >= SOC_SPI_PERIPH_NUM)
+    {
+        return false;
+    }
+
     spi_transaction_t t = {};
     t.length = size * 8;
     t.tx_buffer = txData;

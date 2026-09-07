@@ -1,7 +1,7 @@
 #include "hal/uart_driver.h"
 #include "driver/uart.h"
 
-void hal_uart_init_bus(uint8_t bus, uint8_t rx, uint8_t tx, uint32_t baudrate)
+void hal_uart_init_bus(hal_uart_bus_t bus, hal_gpio_pin_t rx, hal_gpio_pin_t tx, uint32_t baudrate)
 {
     uart_config_t cfg = {
         .baud_rate = baudrate,
@@ -19,7 +19,7 @@ void hal_uart_init_bus(uint8_t bus, uint8_t rx, uint8_t tx, uint32_t baudrate)
     uart_driver_install(port, 1024, 1024, 0, NULL, 0);
 }
 
-bool hal_uart_is_writable(uint8_t bus)
+bool hal_uart_is_writable(hal_uart_bus_t bus)
 {
     uart_port_t port = (uart_port_t)bus;
     size_t free_size;
@@ -29,13 +29,13 @@ bool hal_uart_is_writable(uint8_t bus)
     return free_size > 0;
 }
 
-void hal_uart_write(uint8_t bus, const uint8_t *data, size_t size)
+void hal_uart_write(hal_uart_bus_t bus, const uint8_t *data, size_t size)
 {
     uart_port_t port = (uart_port_t)bus;
     uart_write_bytes(port, (const char *)data, size);
 }
 
-bool hal_uart_fifo_available(uint8_t bus)
+bool hal_uart_fifo_available(hal_uart_bus_t bus)
 {
     uart_port_t port = (uart_port_t)bus;
     size_t len;
@@ -45,7 +45,7 @@ bool hal_uart_fifo_available(uint8_t bus)
     return len > 0;
 }
 
-size_t hal_uart_read_fifo(uint8_t bus, uint8_t *buffer, size_t bufSize)
+size_t hal_uart_read_fifo(hal_uart_bus_t bus, uint8_t *buffer, size_t bufSize)
 {
     uart_port_t port = (uart_port_t)bus;
     size_t available;

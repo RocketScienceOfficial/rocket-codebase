@@ -26,16 +26,18 @@ bool hal_stdio_is_usb_connected(void);
  *
  * @param fmt Format
  * @param ... Params
+ * @return True if message was printed, false otherwise
  */
-void hal_stdio_printf(const char *fmt, ...);
+bool hal_stdio_printf(const char *fmt, ...);
 
 /**
  * @brief Sends byte buffer to stdio
  *
  * @param buffer Buffer of bytes to send
  * @param len Length of buffer
+ * @return True if buffer was sent, false otherwise
  */
-void hal_stdio_send_buffer(const uint8_t *buffer, size_t len);
+bool hal_stdio_send_buffer(const uint8_t *buffer, size_t len);
 
 /**
  * @brief Read byte from stdio

@@ -4,23 +4,18 @@
 #include <math.h>
 #include <stdbool.h>
 
-typedef struct
-{
-    unsigned long clock_div;
-} pwm_timer_state_t;
+#define NUM_CHANNELS_PER_SLICE 2
 
 typedef struct
 {
-    hal_gpio_pin_t pin;
-    hal_pwm_timer_t timer;
-    bool initialized;
-} pwm_channel_state_t;
+    unsigned long clock_div;
+    hal_gpio_pin_t channels_pins[NUM_CHANNELS_PER_SLICE];
+} pwm_timer_state_t;
 
 static const unsigned long PWM_FREQ_HZ = 125E6;
 static const unsigned long PWM_DEFAULT_WRAP = 65535;
 
 static pwm_timer_state_t g_pwm_timers[NUM_PWM_SLICES] = {0};
-static pwm_channel_state_t g_pwm_channels[NUM_BANK0_GPIOS] = {0};
 
 static void compute_clkdiv_wrap(uint32_t frequency, unsigned long *clockDiv, unsigned long *wrap)
 {
@@ -67,7 +62,7 @@ void hal_pwm_set_timer_frequency(hal_pwm_timer_t timer, uint32_t frequency)
 
 bool hal_pwm_init_channel(hal_pwm_channel_t channel, hal_pwm_timer_t timer, hal_gpio_pin_t pin)
 {
-    if (channel >= NUM_BANK0_GPIOS || timer >= NUM_PWM_SLICES)
+    if (channel >= NUM_CHANNELS_PER_SLICE || timer >= NUM_PWM_SLICES)
     {
         return false;
     }
@@ -79,25 +74,22 @@ bool hal_pwm_init_channel(hal_pwm_channel_t channel, hal_pwm_timer_t timer, hal_
 
     hal_gpio_set_pin_function(pin, HAL_GPIO_FUNCTION_PWM);
 
-    pwm_channel_state_t *chan = &g_pwm_channels[channel];
-    chan->pin = pin;
-    chan->timer = timer;
-    chan->initialized = true;
+    g_pwm_timers[timer].channels_pins[channel] = pin;
 
     return true;
 }
 
-void hal_pwm_set_channel_duty(hal_pwm_channel_t channel, float dutyCycleUs)
+void hal_pwm_set_channel_duty(hal_pwm_channel_t channel, hal_pwm_timer_t timer, float dutyCycleUs)
 {
-    if (channel >= NUM_BANK0_GPIOS)
+    if (channel >= NUM_CHANNELS_PER_SLICE)
     {
         return;
     }
-
-    pwm_channel_state_t *chan = &g_pwm_channels[channel];
-    unsigned long clock_div = g_pwm_timers[chan->timer].clock_div;
+    
+    hal_gpio_pin_t pin = g_pwm_timers[timer].channels_pins[channel];
+    unsigned long clock_div = g_pwm_timers[timer].clock_div;
 
     unsigned long wrap = (unsigned long)roundf(dutyCycleUs * (PWM_FREQ_HZ / 1e6) / clock_div);
 
-    pwm_set_gpio_level(chan->pin, wrap);
+    pwm_set_gpio_level(pin, wrap);
 }
