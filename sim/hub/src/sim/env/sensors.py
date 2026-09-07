@@ -2,6 +2,9 @@ from sim.utils import sensor_utils
 from .physics_engines import *
 
 
+# TODO: Add timing/latency jitter, quantization
+
+
 class NoiseModelInterface:
     def get_noise(self, shape) -> np.ndarray:
         pass
