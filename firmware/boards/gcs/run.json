@@ -24,18 +24,11 @@
         ]
     },
     {
-        "name": "oled",
+        "name": "wq:i2c",
         "rate": 50,
-        "priority": "normal",
-        "modules": [
-            { "name": "oled", "stack_size": 2048, "args": ["g_cfg_i2c", "g_cfg_button_pin"] }
-        ]
-    },
-    {
-        "name": "pmu",
-        "rate": 10,
         "priority": "low",
         "modules": [
+            { "name": "oled", "stack_size": 2048, "args": ["g_cfg_i2c", "g_cfg_button_pin"] },
             { "name": "pmu", "stack_size": 512, "args": ["g_cfg_i2c"] }
         ]
     },
