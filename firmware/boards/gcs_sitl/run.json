@@ -42,7 +42,7 @@
         "rate": 1000,
         "priority": "high",
         "modules": [
-            { "name": "gps_simple", "stack_size": 1024, "args": ["0"] }
+            { "name": "sensors_gps_simple", "stack_size": 1024, "args": ["0"] }
         ]
     }
 ]

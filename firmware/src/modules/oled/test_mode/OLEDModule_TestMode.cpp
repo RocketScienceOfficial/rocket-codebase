@@ -1,4 +1,4 @@
-#include "OLEDModule.h"
+#include "../OLEDModule.h"
 
 void OLEDModule::initDisplay()
 {
