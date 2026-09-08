@@ -51,3 +51,9 @@ target_link_libraries(app_main PUBLIC
 )
 
 include(${RUNNER_GEN_CMAKE})
+
+# ===== TESTS =====
+add_sys_test(runner_work_loop_tests
+    SOURCES
+    tests/work_loop_tests.cpp
+)

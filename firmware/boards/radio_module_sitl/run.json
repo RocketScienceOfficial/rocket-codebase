@@ -1,26 +1,23 @@
 [
     {
-        "name": "uart",
-        "rate": 1000,
+        "name": "wq_uart",
         "priority": "high",
         "modules": [
-            { "name": "sim_uart", "stack_size": 1024, "args": ["CFG_SIM_RADIO_UART_HOST", "CFG_SIM_RADIO_UART_PORT"] }
+            { "name": "sim_uart", "stack_size": 1024, "rate": 1000, "args": ["CFG_SIM_RADIO_UART_HOST", "CFG_SIM_RADIO_UART_PORT"] }
         ]
     },
     {
-        "name": "lora",
-        "rate": 1000,
+        "name": "wq_lora",
         "priority": "high",
         "modules": [
-            { "name": "sim_lora", "stack_size": 1024, "args": ["CFG_SIM_GCS_LORA_HOST", "CFG_SIM_GCS_LORA_PORT"] }
+            { "name": "sim_lora", "stack_size": 1024, "rate": 1000, "args": ["CFG_SIM_GCS_LORA_HOST", "CFG_SIM_GCS_LORA_PORT"] }
         ]
     },
     {
-        "name": "commander",
-        "rate": 50,
+        "name": "wq_commander",
         "priority": "high",
         "modules": [
-            { "name": "commander_rm", "stack_size": 1024, "args": [] }
+            { "name": "commander_rm", "stack_size": 1024, "rate": 50, "args": [] }
         ]
     }
 ]

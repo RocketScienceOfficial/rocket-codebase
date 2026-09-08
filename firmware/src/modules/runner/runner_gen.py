@@ -31,8 +31,26 @@ def loop_stack_size(loop):
     return round_up_pow2(max(module["stack_size"] for module in loop["modules"]))
 
 
+def validate_loop_rates(loop):
+    rated = [module for module in loop["modules"] if "rate" in module]
+    rateless = [module for module in loop["modules"] if "rate" not in module]
+
+    if rated and rateless:
+        names = ", ".join(module["name"] for module in rateless)
+        print(f"Loop '{loop['name']}' mixes rated and rateless modules ({names} have no 'rate'); a loop must be either fully rated or a single rateless module")
+        sys.exit(1)
+
+    if rateless and len(loop["modules"]) > 1:
+        print(f"Loop '{loop['name']}' has {len(loop['modules'])} modules but none declare 'rate'; a rateless loop must contain exactly one module")
+        sys.exit(1)
+
+
 def gen_source(profile):
     names_cache = {}
+
+    for loop in profile:
+        validate_loop_rates(loop)
+
     loop_stack_sizes = {loop["name"]: loop_stack_size(loop) for loop in profile}
 
     def get_module_include_name(module_name):
@@ -88,24 +106,44 @@ def gen_source(profile):
     def gen_loop(data):
         print(f"Generating loop '{data['name']}'...")
 
-        rateless = "rate" not in data
+        modules = data["modules"]
+        rateless = all("rate" not in module for module in modules)
 
         s = "static void main_{name}(void *arg)\n{{\n".format(name=data["name"])
         s += "    (void)arg;\n\n"
 
-        for module in data["modules"]:
+        for module in modules:
             s += "    {module_include}Instance.init();\n".format(module_include=get_module_include_name(module["name"]))
 
-        if not rateless:
-            s += "\n    uint32_t lastWakeTime = osal_systime_get_ms();\n\n"
+        if rateless:
+            s += "\n    while (osal_task_should_run())\n    {\n"
 
-        s += "    while (osal_task_should_run())\n    {\n"
+            for module in modules:
+                s += "        {module_include}Instance.run();\n".format(module_include=get_module_include_name(module["name"]))
 
-        for module in data["modules"]:
-            s += "        {module_include}Instance.run();\n".format(module_include=get_module_include_name(module["name"]))
+            s += "    }\n}\n"
 
-        if not rateless:
-            s += "\n        osal_task_delay_until(&lastWakeTime, {rate});\n".format(rate=int(1000 / data["rate"]))
+            return s
+
+        periods = [int(1000 / module["rate"]) for module in modules]
+        n = len(modules)
+
+        s += "\n    uint32_t lastWakeTime = osal_systime_get_ms();\n"
+        s += "    uint32_t nextDue[{n}] = {{ {values} }};\n".format(n=n, values=", ".join(f"lastWakeTime + {p}" for p in periods))
+        s += "    const uint32_t period[{n}] = {{ {values} }};\n".format(n=n, values=", ".join(str(p) for p in periods))
+
+        s += "\n    while (osal_task_should_run())\n    {\n"
+        s += "        uint32_t soonest = nextDue[0];\n"
+        s += "        for (size_t i = 1; i < {n}; i++)\n        {{\n".format(n=n)
+        s += "            if (nextDue[i] < soonest) soonest = nextDue[i];\n"
+        s += "        }\n\n"
+        s += "        uint32_t now = osal_systime_get_ms();\n"
+        s += "        osal_task_delay_until(&lastWakeTime, (soonest > now) ? (soonest - now) : 0);\n\n"
+        s += "        now = osal_systime_get_ms();\n"
+
+        for i, module in enumerate(modules):
+            module_include = get_module_include_name(module["name"])
+            s += "        if (nextDue[{i}] <= now) {{ {mi}Instance.run(); nextDue[{i}] += period[{i}]; }}\n".format(i=i, mi=module_include)
 
         s += "    }\n}\n"
 

@@ -1,48 +1,39 @@
 [
     {
-        "name": "serial",
+        "name": "wq_serial",
         "priority": "high",
         "modules": [
             { "name": "sim_serial", "stack_size": 1024, "args": ["CFG_SIM_GCS_SERIAL_PORT"] }
         ]
     },
     {
-        "name": "lora",
+        "name": "wq_lora",
         "priority": "high",
         "modules": [
             { "name": "sim_lora", "stack_size": 1024, "args": ["CFG_SIM_GCS_LORA_PORT"] }
         ]
     },
     {
-        "name": "commander",
-        "rate": 50,
+        "name": "wq_commander",
         "priority": "high",
         "modules": [
-            { "name": "commander_gcs", "stack_size": 1024, "args": [] }
+            { "name": "commander_gcs", "stack_size": 1024, "rate": 50, "args": [] }
         ]
     },
     {
-        "name": "oled",
-        "rate": 50,
+        "name": "wq_i2c",
         "priority": "normal",
         "modules": [
-            { "name": "oled", "stack_size": 2048, "args": ["0", "0"] }
+            { "name": "oled", "stack_size": 2048, "rate": 50, "args": ["0", "0"] },
+            { "name": "pmu", "stack_size": 512, "rate": 10, "args": ["0"] }
+
         ]
     },
     {
-        "name": "pmu",
-        "rate": 10,
+        "name": "wq_uart",
         "priority": "low",
         "modules": [
-            { "name": "pmu", "stack_size": 512, "args": ["0"] }
-        ]
-    },
-    {
-        "name": "gps",
-        "rate": 1000,
-        "priority": "high",
-        "modules": [
-            { "name": "sensors_gps_simple", "stack_size": 1024, "args": ["0"] }
+            { "name": "sensors_gps_simple", "stack_size": 1024, "rate": 1000, "args": ["0"] }
         ]
     }
 ]

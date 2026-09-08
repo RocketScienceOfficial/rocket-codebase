@@ -1,47 +1,45 @@
 [
     {
-        "name": "sitl",
+        "name": "wq_sitl",
         "priority": "high",
         "modules": [
             { "name": "sim_bridge", "stack_size": 1024, "args": ["CFG_SIM_BRIDGE_PORT"] }
         ]
     },
     {
-        "name": "sitl_uart",
+        "name": "wq_sitl_uart",
         "priority": "high",
         "modules": [
             { "name": "sim_uart", "stack_size": 1024, "args": ["CFG_SIM_RADIO_UART_PORT"] }
         ]
     },
     {
-        "name": "sitl_serial",
+        "name": "wq_sitl_serial",
         "priority": "high",
         "modules": [
             { "name": "sim_serial", "stack_size": 1024, "args": ["CFG_SIM_OBC_SERIAL_PORT"] }
         ]
     },
     {
-        "name": "fast",
-        "rate": 500,
+        "name": "wq_fast",
         "priority": "high",
         "modules": [
-            { "name": "ekf", "stack_size": 4096, "args": [] },
-            { "name": "state_machine", "stack_size": 1024, "args": [] },
-            { "name": "ign", "stack_size": 1024, "args": ["0", "0", "0", "0"] },
-            { "name": "airbrake", "stack_size": 512, "args": [] }
+            { "name": "ekf", "stack_size": 4096, "rate": 500, "args": [] },
+            { "name": "state_machine", "stack_size": 1024, "rate": 500, "args": [] },
+            { "name": "ign", "stack_size": 1024, "rate": 500, "args": ["0", "0", "0", "0"] },
+            { "name": "airbrake", "stack_size": 512, "rate": 500, "args": [] }
         ]
     },
     {
-        "name": "slow",
-        "rate": 100,
+        "name": "wq_slow",
         "priority": "low",
         "modules": [
-            { "name": "buzzer", "stack_size": 512, "args": ["0", "0", "0"] },
-            { "name": "commander_obc", "stack_size": 1024, "args": [] },
-            { "name": "database", "stack_size": 2048, "args": [] },
-            { "name": "led", "stack_size": 512, "args": ["0", "0"] },
-            { "name": "telemetry", "stack_size": 1024, "args": [] },
-            { "name": "voltage", "stack_size": 512, "args": ["0", "0", "0"] }
+            { "name": "buzzer", "stack_size": 512, "rate": 100, "args": ["0", "0", "0"] },
+            { "name": "commander_obc", "stack_size": 1024, "rate": 100, "args": [] },
+            { "name": "database", "stack_size": 2048, "rate": 100, "args": [] },
+            { "name": "led", "stack_size": 512, "rate": 20, "args": ["0", "0"] },
+            { "name": "telemetry", "stack_size": 1024, "rate": 100, "args": [] },
+            { "name": "voltage", "stack_size": 512, "rate": 100, "args": ["0", "0", "0"] }
         ]
     }
 ]
