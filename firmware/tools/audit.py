@@ -1,12 +1,10 @@
 import os
 import re
 from pathlib import Path
+from bus_ownership import check_board
 
 
-def main():
-    print("Auditing code...")
-
-    repo_root = Path(os.getcwd())
+def check_unsafe_constructs(repo_root):
     p = repo_root / "src"
     foundIssues = False
 
@@ -30,6 +28,31 @@ def main():
                 if matches:
                     print(f"Found keywords in {file_path}: {', '.join(set(matches))}")
                     foundIssues = True
+
+    return foundIssues
+
+
+def check_bus_ownership(repo_root):
+    foundIssues = False
+
+    for board_dir in sorted((repo_root / "boards").iterdir()):
+        if not board_dir.is_dir():
+            continue
+
+        for message in check_board(board_dir):
+            print(message)
+            foundIssues = True
+
+    return foundIssues
+
+
+def main():
+    print("Auditing code...")
+
+    repo_root = Path(os.getcwd())
+
+    foundIssues = check_unsafe_constructs(repo_root)
+    foundIssues = check_bus_ownership(repo_root) or foundIssues
 
     if not foundIssues:
         print("No issues found.")

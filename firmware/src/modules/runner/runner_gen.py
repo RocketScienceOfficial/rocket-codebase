@@ -4,6 +4,17 @@ import sys
 from pathlib import Path
 
 
+def check_profile(profile_path):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools"))
+    from bus_ownership import check_board
+
+    violations = check_board(profile_path.parent)
+    if violations:
+        for message in violations:
+            print(message)
+        sys.exit(1)
+
+
 def round_up_pow2(n):
     if n <= 1:
         return 1
@@ -179,7 +190,11 @@ def main():
     parser.add_argument("--output-cmake", help="Path to the output C++ CMake file.")
     args = parser.parse_args()
 
-    with open(args.profile, "r") as f:
+    profile_path = Path(args.profile)
+
+    check_profile(profile_path)
+
+    with open(profile_path, "r") as f:
         profile = json.load(f)
 
     with open(args.output_source, "w") as f:
