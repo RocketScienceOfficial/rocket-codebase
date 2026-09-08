@@ -58,7 +58,7 @@ All targets are driven by `make` from the `firmware/` directory.
 | `make radio_module_sitl` | Build radio module SITL |
 | `make gcs` | Build ground station firmware (ESP32/ESP-IDF) |
 | `make gcs_flash PORT=/dev/ttyUSB0` | Flash GCS to device |
-| `make test` | Build and run all firmware tests |
+| `make test` | Build and run all firmware tests (configures `host` with `BUILD_TESTS=ON`, which activates the `add_sys_test()` CMake helper used across `pubsub`/`lib`/several `modules`; without it those calls are no-ops) |
 | `make audit` | Run code audit (detects unsafe constructs: malloc, new, STL, exceptions; also flags any bus (SPI/I2C/UART) referenced by modules in more than one execution pool, since that means two RTOS tasks would drive the same physical bus) |
 | `make clean` | Remove build artifacts |
 
@@ -92,9 +92,9 @@ Three hardware targets sharing a common codebase:
 - **Radio Module** (RP2040) — telemetry radio
 - **GCS** (ESP32) — ground control station
 
-**Platform abstraction**: `firmware/platform/` provides HAL and OSAL layers per target (`pico/`, `esp32/`, `host/` for SITL). Board-specific pin/peripheral configs are in `firmware/boards/{obc,radio_module,gcs}/`. Module code only calls HAL/OSAL — never platform-specific headers.
+**Platform abstraction**: `firmware/platform/` provides HAL and OSAL layers per target (`pico/`, `esp32/`, `host/` for SITL). Each board (`firmware/boards/{obc,radio_module,gcs}[_sitl]/`) supplies concrete pin/bus numbers via `hw_info.h` + `hw_init.c`, selected at CMake configure time via `board_hw.cmake`. Module code only calls HAL/OSAL — never platform-specific headers. Full contract: [docs/hal_boards.md](docs/hal_boards.md).
 
-**Module system**: All application logic lives in `firmware/src/modules/`. Each module implements `init()` / `run()` and is registered into an execution pool defined by a JSON profile (e.g. `obc_flight.json`). The runner drives pools as RTOS tasks at fixed rates: `fast` (500 Hz), `com` (200 Hz), `slow` (100 Hz).
+**Module system**: All application logic lives in `firmware/src/modules/`. Each module implements `init()` / `run()` and is registered into an execution pool (RTOS work queue) defined by the board's `run.json`. Pools are per-board and named for the bus/resource they own (e.g. `wq_spi`, `wq_com`, `wq_slow` on OBC), not a fixed set — each module in a pool has its own configurable rate.
 
 **Pub/Sub message bus**: Modules communicate exclusively through `firmware/src/pubsub/` (topics defined in `Topics.h`). No direct module coupling. Lock-free circular buffers with atomic sequence numbers — no mutexes.
 
@@ -135,6 +135,6 @@ Python hub connecting firmware SITL processes over sockets. Physics and sensor m
 ## CI
 
 GitHub Actions (`.github/workflows/`) run on push/PR to `main`:
-- `firmware-build.yml` — builds all firmware targets and runs ctest
+- `firmware-build.yml` — builds `obc`, `obc_sitl`, `radio_module`, `radio_module_sitl` and runs `make test` (does **not** build `gcs`; ESP-IDF isn't installed in that CI job)
 - `firmware-audit.yml` — unsafe-construct audit on all pushes
 - `datalink-python-tests.yml`, `datalink-c-tests.yml`, `datalink-csharp-tests.yml` — per-language DataLink tests

@@ -120,11 +120,13 @@ make obc BUILD_TYPE=Debug LOG_LEVEL=DEBUG
 | Variable | Values | Default |
 |---|---|---|
 | `BUILD_TYPE` | `Release`, `Debug` | `Release` |
-| `LOG_LEVEL` | `OFF`, `ERROR`, `WARN`, `INFO`, `DEBUG` | `INFO` |
+| `LOG_LEVEL` | `OFF`, `ERROR`, `WARN`, `INFO`, `DEBUG` (each level includes those before it) | `OFF` |
 
 **Flashing OBC / Radio Module:** after a successful build, `firmware/build/obc/firmware.uf2` (or `radio_module`) is produced. Hold the BOOTSEL button on the Pico while connecting USB, then copy the `.uf2` file to the mass-storage drive that appears.
 
 **Flashing GCS:** the `make gcs_flash` target invokes `idf.py flash` internally. Ensure the ESP-IDF environment is activated and the correct `PORT` is supplied.
+
+**Running tests:** `make test` is the only target that configures with `-D BUILD_TESTS=ON` (always against the `host` platform, regardless of which board's firmware you're testing). That flag does two things: it `FetchContent`s GoogleTest (`platform/host/CMakeLists.txt`), and it turns the `add_sys_test()` CMake helper — used throughout `firmware/src/` (`pubsub`, `lib/maths`, `lib/geo`, `lib/gps`, `modules/ekf`, `modules/state_machine`, `modules/runner`) — from a no-op into an actual `add_executable` + `gtest_discover_tests` registration. With `BUILD_TESTS` unset (every other target), those `add_sys_test()` calls compile nothing. `make test` runs `ctest` against `build/test` afterward.
 
 ---
 
@@ -174,6 +176,8 @@ This regenerates `covariance_prediction.c` and `fusion.c` in the `generated/` di
 
 #### Platform Abstraction (HAL / OSAL)
 
+> **Design doc:** for the full board contract (`board_hw.cmake`, `hw_info.h`, `hw_init.c`, `run.json`), the runner codegen pipeline, and the bus-ownership audit, see **[hal_boards.md](hal_boards.md)**.
+
 All hardware access is isolated behind two abstraction layers in `firmware/platform/`:
 
 ```
@@ -198,16 +202,17 @@ firmware/platform/
 | `pwm_driver.h` | PWM frequency and duty cycle |
 | `time_driver.h` | Millisecond/microsecond timestamps, sleep |
 | `flash_driver.h` | Flash read, page write, sector erase |
-| `ws2812b_driver.h` | RGB LED bit-banging protocol |
+| `stdio_driver.h` | USB/serial stdio init, printf, byte I/O |
+| `waveform_driver.h` | Bit-banged timing-ratio waveform output (LED protocols and similar) |
 
 **OSAL** (`platform/include/osal/`) provides a minimal, RTOS-backed threading and timing API:
 
 - `task.h` — `create`, `start_scheduler`, `should_run`: create RTOS tasks and start the scheduler.
 - `systime.h` — `get_ms`, `delay_ms`, `delay_until`: system time and periodic delay (used by the runner to enforce task rates).
 
-**Board configurations** (`firmware/boards/{obc,gcs,radio_module}/board_config.h`) map physical pin numbers to logical roles (SPI bus, UART, igniter channels, etc.) for each hardware target.
+**Boards** (`firmware/boards/{obc,radio_module,gcs}[_sitl]/`) map physical pin/bus numbers to logical roles (SPI bus, UART, igniter channels, etc.) via `include/hw_info.h` + `src/hw_init.c`, and select which modules run at build time via `run.json`. See [hal_boards.md](hal_boards.md) for the full contract.
 
-The result is that all module code is fully portable: it calls only HAL/OSAL APIs and never includes platform-specific headers. Swapping a target means selecting a different platform implementation directory at CMake configure time.
+The result is that all module code is fully portable: it calls only HAL/OSAL APIs and never includes platform-specific headers. Swapping a target means selecting a different platform implementation directory (and board) at CMake configure time.
 
 ---
 
@@ -217,17 +222,17 @@ The result is that all module code is fully portable: it calls only HAL/OSAL API
 
 Modules communicate exclusively through a lock-free publish-subscribe bus (`firmware/src/pubsub/`). There is no direct function-call coupling between modules.
 
-**Topics** are statically declared in `Topics.h` with a type, a name, and a queue depth. The global topic registry is backed by a 32 KB static memory buffer; there is no heap allocation at runtime.
+**Topics** are statically declared in `Topics.h` with a type, a name, and a queue depth; each declaration expands to a distinct C++ type that owns its own fixed-size static ring buffer — there's no shared registry or arena, and no heap allocation at runtime.
 
 **API overview:**
 
 ```cpp
-// Publishing
-PubSub::Publisher<SensorImuMsg> imuPublisher{PUBSUB_ID(sensors_imu_1)};
+// Publishing — Publisher/Subscriber template on the topic type itself (PUBSUB_ID(name)), no constructor arg
+PubSub::Publisher<PUBSUB_ID(sensors_imu_1)> imuPublisher;
 imuPublisher.publish(data);
 
 // Subscribing — poll() returns true when new data is available
-PubSub::Subscriber<SensorImuMsg> imuSubscriber{PUBSUB_ID(sensors_imu_1)};
+PubSub::Subscriber<PUBSUB_ID(sensors_imu_1)> imuSubscriber;
 if (imuSubscriber.poll()) {
     auto& data = imuSubscriber.get();
 }
@@ -265,43 +270,11 @@ class ExampleModule {
 
 Modules declare their pub-sub relationships in their constructor by instantiating `Publisher` and `Subscriber` members. They never call other modules directly.
 
-**The runner** (`modules/runner/`) executes modules according to a JSON profile that specifies execution pools, rates, and priorities. A profile is selected at build time via the `RUNNER_PROFILE` variable:
+**The runner** (`modules/runner/`) executes modules according to a JSON profile that specifies execution pools, rates, and priorities. Each board provides its own profile as `boards/<board>/run.json`, pointed to at CMake configure time via the `RUNNER_PROFILE_FILE` variable set in that board's `board_hw.cmake`. Pools are named per-board for the bus/resource they own (e.g. OBC has `wq_spi`/`wq_com`/`wq_slow`) rather than a fixed set — read a board's `run.json` for its current pool/module layout, or see [hal_boards.md](hal_boards.md) for the full mechanism and an annotated example.
 
-*`obc_flight.json` — nominal flight profile:*
+Each pool maps to an RTOS task. Modules in the same pool run sequentially within that task's time slot, each at its own configured rate; pools run concurrently as separate tasks with their configured priorities. The OSAL `delay_until` primitive enforces the configured rates.
 
-| Pool | Rate | Priority | Modules |
-|---|---|---|---|
-| `fast` | 500 Hz | high | sensors, ekf, state_machine, ign |
-| `com` | 200 Hz | normal | com_serial, com_uart |
-| `slow` | 100 Hz | low | commander_obc, database, telemetry, buzzer, led, voltage |
-
-Each pool maps to an RTOS task. Modules in the same pool run sequentially within that task's time slot; pools run concurrently as separate tasks with their configured priorities. The OSAL `delay_until` primitive enforces the fixed rates.
-
-SITL profiles (`obc_sitl.json`, `gcs_sitl.json`) add simulation bridge modules (`sim_bridge`, `sim_uart`, `sim_lora`, `sim_serial`) that replace physical drivers with UDP socket connections to the Python simulation hub.
-
-**Available modules:**
-
-| Module | Description |
-|---|---|
-| `sensors` | Reads IMU, barometer, GPS, and battery ADC; publishes raw sensor topics |
-| `ekf` | Extended Kalman Filter fusing IMU + baro + GPS into orientation, position, and velocity estimates |
-| `state_machine` | Flight state machine (standing → armed → accelerating → free\_flight → free\_fall → landed) |
-| `ign` | Igniter continuity monitoring and fire command execution |
-| `database` | Flight data logging to internal flash storage |
-| `telemetry` | Assembles telemetry packets from EKF and sensor data; publishes to radio TX topic |
-| `com_uart` | UART framing and forwarding |
-| `com_serial` | Serial (USB) framing and forwarding |
-| `com_lora` | LoRa radio framing and forwarding via RadioLib |
-| `commander_obc` | Handles arm, ignite, and voltage RPC commands on OBC |
-| `commander_gcs` | Handles commands on GCS side |
-| `commander_rm` | Handles commands on Radio Module |
-| `voltage` | Monitors power rails and publishes health state |
-| `buzzer` | Audio feedback tied to flight state transitions |
-| `led` | Status LED patterns |
-| `oled` | GCS OLED display (ESP32 only) |
-| `pmu` | Power management unit readout (GCS, ESP32 only) |
-| `gps_simple` | Lightweight GPS NMEA parser (GCS) |
-| `sim_bridge` / `sim_uart` / `sim_serial` / `sim_lora` | SITL UDP socket bridges replacing physical drivers |
+`_sitl` boards add simulation bridge modules (`sim_bridge`, `sim_uart`, `sim_lora`, `sim_serial`) that replace physical drivers with TCP socket connections to the Python simulation hub.
 
 **Adding a new module** involves creating the class in `firmware/src/modules/<name>/`, registering it in the target's runner profile JSON, and adding it to the CMake module list. The build system uses an `add_module()` CMake macro to compile each module as a static library linked into the final firmware binary.
 
