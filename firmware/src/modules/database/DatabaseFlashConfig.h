@@ -7,6 +7,11 @@
 #include <lib/geo/wgs84.h>
 #include <hal/flash_driver.h>
 
+// Ensure BOARD_FLASH_SIZE is defined
+#ifndef BOARD_FLASH_SIZE
+#error "BOARD_FLASH_SIZE must be defined in the board's config"
+#endif
+
 // Settings
 #define PROGRAM_RESERVED_SIZE_BYTES (512UL * 1024UL) /** Space reserved for the firmware image/bootloader before the database region begins. */
 #define SECTORS_COUNT_STANDING_BUFFER 16             /** Number of sectors reserved for the standing buffer. */
