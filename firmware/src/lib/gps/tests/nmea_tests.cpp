@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <cstring>
-#include "lib/drivers/gps/nmea.h"
+#include "lib/gps/nmea.h"
 
 TEST(NMEA, check_sentence_accepts_valid_checksum_and_line_ending)
 {

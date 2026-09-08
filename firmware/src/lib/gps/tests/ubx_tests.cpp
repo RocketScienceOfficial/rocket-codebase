@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <cstring>
-#include "lib/drivers/gps/ubx.h"
+#include "lib/gps/ubx.h"
 
 static void feed_bytes(ubx_parser_t &parser, const uint8_t *data, size_t len, ubx_parser_status_t *lastStatus)
 {
