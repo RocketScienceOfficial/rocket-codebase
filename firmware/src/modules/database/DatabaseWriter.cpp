@@ -81,8 +81,8 @@ void DatabaseWriter::flush()
     flushStandingBuffer();
 
     DatabaseMetadata metadata = {
-        .savedFramesCount = m_SavedFramesCount,
-        .standingFramesCount = m_StandingBufferLength,
+        .savedFramesCount = (uint32_t)m_SavedFramesCount,
+        .standingFramesCount = (uint32_t)m_StandingBufferLength,
     };
     m_MetadataController.save(metadata);
 }

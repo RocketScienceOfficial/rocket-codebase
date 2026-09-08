@@ -66,8 +66,8 @@ struct __attribute__((__packed__)) DatabaseFrameRaw
 
 struct __attribute__((__packed__)) DatabaseMetadata
 {
-    size_t savedFramesCount;
-    size_t standingFramesCount;
+    uint32_t savedFramesCount;
+    uint32_t standingFramesCount;
 };
 
 #define DATABASE_METADATA_MAGIC 0x8F3E

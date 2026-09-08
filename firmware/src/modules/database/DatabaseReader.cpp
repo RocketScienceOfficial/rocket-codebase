@@ -42,8 +42,8 @@ void DatabaseReader::onInit()
 {
     if (!m_RecoverMode)
     {
-        m_CurrentStandingFrameCount = m_MetadataController.getMetadata().standingFramesCount;
-        m_CurrentSavedFrameCount = m_MetadataController.getMetadata().savedFramesCount;
+        m_CurrentStandingFrameCount = (size_t)m_MetadataController.getMetadata().standingFramesCount;
+        m_CurrentSavedFrameCount = (size_t)m_MetadataController.getMetadata().savedFramesCount;
         m_CurrentFrameCount = m_CurrentStandingFrameCount + m_CurrentSavedFrameCount;
 
         saved_data_chunk_size payload;
