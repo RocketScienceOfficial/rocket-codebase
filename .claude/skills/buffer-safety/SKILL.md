@@ -147,6 +147,7 @@ After listing all findings, add a short **Summary** section:
 
 ## How to work through the code
 
+0. **Enumerate before you read closely.** You have Grep — use it to find every candidate site across the relevant source tree (`strcpy|strcat|sprintf|gets|scanf|memcpy|memmove|memset`, raw pointer arithmetic, array subscripts fed by a length field) before reasoning about any single one. A human reviewer skims the diff they were handed; you can check whether the same unsafe pattern already exists elsewhere in the codebase, and should. Exclude vendored submodules (`firmware/src/lib/radio/RadioLib`, `firmware/src/modules/oled/u8g2`, `firmware/platform/pico/pico-sdk`, `firmware/platform/common/freertos/FreeRTOS-Kernel`, per CLAUDE.md's submodule list) — third-party code this team doesn't maintain.
 1. **Read the full file or function first** — don't flag things piecemeal without understanding context. A bounds check three lines earlier can render a later access safe.
 2. **Trace data flow** — follow untrusted data (packet fields, sensor values, external input) from where it enters to where it's used as a length, index, or copy size. The vulnerability is often not where the data arrives but where it's used two calls later.
 3. **Don't flag false positives** — if a bound check genuinely exists and is correct, say so. Credibility matters: a report with 20 false alarms gets ignored.
@@ -161,3 +162,8 @@ After listing all findings, add a short **Summary** section:
 - FreeRTOS task stacks are declared statically; note if a function's local frame might exceed typical task stack sizes.
 - Circular buffer implementations (common in pub/sub systems) must verify that read/write indices are masked or range-checked on every access, not just on initialization.
 - DMA transfers and hardware peripherals can write into buffers from interrupt context — check that buffer sizes account for the maximum peripheral transfer size, not just the typical case.
+
+## Related skills
+
+- **integer-overflow** — arithmetic overflow that doesn't feed a buffer size, index, or copy length (tick/timestamp rollover, CRC arithmetic, fixed-point conversion, signed/unsigned traps outside indexing). If the overflow's only consequence is a wrong value rather than an out-of-bounds access, that's integer-overflow's category, not this one.
+- **uninitialized-state** — if a `memcpy`'d struct's *content* is the problem (uninitialized padding, a platform-width-dependent field) rather than the copy *length* being unvalidated, that's uninitialized-state's category.
