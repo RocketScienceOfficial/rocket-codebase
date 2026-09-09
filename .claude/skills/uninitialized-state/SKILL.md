@@ -132,7 +132,7 @@ After listing all findings, add:
 
 - Static allocation means "was this ever validly set" replaces "was this freed" as the core question — there's no allocator to catch the mistake for you.
 - `run.json` is the source of truth for pool membership and per-pool module order; read the relevant board's `run.json` before asserting an ordering guarantee holds or doesn't.
-- `make audit`'s mechanical check doesn't catch anything here — it only greps for unsafe-construct keywords and checks board-level bus ownership.
+- `python tools/audit.py`'s mechanical check doesn't catch anything here — it only greps for unsafe-construct keywords and checks board-level bus ownership.
 
 ## Related skills
 

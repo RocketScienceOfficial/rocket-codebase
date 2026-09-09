@@ -18,4 +18,4 @@ jobs:
 
       - name: Audit
         run: |
-          make audit
+          python tools/audit.py

@@ -115,7 +115,7 @@ After listing all findings, add:
 
 - No exceptions and no signed-overflow-as-defined-behavior guarantee in C — signed overflow is undefined behavior, not a wraparound you can rely on, even though this section talks about "wraparound" for the unsigned cases above.
 - This hardware can sit powered on the pad for extended holds — treat the 49.7-day tick wraparound as a real operational scenario, not a theoretical one.
-- `make audit`'s mechanical check does not catch anything in this file — it only greps for `malloc`/`new`/STL/exception keywords and checks board-level bus ownership. Everything above requires this semantic pass.
+- `python tools/audit.py`'s mechanical check does not catch anything in this file — it only greps for `malloc`/`new`/STL/exception keywords and checks board-level bus ownership. Everything above requires this semantic pass.
 
 ## Related skills
 

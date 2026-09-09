@@ -211,7 +211,7 @@ This runs in two places:
 
 - **At CMake configure time**, inside `runner_gen.py`, for the board currently being built —
   blocks the build.
-- **In `make audit`** (`firmware/tools/audit.py`), across *every* board directory regardless of
+- **In `firmware/tools/audit.py`**, across *every* board directory regardless of
   what's currently being built — this is what CI's `firmware-audit.yml` runs.
 
 Boards with no declared bus symbols (all the `_sitl` boards on `host`, since the host HAL has no
@@ -255,7 +255,7 @@ the final executable). Functionally equivalent, but worth knowing when tracing a
    or `platform/esp32`). `firmware/Makefile` targets are just fixed `(platform, BOARD_NAME)` pairs,
    so a genuinely new board also needs a new Makefile target (or invoke `cmake`/`idf.py` directly).
 3. List every module the board runs in `run.json`, grouped into pools by which bus they touch —
-   run `make audit` (or just build; `runner_gen.py` checks the same thing at configure time) to
+   run `python tools/audit.py` (or just build; `runner_gen.py` checks the same thing at configure time) to
    catch a bus shared across pools before it becomes a runtime race.
 4. Build it. A typo'd `g_cfg_*` name in `run.json` surfaces as an "undeclared identifier" in the
    generated `runner.cpp`, not as a nicer error from the generator itself.

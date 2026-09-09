@@ -117,8 +117,5 @@ test:
 	ctest --test-dir build/test --output-on-failure
 
 
-audit:
-	python tools/audit.py
-
 clean:
 	rm -rf build/

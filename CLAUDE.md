@@ -40,7 +40,7 @@ rocket-codebase/
 
 ## Critical Constraints
 
-**No heap allocation.** The firmware forbids `malloc`, `new`, STL containers, and exceptions across all targets. All memory must be statically allocated. `make audit` enforces this — run it when touching firmware code.
+**No heap allocation.** The firmware forbids `malloc`, `new`, STL containers, and exceptions across all targets. All memory must be statically allocated. `python tools/audit.py` enforces this — run it when touching firmware code.
 
 **Do not hand-edit generated files.** `firmware/src/modules/ekf/derivation/generated/` is produced by `derivation.py`. Edit the derivation script, not the output.
 
@@ -59,7 +59,6 @@ All targets are driven by `make` from the `firmware/` directory.
 | `make gcs` | Build ground station firmware (ESP32/ESP-IDF) |
 | `make gcs_flash PORT=/dev/ttyUSB0` | Flash GCS to device |
 | `make test` | Build and run all firmware tests (configures `host` with `BUILD_TESTS=ON`, which activates the `add_sys_test()` CMake helper used across `pubsub`/`lib`/several `modules`; without it those calls are no-ops) |
-| `make audit` | Run code audit (detects unsafe constructs: malloc, new, STL, exceptions; also flags any bus (SPI/I2C/UART) referenced by modules in more than one execution pool, since that means two RTOS tasks would drive the same physical bus) |
 | `make clean` | Remove build artifacts |
 
 Optional build variables: `BUILD_TYPE=Debug`, `LOG_LEVEL=<level>`, `SITL_FREERUN=ON`.

@@ -46,7 +46,7 @@ python datalink/run_tests.py
 
 ## Firmware
 
-> **No heap allocation.** The firmware forbids dynamic memory allocation (`malloc`, `new`, STL containers, exceptions) across all targets. All memory must be statically allocated at compile time. The `make audit` target enforces this automatically.
+> **No heap allocation.** The firmware forbids dynamic memory allocation (`malloc`, `new`, STL containers, exceptions) across all targets. All memory must be statically allocated at compile time. The `tools/audit.py` script enforces this automatically.
 
 All firmware targets are built from the `firmware/` directory using `make`. The repository contains three hardware targets and their SITL counterparts:
 
@@ -108,7 +108,6 @@ cd firmware/
 | `make gcs` | Build GCS firmware (requires ESP-IDF environment active) |
 | `make gcs_flash PORT=/dev/ttyUSB0` | Build and flash GCS to a connected ESP32 |
 | `make test` | Build and run all unit tests |
-| `make audit` | Run static audit detecting unsafe constructs (malloc, new, STL, exceptions) |
 | `make clean` | Remove all build artifacts |
 
 Optional build variables can be appended to any target:

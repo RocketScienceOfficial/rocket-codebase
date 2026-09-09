@@ -24,7 +24,7 @@ What makes this codebase interesting from an engineering standpoint:
   message bus backed by a single 32 KB static pool. Concurrency uses `std::atomic` sequence numbers with
   acquire/release ordering, so there are no mutexes and no blocking publishers.
 - **Zero dynamic allocation.** No `malloc`, `new`, STL containers, or exceptions anywhere in the firmware. Every
-  buffer is statically sized, and a custom static-analysis pass (`make audit`) enforces this on every push in CI.
+  buffer is statically sized, and a custom static-analysis pass (`python tools/audit.py`) enforces this on every push in CI.
 - **One protocol everywhere (DataLink).** Messages are defined once in XML schemas and code-generated to C, C#,
   and Python. Every device link, and the firmware's internal pub/sub bus, carries the same DataLink structs, so a
   single schema change propagates across firmware, apps, and the simulator. Each language target ships its own
@@ -100,7 +100,7 @@ A few deliberate choices shape the whole codebase:
 
 - **No dynamic allocation.** Flight code should never fail at run time from heap fragmentation or an
   out-of-memory condition, and it must be statically analyzable. Forbidding the heap (enforced in CI by
-  `make audit`) keeps memory deterministic and bounded.
+  `python tools/audit.py`) keeps memory deterministic and bounded.
 - **Pub/sub over direct calls.** Decoupling modules behind a lock-free topic bus keeps the system testable and
   portable. A module is a pure function of the topics it reads and writes, no module can block another, and the
   same modules run unchanged on hardware and in SITL.
@@ -233,7 +233,8 @@ Two Unity desktop apps share DataLink C# utilities with the firmware protocol:
 ```bash
 cd firmware
 make test       # build and run the firmware unit tests (ctest)
-make audit      # static check for heap, STL, and exception usage
+
+python tools/audit.py      # static check for heap, STL, and exception usage
 
 python datalink/run_tests.py   # protocol test suites across C, C#, and Python
 ```
