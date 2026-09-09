@@ -13,11 +13,12 @@ from sim.env.physics_engines import *
 np.random.seed(42)
 
 AUTO_ARM = True
-SIM_TICK_DT = 0.001
+SIM_TICK_DT = 0.001 # TODO: Enforce 1ms tick everywhere
 # ==================================================
 
 
 # ============ SOCKETS SETUP ============
+# TODO: Make this pull from single source of truth (C++ too)
 physx_sock = TCPSocket(name="physx", ip="127.0.0.1", port=12345, is_server=False, blocking=True)
 radio_sock = TCPSocket(name="radio", ip="127.0.0.1", port=12346, is_server=False, blocking=False)
 # ================================================
