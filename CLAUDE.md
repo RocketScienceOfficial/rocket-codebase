@@ -132,6 +132,27 @@ Python hub connecting firmware SITL processes over sockets. Physics and sensor m
 
 **No leading underscores.** Never prefix a function or variable with `_` or `__` (e.g. `_get_ctx`, `__chipModel`). Both are reserved for the implementation by the C/C++ standard (C11 §7.1.3, C++ `[lex.name]`) — using them is technically undefined behavior, and in practice risks silently colliding with a macro defined by a vendor SDK header (pico-sdk, ESP-IDF, FreeRTOS, newlib). Use a plain name instead (`get_ctx`, `chipModel`); mark C helpers `static` and C++ members `private`/`protected` for the same file-local intent.
 
+## Comment Style
+
+- **C++ modules/pubsub** (`firmware/src/modules/`, `firmware/src/pubsub/`): sparse. No Doxygen or file-level doc comments. Plain `// TODO: ...` for TODOs, no ticket or username tags. Inline comments only to explain non-obvious WHY (a sign convention, a coordinate-frame choice), not to restate what the code does.
+- **C public headers** (`firmware/src/lib/`, `firmware/platform/`): full Doxygen (`/** @brief ... @param ... @return ... */`) on every public declaration. `.c` implementation files stay sparse, same as C++.
+- **Python** (`sim/hub/`): sparse. Type hints substitute for docstrings on most functions/methods. Inline `#` comments only for non-obvious WHY.
+- **Generated files**: DataLink codegen output (C, C#, Python) carries a `// THIS IS AUTOMATICALLY GENERATED CODE. DO NOT MODIFY.` header (`#` for Python). EKF derivation output (`firmware/src/modules/ekf/derivation/generated/`) does not currently carry an equivalent banner, see **Critical Constraints** above.
+
+## Git Conventions
+
+### Commit Messages
+
+- Imperative or past-tense summary, capitalized, no trailing period, no type prefix (`Fix GPS tests`, `Redesign work queues`, `Added board profiles to sitl`)
+- Single line only, ~50 characters. Existing history has no multi-line commit bodies — do not add one (no bullet lists, no paragraph explaining rationale). If a change genuinely needs more explanation than a subject line, that belongs in the PR description, not the commit message.
+- No Conventional Commits prefixes (`feat:`, `fix:`, etc.)
+
+### Branch Naming
+
+- New branches use `type/short-kebab-case-description` (e.g. `feat/ekf-outlier-rejection`, `fix/gcs-oled-flicker`)
+- Allowed types: `feat`, `fix`, `refactor`, `chore`
+- Existing bare-name branches (`ekf`, `sitl`, `algo`, etc.) are grandfathered in; this convention applies going forward only
+
 ## CI
 
 GitHub Actions (`.github/workflows/`) run on push/PR to `main`:

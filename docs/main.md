@@ -355,3 +355,30 @@ Topic message structs use PascalCase (`SensorsIMU`, `EKFState`). Topic instance 
 ### Python
 
 Standard PEP 8: functions and variables in `snake_case`, classes in `PascalCase`. No project-specific deviations observed.
+
+### Comments
+
+Comment density differs by layer; new code should match its neighbors rather than adding documentation blocks by default.
+
+**C++ (`firmware/src/modules/`, `firmware/src/pubsub/`).** Sparse. No file-level or Doxygen-style doc comments on classes or methods. Headers rely on short `// Section` banner comments to group related members (e.g. `EKFModule.h`'s `// Interface`, `// IMU` groupings). Inline comments appear only to explain something non-obvious, such as a sign convention or coordinate-frame choice (`EKFModule.cpp`: `// Negative because baro height is typically positive upwards...`). TODOs are plain `// TODO: <description>`, with no ticket or username tags.
+
+**C public headers (`firmware/src/lib/`, `firmware/platform/`).** The opposite: every public declaration gets a full Doxygen block (`/** @brief ... @param ... @return ... */`), consistently across `lib/maths/`, `lib/geo/`, `lib/debug/`, and the HAL/OSAL headers. `.c` implementation files stay sparse, same as C++.
+
+**Python (`sim/hub/`).** Sparse. Docstrings are rare; type hints carry most of the documentation load. Inline `#` comments are used sparingly, only for non-obvious behavior (e.g. a hardware quirk).
+
+**Generated files.** DataLink codegen output (C, C#, Python) starts with a `// THIS IS AUTOMATICALLY GENERATED CODE. DO NOT MODIFY.` header (`#`-commented in Python). EKF derivation output (`firmware/src/modules/ekf/derivation/generated/`) does not currently carry an equivalent banner; see the "Do not hand-edit generated files" constraint in CLAUDE.md.
+
+### Git
+
+**Commit messages.** Imperative or past-tense summary, capitalized, no trailing period, and no type prefix. This matches the existing history (`Fix GPS tests`, `Redesign work queues`, `Added board profiles to sitl`). Single line only, around 50 characters — the existing history has no multi-line bodies, and none should be added (no bullet lists, no paragraph justifying the change). Put that kind of explanation in the PR description instead.
+
+**Branch names.** New branches follow `type/short-kebab-case-description`, for example `feat/ekf-outlier-rejection` or `fix/gcs-oled-flicker`.
+
+| Type | Use for |
+|---|---|
+| `feat` | New functionality |
+| `fix` | Bug fixes |
+| `refactor` | Restructuring without behavior change |
+| `chore` | Maintenance (docs, deps, CI, tooling) |
+
+Existing bare-name branches (`ekf`, `sitl`, `algo`, etc.) predate this convention and are not renamed; it applies to branches created from now on.
