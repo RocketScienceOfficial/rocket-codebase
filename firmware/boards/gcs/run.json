@@ -3,21 +3,21 @@
         "name": "wq_serial",
         "priority": "high",
         "modules": [
-            { "name": "com_serial", "stack_size": 1024, "rate": 100, "args": [] }
+            { "name": "com_serial", "stack_size": 2048, "rate": 100, "args": [] }
         ]
     },
     {
         "name": "wq_lora",
         "priority": "high",
         "modules": [
-            { "name": "com_lora_sx1278", "stack_size": 1024, "rate": 100, "args": ["g_cfg_spi", "g_cfg_lora_cs_pin", "g_cfg_lora_dio0_pin", "g_cfg_lora_reset_pin", "CFG_LORA_FREQ_MHZ", "CFG_LORA_BANDWIDTH_KHZ", "CFG_LORA_SF", "CFG_LORA_TX_POWER", "CFG_LORA_GCS_ID", "CFG_LORA_OBC_ID"] }
+            { "name": "com_lora_sx1278", "stack_size": 2048, "rate": 100, "args": ["g_cfg_spi", "g_cfg_lora_cs_pin", "g_cfg_lora_dio0_pin", "g_cfg_lora_reset_pin", "CFG_LORA_FREQ_MHZ", "CFG_LORA_BANDWIDTH_KHZ", "CFG_LORA_SF", "CFG_LORA_TX_POWER", "CFG_LORA_GCS_ID", "CFG_LORA_OBC_ID"] }
         ]
     },
     {
         "name": "wq_commander",
         "priority": "high",
         "modules": [
-            { "name": "commander_gcs", "stack_size": 1024, "rate": 50, "args": [] }
+            { "name": "commander_gcs", "stack_size": 2048, "rate": 50, "args": [] }
         ]
     },
     {
@@ -25,7 +25,7 @@
         "priority": "normal",
         "modules": [
             { "name": "oled", "stack_size": 2048, "rate": 50, "args": ["g_cfg_i2c", "g_cfg_button_pin"] },
-            { "name": "pmu", "stack_size": 512, "rate": 10, "args": ["g_cfg_i2c"] }
+            { "name": "pmu", "stack_size": 1024, "rate": 10, "args": ["g_cfg_i2c"] }
         ]
     },
     {

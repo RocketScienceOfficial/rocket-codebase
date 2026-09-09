@@ -3,21 +3,21 @@
         "name": "wq_uart",
         "priority": "high",
         "modules": [
-            { "name": "com_uart", "stack_size": 1024, "rate": 1000, "args": ["g_cfg_uart"] }
+            { "name": "com_uart", "stack_size": 2048, "rate": 1000, "args": ["g_cfg_uart"] }
         ]
     },
     {
         "name": "wq_lora",
         "priority": "high",
         "modules": [
-            { "name": "com_lora_sx1268", "stack_size": 1024, "rate": 1000, "args": ["g_cfg_spi", "g_cfg_lora_cs_pin", "g_cfg_lora_dio1_pin", "g_cfg_lora_reset_pin", "g_cfg_lora_busy_pin", "CFG_LORA_FREQ_MHZ", "CFG_LORA_BANDWIDTH_KHZ", "CFG_LORA_SF", "CFG_LORA_TX_POWER", "g_cfg_lora_txen_pin", "g_cfg_lora_rxen_pin", "CFG_LORA_OBC_ID", "CFG_LORA_GCS_ID"] }
+            { "name": "com_lora_sx1268", "stack_size": 2048, "rate": 1000, "args": ["g_cfg_spi", "g_cfg_lora_cs_pin", "g_cfg_lora_dio1_pin", "g_cfg_lora_reset_pin", "g_cfg_lora_busy_pin", "CFG_LORA_FREQ_MHZ", "CFG_LORA_BANDWIDTH_KHZ", "CFG_LORA_SF", "CFG_LORA_TX_POWER", "g_cfg_lora_txen_pin", "g_cfg_lora_rxen_pin", "CFG_LORA_OBC_ID", "CFG_LORA_GCS_ID"] }
         ]
     },
     {
         "name": "wq_commander",
         "priority": "high",
         "modules": [
-            { "name": "commander_rm", "stack_size": 1024, "rate": 50, "args": [] }
+            { "name": "commander_rm", "stack_size": 2048, "rate": 50, "args": [] }
         ]
     }
 ]

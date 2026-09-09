@@ -27,19 +27,19 @@
             { "name": "ekf", "stack_size": 4096, "rate": 500, "args": [] },
             { "name": "state_machine", "stack_size": 1024, "rate": 500, "args": [] },
             { "name": "ign", "stack_size": 1024, "rate": 500, "args": ["0", "0", "0", "0"] },
-            { "name": "airbrake", "stack_size": 512, "rate": 500, "args": [] }
+            { "name": "airbrake", "stack_size": 1024, "rate": 500, "args": [] }
         ]
     },
     {
         "name": "wq_slow",
         "priority": "low",
         "modules": [
-            { "name": "buzzer", "stack_size": 512, "rate": 100, "args": ["0", "0", "0"] },
-            { "name": "commander_obc", "stack_size": 1024, "rate": 100, "args": [] },
+            { "name": "buzzer", "stack_size": 1024, "rate": 100, "args": ["0", "0", "0"] },
+            { "name": "commander_obc", "stack_size": 2048, "rate": 100, "args": [] },
             { "name": "database", "stack_size": 2048, "rate": 100, "args": [] },
-            { "name": "led", "stack_size": 512, "rate": 20, "args": ["0", "0"] },
+            { "name": "led", "stack_size": 1024, "rate": 20, "args": ["0", "0"] },
             { "name": "telemetry", "stack_size": 1024, "rate": 100, "args": [] },
-            { "name": "voltage", "stack_size": 512, "rate": 100, "args": ["0", "0", "0"] }
+            { "name": "voltage", "stack_size": 1024, "rate": 100, "args": ["0", "0", "0"] }
         ]
     }
 ]

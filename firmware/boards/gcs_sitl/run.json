@@ -3,21 +3,21 @@
         "name": "wq_serial",
         "priority": "high",
         "modules": [
-            { "name": "sim_serial", "stack_size": 1024, "args": ["CFG_SIM_GCS_SERIAL_PORT"] }
+            { "name": "sim_serial", "stack_size": 2048, "args": ["CFG_SIM_GCS_SERIAL_PORT"] }
         ]
     },
     {
         "name": "wq_lora",
         "priority": "high",
         "modules": [
-            { "name": "sim_lora", "stack_size": 1024, "args": ["CFG_SIM_GCS_LORA_PORT"] }
+            { "name": "sim_lora", "stack_size": 2048, "args": ["CFG_SIM_GCS_LORA_PORT"] }
         ]
     },
     {
         "name": "wq_commander",
         "priority": "high",
         "modules": [
-            { "name": "commander_gcs", "stack_size": 1024, "rate": 50, "args": [] }
+            { "name": "commander_gcs", "stack_size": 2048, "rate": 50, "args": [] }
         ]
     },
     {
@@ -25,7 +25,7 @@
         "priority": "normal",
         "modules": [
             { "name": "oled", "stack_size": 2048, "rate": 50, "args": ["0", "0"] },
-            { "name": "pmu", "stack_size": 512, "rate": 10, "args": ["0"] }
+            { "name": "pmu", "stack_size": 1024, "rate": 10, "args": ["0"] }
 
         ]
     },

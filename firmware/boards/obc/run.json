@@ -3,12 +3,12 @@
         "name": "wq_spi",
         "priority": "high",
         "modules": [
-            { "name": "sensors_bmi088", "stack_size": 512, "rate": 500, "args": ["g_cfg_spi", "g_cfg_cs_bmi_acc_pin", "g_cfg_cs_bmi_gyro_pin"] },
-            { "name": "sensors_mmc5983ma", "stack_size": 512, "rate": 100, "args": ["g_cfg_spi", "g_cfg_cs_mmc_pin"] },
-            { "name": "sensors_ms56xx", "stack_size": 512, "rate": 1000, "args": ["g_cfg_spi", "g_cfg_cs_ms56_pin", "true"] },
-            { "name": "sensors_gps", "stack_size": 512, "rate": 1000, "args": ["g_cfg_spi", "g_cfg_cs_neo_pin"] },
-            { "name": "sensors_ign_adc_internal", "stack_size": 512, "rate": 10, "args": ["g_cfg_ign_det_1_channel", "g_cfg_ign_det_2_channel", "g_cfg_ign_det_3_channel", "g_cfg_ign_det_4_channel", "CFG_INTERNAL_ADC_CALIB_SCALE", "CFG_INTERNAL_ADC_CALIB_OFFSET"] },
-            { "name": "sensors_ads786x", "stack_size": 512, "rate": 10, "args": ["g_cfg_spi", "g_cfg_cs_ads_pin", "CFG_EXTERNAL_ADC_VREF", "CFG_EXTERNAL_ADC_CALIB_SCALE", "CFG_EXTERNAL_ADC_CALIB_OFFSET"] },
+            { "name": "sensors_bmi088", "stack_size": 1024, "rate": 500, "args": ["g_cfg_spi", "g_cfg_cs_bmi_acc_pin", "g_cfg_cs_bmi_gyro_pin"] },
+            { "name": "sensors_mmc5983ma", "stack_size": 1024, "rate": 100, "args": ["g_cfg_spi", "g_cfg_cs_mmc_pin"] },
+            { "name": "sensors_ms56xx", "stack_size": 1024, "rate": 1000, "args": ["g_cfg_spi", "g_cfg_cs_ms56_pin", "true"] },
+            { "name": "sensors_gps", "stack_size": 1024, "rate": 1000, "args": ["g_cfg_spi", "g_cfg_cs_neo_pin"] },
+            { "name": "sensors_ign_adc_internal", "stack_size": 1024, "rate": 10, "args": ["g_cfg_ign_det_1_channel", "g_cfg_ign_det_2_channel", "g_cfg_ign_det_3_channel", "g_cfg_ign_det_4_channel", "CFG_INTERNAL_ADC_CALIB_SCALE", "CFG_INTERNAL_ADC_CALIB_OFFSET"] },
+            { "name": "sensors_ads786x", "stack_size": 1024, "rate": 10, "args": ["g_cfg_spi", "g_cfg_cs_ads_pin", "CFG_EXTERNAL_ADC_VREF", "CFG_EXTERNAL_ADC_CALIB_SCALE", "CFG_EXTERNAL_ADC_CALIB_OFFSET"] },
             { "name": "ekf", "stack_size": 4096, "rate": 500, "args": [] },
             { "name": "state_machine", "stack_size": 1024, "rate": 500, "args": [] },
             { "name": "ign", "stack_size": 1024, "rate": 500, "args": ["g_cfg_ign_en_1_pin", "g_cfg_ign_en_2_pin", "g_cfg_ign_en_3_pin", "g_cfg_ign_en_4_pin"] }
@@ -18,21 +18,21 @@
         "name": "wq_com",
         "priority": "normal",
         "modules": [
-            { "name": "com_serial", "stack_size": 1024, "rate": 200, "args": [] },
-            { "name": "com_uart", "stack_size": 1024, "rate": 200, "args": ["g_cfg_uart"] }
+            { "name": "com_serial", "stack_size": 2048, "rate": 200, "args": [] },
+            { "name": "com_uart", "stack_size": 2048, "rate": 200, "args": ["g_cfg_uart"] }
         ]
     },
     {
         "name": "wq_slow",
         "priority": "low",
         "modules": [
-            { "name": "buzzer", "stack_size": 512, "rate": 100, "args": ["g_cfg_buzzer_timer", "g_cfg_buzzer_channel", "g_cfg_buzzer_pin"] },
-            { "name": "battery", "stack_size": 512, "rate": 10, "args": [] },
-            { "name": "commander_obc", "stack_size": 1024, "rate": 100, "args": [] },
+            { "name": "buzzer", "stack_size": 1024, "rate": 100, "args": ["g_cfg_buzzer_timer", "g_cfg_buzzer_channel", "g_cfg_buzzer_pin"] },
+            { "name": "battery", "stack_size": 1024, "rate": 10, "args": [] },
+            { "name": "commander_obc", "stack_size": 2048, "rate": 100, "args": [] },
             { "name": "database", "stack_size": 2048, "rate": 100, "args": [] },
-            { "name": "led", "stack_size": 512, "rate": 20, "args": ["g_cfg_led_channel", "g_cfg_led_pin"] },
+            { "name": "led", "stack_size": 1024, "rate": 20, "args": ["g_cfg_led_channel", "g_cfg_led_pin"] },
             { "name": "telemetry", "stack_size": 1024, "rate": 100, "args": [] },
-            { "name": "voltage", "stack_size": 512, "rate": 100, "args": ["g_cfg_3v3_pin", "g_cfg_5v_pin", "g_cfg_vbat_pin"] }
+            { "name": "voltage", "stack_size": 1024, "rate": 100, "args": ["g_cfg_3v3_pin", "g_cfg_5v_pin", "g_cfg_vbat_pin"] }
         ]
     }
 ]

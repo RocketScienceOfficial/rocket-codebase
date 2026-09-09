@@ -145,12 +145,14 @@ that run inside it:
     "name": "wq_spi",
     "priority": "high",
     "modules": [
-        { "name": "sensors_bmi088", "stack_size": 512, "rate": 500, "args": ["g_cfg_spi", "g_cfg_cs_bmi_acc_pin", "g_cfg_cs_bmi_gyro_pin"] }
+        { "name": "sensors_bmi088", "stack_size": 1024, "rate": 500, "args": ["g_cfg_spi", "g_cfg_cs_bmi_acc_pin", "g_cfg_cs_bmi_gyro_pin"] }
     ]
 }
 ```
 
 - `priority` is `"high"` / `"normal"` / `"low"`, mapped to `OSAL_TASK_PRIORITY_*`.
+- `stack_size` (bytes) must be **at least 1024 and a power of two** — `runner_gen.py` enforces both
+  at CMake configure time and aborts naming the offending module otherwise.
 - `args` are spliced **verbatim** into the module's constructor call — a `g_cfg_*` symbol
   (resolved via `hw_info.h`), a `CFG_*` macro (from `hw_info.h` itself or a header it pulls in,
   e.g. `boards/shared/lora_config.h`), or a literal (`"0"`, `"true"`). The generator does no type

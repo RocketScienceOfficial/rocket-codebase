@@ -14,16 +14,16 @@ void osal_task_create(const char *task_name, osal_task_function_t task_func, voi
     switch (priority)
     {
     case OSAL_TASK_PRIORITY_LOW:
-        rtos_priority = tskIDLE_PRIORITY + 1;
+        rtos_priority = 1;
         break;
     case OSAL_TASK_PRIORITY_NORMAL:
-        rtos_priority = tskIDLE_PRIORITY + 2;
+        rtos_priority = 2;
         break;
     case OSAL_TASK_PRIORITY_HIGH:
-        rtos_priority = configMAX_PRIORITIES - 1;
+        rtos_priority = 3;
         break;
     default:
-        rtos_priority = tskIDLE_PRIORITY + 1;
+        rtos_priority = 1;
         break;
     }
 

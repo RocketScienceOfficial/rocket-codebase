@@ -22,10 +22,26 @@ def round_up_pow2(n):
     return 1 << (n - 1).bit_length()
 
 
+def is_power_of_two(n):
+    return n > 0 and (n & (n - 1)) == 0
+
+
 def loop_stack_size(loop):
+    MIN_MODULE_STACK_SIZE = 1024
+
     for module in loop["modules"]:
         if "stack_size" not in module:
             print(f"Module '{module['name']}' in loop '{loop['name']}' is missing 'stack_size'")
+            sys.exit(1)
+
+        stack_size = module["stack_size"]
+
+        if stack_size < MIN_MODULE_STACK_SIZE:
+            print(f"Module '{module['name']}' in loop '{loop['name']}' has stack_size {stack_size}, below the minimum of {MIN_MODULE_STACK_SIZE}")
+            sys.exit(1)
+
+        if not is_power_of_two(stack_size):
+            print(f"Module '{module['name']}' in loop '{loop['name']}' has stack_size {stack_size}, which is not a power of two")
             sys.exit(1)
 
     return round_up_pow2(max(module["stack_size"] for module in loop["modules"]))
