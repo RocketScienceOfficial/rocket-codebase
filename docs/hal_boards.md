@@ -184,7 +184,7 @@ generates, per pool:
 
 - One static instance per module, constructed with its `args` list pasted in as-is.
 - A task function that, for a rated pool, computes each module's next-due time from its `rate` and
-  runs a tight loop picking the soonest-due module, sleeping via `osal_systime_delay_until` in
+  runs a tight loop picking the soonest-due module, sleeping via `osal_task_delay_until` in
   between — so a 500 Hz module and a 100 Hz module can share one task without either starving the
   other. Rateless pools just call every module's `run()` back-to-back in a `while
   (osal_task_should_run())` loop.

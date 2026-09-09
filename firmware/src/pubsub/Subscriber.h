@@ -83,8 +83,9 @@ namespace PubSub
                 RetryHook::afterCopy();
 
             } while (s.write_sequence.load(std::memory_order_acquire) - m_ReadSequence >= depth);
-            // NOTE: In both cases we must do >= comparison here, because the write_sequence can advance to the next slot after we copy but before we check the difference.
-            // If that happens, we must retry. This results in effective depth-1 total slots available to the subscriber, but it is necessary to avoid torn reads.
+            // NOTE: >= not >, in both places. The slot for r is also the slot for r + depth, and
+            // write_sequence is only advanced after the payload copy, so a write in flight into that slot is
+            // invisible to both checks. Costs one slot: the ring holds depth-1 usable messages.
 
             m_ReadSequence++;
 
