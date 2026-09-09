@@ -1,6 +1,6 @@
 #include "BuzzerModule.h"
 #include "modules/common/ModuleLogger.h"
-#include <osal/systime.h>
+#include <osal/task.h>
 
 void BuzzerModule::init()
 {
@@ -55,7 +55,7 @@ void BuzzerModule::run()
 
     if (m_CurrentTone != NULL)
     {
-        if (osal_systime_get_ms() - m_BuzzerToneStartTime >= m_CurrentTone->duration_ms)
+        if (osal_task_get_ms() - m_BuzzerToneStartTime >= m_CurrentTone->duration_ms)
         {
             if (m_CurrentToneSize > 1)
             {
@@ -126,5 +126,5 @@ void BuzzerModule::playCurrentTone()
         LOG_DEBUG("Playing tone with frequency %d Hz for %d ms", m_CurrentTone->frequency, m_CurrentTone->duration_ms);
     }
 
-    m_BuzzerToneStartTime = osal_systime_get_ms();
+    m_BuzzerToneStartTime = osal_task_get_ms();
 }

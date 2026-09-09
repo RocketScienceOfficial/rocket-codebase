@@ -1,6 +1,5 @@
 #include "sitl.h"
 #include "osal/task.h"
-#include "osal/systime.h"
 #include "hal/time_driver.h"
 #include <chrono>
 #include <thread>
@@ -50,7 +49,7 @@ bool osal_task_should_run(void)
     return true;
 }
 
-uint32_t osal_systime_get_ms(void)
+uint32_t osal_task_get_ms(void)
 {
     return hal_time_get_ms_since_boot();
 }
@@ -60,11 +59,17 @@ void osal_task_delay_ms(uint32_t ms)
     std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
 
-bool osal_task_delay_until(uint32_t *last_wake_time, uint32_t period_ms)
+bool osal_task_delay_until(uint32_t deadline_ms)
 {
-    *last_wake_time += period_ms;
+    // Signed difference so the comparison survives the millisecond counter wrap.
+    const int32_t remaining_ms = (int32_t)(deadline_ms - osal_task_get_ms());
 
-    osal_task_delay_ms(period_ms);
+    if (remaining_ms <= 0)
+    {
+        return false;
+    }
+
+    osal_task_delay_ms((uint32_t)remaining_ms);
 
     return true;
 }

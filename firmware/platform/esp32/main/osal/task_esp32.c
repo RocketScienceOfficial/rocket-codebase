@@ -40,3 +40,41 @@ bool osal_task_should_run(void)
 {
     return true;
 }
+
+uint32_t osal_task_get_ms(void)
+{
+    return pdTICKS_TO_MS(xTaskGetTickCount());
+}
+
+void osal_task_delay_ms(uint32_t ms)
+{
+    vTaskDelay(pdMS_TO_TICKS(ms));
+}
+
+bool osal_task_delay_until(uint32_t deadline_ms)
+{
+    TickType_t anchor = xTaskGetTickCount();
+
+    // Signed difference so the comparison survives the millisecond counter wrap.
+    const int32_t remaining_ms = (int32_t)(deadline_ms - pdTICKS_TO_MS(anchor));
+
+    if (remaining_ms <= 0)
+    {
+        taskYIELD();
+
+        return false;
+    }
+
+    TickType_t increment = pdMS_TO_TICKS((uint32_t)remaining_ms);
+
+    // xTaskDelayUntil asserts on a zero increment, and one tick is the finest wait the scheduler
+    // can express anyway.
+    if (increment == 0)
+    {
+        increment = 1;
+    }
+
+    xTaskDelayUntil(&anchor, increment);
+
+    return true;
+}

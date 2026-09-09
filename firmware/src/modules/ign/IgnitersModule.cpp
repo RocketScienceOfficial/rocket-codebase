@@ -1,6 +1,6 @@
 #include "IgnitersModule.h"
 #include "modules/common/ModuleLogger.h"
-#include <osal/systime.h>
+#include <osal/task.h>
 #include <hal/gpio_driver.h>
 
 #define IGN_UP_TIME_MS 10
@@ -144,7 +144,7 @@ void IgnitersModule::ignFire(IgniterPinData &data)
         hal_gpio_set_pin_state(data.pin, HAL_GPIO_HIGH);
 
         data.fired = true;
-        data.fireTime = osal_systime_get_ms();
+        data.fireTime = osal_task_get_ms();
 
         for (uint8_t i = 0; i < IGN_COUNT; i++)
         {
@@ -161,7 +161,7 @@ void IgnitersModule::ignUpdate(IgniterPinData &data)
 {
     if (data.fired && !data.finished)
     {
-        if (osal_systime_get_ms() - data.fireTime >= IGN_UP_TIME_MS)
+        if (osal_task_get_ms() - data.fireTime >= IGN_UP_TIME_MS)
         {
             ignFinish(data);
         }

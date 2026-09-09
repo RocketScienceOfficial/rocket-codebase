@@ -1,6 +1,6 @@
 #include "TelemetryModule.h"
 #include "modules/common/ModuleLogger.h"
-#include <osal/systime.h>
+#include <osal/task.h>
 
 #define PACKETS_WITHOUT_RESPONSE_COUNT 10
 #define RADIO_TX_DONE_RECOVERY_TIME_MS 250
@@ -9,7 +9,7 @@
 
 void TelemetryModule::init()
 {
-    m_PacketTimer = osal_systime_get_ms();
+    m_PacketTimer = osal_task_get_ms();
     m_WaitingToSendPacket = true;
 }
 
@@ -32,7 +32,7 @@ void TelemetryModule::run()
     m_VoltageStateSubscriber.pollLatest();
     m_IgnitionContinuitySubscriber.pollLatest();
 
-    if (!m_WaitingForResponse && m_RadioTXDoneRecoveryTimeOffset != 0 && osal_systime_get_ms() - m_RadioTXDoneRecoveryTimeOffset >= RADIO_TX_DONE_RECOVERY_TIME_MS)
+    if (!m_WaitingForResponse && m_RadioTXDoneRecoveryTimeOffset != 0 && osal_task_get_ms() - m_RadioTXDoneRecoveryTimeOffset >= RADIO_TX_DONE_RECOVERY_TIME_MS)
     {
         m_RadioTXDoneRecoveryTimeOffset = 0;
 
@@ -41,7 +41,7 @@ void TelemetryModule::run()
         LOG_DEBUG("Didn't receive ack from radio module");
     }
 
-    if (m_WaitingForResponse && m_RadioResponseRecoveryTimeOffset != 0 && osal_systime_get_ms() - m_RadioResponseRecoveryTimeOffset >= RADIO_RESPONSE_RECOVERY_TIME_MS)
+    if (m_WaitingForResponse && m_RadioResponseRecoveryTimeOffset != 0 && osal_task_get_ms() - m_RadioResponseRecoveryTimeOffset >= RADIO_RESPONSE_RECOVERY_TIME_MS)
     {
         m_RadioResponseRecoveryTimeOffset = 0;
         m_WaitingForResponse = false;
@@ -51,7 +51,7 @@ void TelemetryModule::run()
         LOG_DEBUG("Didn't receive response from GCS");
     }
 
-    if (m_WaitingToSendPacket && osal_systime_get_ms() - m_PacketTimer >= RADIO_PACKET_SEND_DELAY_MS)
+    if (m_WaitingToSendPacket && osal_task_get_ms() - m_PacketTimer >= RADIO_PACKET_SEND_DELAY_MS)
     {
         telemetry_data_obc payload;
         payload.qw = (int16_t)(m_EKFStateSubscriber.get().orientation.w * 32767);
@@ -77,12 +77,12 @@ void TelemetryModule::run()
 
         m_PacketTimer = 0;
         m_WaitingToSendPacket = false;
-        m_RadioTXDoneRecoveryTimeOffset = osal_systime_get_ms();
+        m_RadioTXDoneRecoveryTimeOffset = osal_task_get_ms();
 
         if (m_PacketCounterForResponse == PACKETS_WITHOUT_RESPONSE_COUNT)
         {
             m_WaitingForResponse = true;
-            m_RadioResponseRecoveryTimeOffset = osal_systime_get_ms();
+            m_RadioResponseRecoveryTimeOffset = osal_task_get_ms();
             m_PacketCounterForResponse = 0;
         }
         else
@@ -112,7 +112,7 @@ void TelemetryModule::handleResponse()
 
 void TelemetryModule::scheduleNextPacket()
 {
-    m_PacketTimer = osal_systime_get_ms();
+    m_PacketTimer = osal_task_get_ms();
     m_WaitingToSendPacket = true;
 }
 

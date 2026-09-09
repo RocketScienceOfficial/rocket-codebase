@@ -206,8 +206,9 @@ firmware/platform/
 
 **OSAL** (`platform/include/osal/`) provides a minimal, RTOS-backed threading and timing API:
 
-- `task.h` — `create`, `start_scheduler`, `should_run`: create RTOS tasks and start the scheduler.
-- `systime.h` — `get_ms`, `delay_ms`, `delay_until`: system time and periodic delay (used by the runner to enforce task rates).
+- `task.h` — the whole OSAL surface: `osal_task_create`, `osal_task_start_scheduler`, `osal_task_should_run` for tasks, plus `osal_task_get_ms`, `osal_task_delay_ms` and `osal_task_delay_until` for time.
+
+`osal_task_delay_until(deadline_ms)` takes an **absolute** deadline on the `osal_task_get_ms()` clock, compares it as a signed difference so it survives the millisecond counter wrap, and returns `false` without blocking if the deadline has already passed. It is what the runner uses to enforce task rates. It is also the only OSAL call that participates in the lockstep SITL barrier: under that platform simulated time advances only once every worker task is blocked inside it, so a rate-driven loop must reach it every pass. `osal_task_delay_ms` does **not** take part in that barrier and sleeps in real time, so it is for driver-level waits only.
 
 **Boards** (`firmware/boards/{obc,radio_module,gcs}[_sitl]/`) map physical pin/bus numbers to logical roles (SPI bus, UART, igniter channels, etc.) via `include/hw_info.h` + `src/hw_init.c`, and select which modules run at build time via `run.json`. See [hal_boards.md](hal_boards.md) for the full contract.
 

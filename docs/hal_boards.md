@@ -183,11 +183,16 @@ is that file's stem (e.g. `sensors_bmi088/bmi088_Module.h` → class `bmi088_Mod
 generates, per pool:
 
 - One static instance per module, constructed with its `args` list pasted in as-is.
-- A task function that, for a rated pool, computes each module's next-due time from its `rate` and
-  runs a tight loop picking the soonest-due module, sleeping via `osal_task_delay_until` in
-  between — so a 500 Hz module and a 100 Hz module can share one task without either starving the
-  other. Rateless pools just call every module's `run()` back-to-back in a `while
-  (osal_task_should_run())` loop.
+- A task function that, for a rated pool, computes each module's next-due time from its `rate`,
+  blocks on `osal_task_delay_until()` until the soonest of them, then runs every module that has
+  come due — so a 500 Hz module and a 100 Hz module can share one task without either starving the
+  other. Two details are deliberate. Deadlines are compared as signed differences rather than as
+  absolute values, so the loop survives the ~49.7 day wrap of the millisecond counter. And a module
+  whose `run()` overran far enough to miss its next deadline is resynced forward rather than run
+  back-to-back to catch up, since catching up would pin the pool at 100% CPU and starve every
+  lower-priority pool. `runner_gen.py` also rejects a `rate` above the 1 kHz scheduler tick, which
+  would otherwise round to a 0 ms period and leave a module permanently due. Rateless pools just
+  call every module's `run()` back-to-back in a `while (osal_task_should_run())` loop.
 - A `spawnTask` call per pool at the configured priority, each task's stack carved out of one
   global static byte array sized as `Σ over pools of round_up_pow2(max module stack_size in that
   pool)` — consistent with the repo's no-heap-allocation constraint.
@@ -266,9 +271,9 @@ the final executable). Functionally equivalent, but worth knowing when tracing a
    `cmake -S`). Near the top: `include(../../boards/${BOARD_NAME}/board_hw.cmake)`.
 2. Implement every HAL header in `firmware/platform/include/hal/include/hal/` (currently `gpio`,
    `uart`, `i2c`, `spi`, `adc`, `pwm`, `time`, `flash`, `stdio`, `waveform` — check the directory for
-   the current set) as `hal/<driver>_driver_<platform>.c`, plus both OSAL headers in
-   `firmware/platform/include/osal/include/osal/` (`task.h`, `systime.h`) backed by whatever
-   RTOS/threading primitive the target provides.
+   the current set) as `hal/<driver>_driver_<platform>.c`, plus the single OSAL header in
+   `firmware/platform/include/osal/include/osal/` (`task.h`, covering both task creation and time)
+   backed by whatever RTOS/threading primitive the target provides.
 3. Define the three interface libraries other CMakeLists.txt files expect to exist:
    `platform_hw` (exposes `HW_INFO_DIR`), `platform_hal` (HAL headers + driver sources),
    `platform_osal` (OSAL headers + implementation).

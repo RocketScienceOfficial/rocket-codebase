@@ -4,7 +4,7 @@
 #include <lib/geo/physical_constants.h>
 #include <lib/geo/geo_mag.h>
 #include <lib/debug/sys_assert.h>
-#include <osal/systime.h>
+#include <osal/task.h>
 #include <cmath>
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -37,7 +37,7 @@ void EKFModule::run()
 
 void EKFModule::processIMU(const PubSub::Messages::SensorsIMU &imuData)
 {
-    uint32_t currentTime = osal_systime_get_ms();
+    uint32_t currentTime = osal_task_get_ms();
 
     // TODO: Integrate accel with quaternion to get more accurate data (fine for small measurement-to-update ratio)
     m_AccelAccum.x += imuData.acc.x * imuData.dt;
@@ -171,7 +171,7 @@ void EKFModule::processGPS(const PubSub::Messages::SensorsGPS &gpsData)
         posMeas.pos = equirect_project_to_ned(&m_Projection, &gpsData.pos);
         posMeas.var_hor = VARIANCE(gpsData.stddev_horizontal);
         posMeas.var_ver = VARIANCE(gpsData.stddev_vertical);
-        m_GPSPosBuffer.push(posMeas, osal_systime_get_ms() - EKF_DELAY_MS_GPS);
+        m_GPSPosBuffer.push(posMeas, osal_task_get_ms() - EKF_DELAY_MS_GPS);
 
         if (vec3_mag_compare(&gpsData.vel, EKF_GPS_FUSION_VELOCITY_THRESHOLD) > 0)
         {
@@ -179,7 +179,7 @@ void EKFModule::processGPS(const PubSub::Messages::SensorsGPS &gpsData)
             velMeas.vel = gpsData.vel;
             velMeas.var_hor = VARIANCE(gpsData.stddev_speed);
             velMeas.var_ver = VARIANCE(gpsData.stddev_speed * EKF_GPS_VEL_D_NOISE_SCALE);
-            m_GPSVelBuffer.push(velMeas, osal_systime_get_ms() - EKF_DELAY_MS_GPS);
+            m_GPSVelBuffer.push(velMeas, osal_task_get_ms() - EKF_DELAY_MS_GPS);
         }
     }
 }
@@ -228,7 +228,7 @@ void EKFModule::processBaro(const PubSub::Messages::SensorsBaro &baroData)
         EKFBaroMeasurement baroMeas;
         baroMeas.height = -(baroData.baroHeight - m_BaroOffset); // Negative because baro height is typically positive upwards, while NED z is positive downwards
         baroMeas.var = VARIANCE(EKF_NOISE_BARO); // TODO: Change variance with Mach number
-        m_BaroBuffer.push(baroMeas, osal_systime_get_ms() - EKF_DELAY_MS_BARO);
+        m_BaroBuffer.push(baroMeas, osal_task_get_ms() - EKF_DELAY_MS_BARO);
     }
 }
 
@@ -312,7 +312,7 @@ void EKFModule::processMag(const PubSub::Messages::SensorsMag &magData)
         EKFMagMeasurement magMeas;
         magMeas.mag = magData.mag;
         magMeas.var = VARIANCE(EKF_NOISE_MAG);
-        m_MagBuffer.push(magMeas, osal_systime_get_ms() - EKF_DELAY_MS_MAG);
+        m_MagBuffer.push(magMeas, osal_task_get_ms() - EKF_DELAY_MS_MAG);
     }
 #else
     (void)magData;

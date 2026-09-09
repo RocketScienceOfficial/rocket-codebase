@@ -2,7 +2,7 @@
 #define _RADIOLIB_HAL_PORT_H
 
 #include <RadioLib.h>
-#include <osal/systime.h>
+#include <osal/task.h>
 #include <hal/gpio_driver.h>
 #include <hal/spi_driver.h>
 #include <hal/time_driver.h>

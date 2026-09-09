@@ -2,7 +2,7 @@
 #include "OLEDLogo.h"
 #include "modules/common/ModuleLogger.h"
 #include <lib/maths/math_utils.h>
-#include <osal/systime.h>
+#include <osal/task.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -15,7 +15,7 @@ void OLEDModule::init()
 {
     m_RocketData.name = "ROCKET";
     m_GCSData.name = "GCS";
-    m_LogoDisableTime = osal_systime_get_ms() + LOGO_DISPLAY_TIME_MS;
+    m_LogoDisableTime = osal_task_get_ms() + LOGO_DISPLAY_TIME_MS;
 
     initDisplay();
     setNewState(OLEDState::ROCKET);
@@ -76,13 +76,13 @@ void OLEDModule::run()
 
     handleStateChange();
 
-    if (osal_systime_get_ms() > m_LogoDisableTime && osal_systime_get_ms() - m_LastUpdateTime >= REFRESH_RATE_MS)
+    if (osal_task_get_ms() > m_LogoDisableTime && osal_task_get_ms() - m_LastUpdateTime >= REFRESH_RATE_MS)
     {
         u8g2_ClearBuffer(&m_Display);
         drawPanel();
         u8g2_SendBuffer(&m_Display);
 
-        m_LastUpdateTime = osal_systime_get_ms();
+        m_LastUpdateTime = osal_task_get_ms();
     }
 }
 

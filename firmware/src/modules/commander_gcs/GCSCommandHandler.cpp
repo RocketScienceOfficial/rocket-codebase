@@ -1,7 +1,7 @@
 #include "GCSCommandHandler.h"
 #include "modules/common/ModuleLogger.h"
 #include <datalink.h>
-#include <osal/systime.h>
+#include <osal/task.h>
 #include <lib/debug/sys_assert.h>
 
 #define CMD_TIMEOUT_MS 10000
@@ -11,7 +11,7 @@ void GCSCommandHandler<SerialTopic, TimeoutTopic>::update()
 {
     if (m_CommandActive)
     {
-        if (osal_systime_get_ms() - m_CommandStartTime > CMD_TIMEOUT_MS)
+        if (osal_task_get_ms() - m_CommandStartTime > CMD_TIMEOUT_MS)
         {
             LOG_WARN("Command %d timed out", m_CurrentCMD);
             nack();
@@ -33,7 +33,7 @@ void GCSCommandHandler<SerialTopic, TimeoutTopic>::set(uint8_t cmd)
 
     m_CurrentCMD = cmd;
     m_CurrentCommandSeq = (m_CurrentCommandSeq + 1) % 256;
-    m_CommandStartTime = osal_systime_get_ms();
+    m_CommandStartTime = osal_task_get_ms();
     m_CommandActive = true;
 
     LOG_INFO("Set command %d (seq %d)", cmd, m_CurrentCommandSeq);
@@ -66,7 +66,7 @@ void GCSCommandHandler<SerialTopic, TimeoutTopic>::onNewSequence(uint8_t seq, ui
 template <typename SerialTopic, typename TimeoutTopic>
 void GCSCommandHandler<SerialTopic, TimeoutTopic>::handleCommandElapsedTime()
 {
-    uint32_t diff = osal_systime_get_ms() - m_CommandStartTime;
+    uint32_t diff = osal_task_get_ms() - m_CommandStartTime;
     int elapsedTime = (CMD_TIMEOUT_MS - (int)diff) / 1000;
     int nextElapsedTime = elapsedTime < 0 ? 0 : elapsedTime;
 

@@ -1,6 +1,6 @@
 #include "CommanderGCSModule.h"
 #include "modules/common/ModuleLogger.h"
-#include <osal/systime.h>
+#include <osal/task.h>
 #include <lib/debug/sys_assert.h>
 
 #define RESPONSE_SEND_DELAY_MS 100
@@ -110,7 +110,7 @@ void CommanderGCSModule::processRadioMessage(const PubSub::Messages::LoRaRXData 
 
     if (frame.sendResponse == 1)
     {
-        m_ResponseStartTime = osal_systime_get_ms();
+        m_ResponseStartTime = osal_task_get_ms();
     }
 
     m_CommandHandler.onNewSequence(frame.cmd_seq, frame.cmd_last_status);
@@ -118,19 +118,19 @@ void CommanderGCSModule::processRadioMessage(const PubSub::Messages::LoRaRXData 
 
 void CommanderGCSModule::checkPacketLossResetTimeout()
 {
-    if (osal_systime_get_ms() - m_RadioTmpRXStartTime > TMP_RX_RESET_TIME)
+    if (osal_task_get_ms() - m_RadioTmpRXStartTime > TMP_RX_RESET_TIME)
     {
         LOG_DEBUG("Packet loss stats reset (%d packets lost in last %d seconds)", m_PacketsLost, TMP_RX_RESET_TIME / 1000);
 
         m_RadioTmpRX = 0;
         m_PacketsLost = 0;
-        m_RadioTmpRXStartTime = osal_systime_get_ms();
+        m_RadioTmpRXStartTime = osal_task_get_ms();
     }
 }
 
 void CommanderGCSModule::checkTelemetryResponseTimeout()
 {
-    if (m_ResponseStartTime != 0 && osal_systime_get_ms() - m_ResponseStartTime > RESPONSE_SEND_DELAY_MS)
+    if (m_ResponseStartTime != 0 && osal_task_get_ms() - m_ResponseStartTime > RESPONSE_SEND_DELAY_MS)
     {
         sendTelemetryResponse();
 

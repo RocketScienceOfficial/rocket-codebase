@@ -11,7 +11,6 @@ idf_component_register(SRCS
     "hal/uart_driver_esp32.c"
     "hal/waveform_driver_esp32.c"
     "${HW_INIT_SRC}"
-    "osal/systime_esp32.c"
     "osal/task_esp32.c"
 
     INCLUDE_DIRS "."

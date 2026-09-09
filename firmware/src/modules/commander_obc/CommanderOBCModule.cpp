@@ -1,6 +1,6 @@
 #include "CommanderOBCModule.h"
 #include "modules/common/ModuleLogger.h"
-#include <osal/systime.h>
+#include <osal/task.h>
 #include <lib/debug/sys_assert.h>
 
 #define RADIO_COMMAND_TIMEOUT 10000
@@ -46,7 +46,7 @@ void CommanderOBCModule::run()
 
 void CommanderOBCModule::handleRPCs()
 {
-    if (m_RadioCommandStatus == CommanderStatus::PENDING && osal_systime_get_ms() - m_LastRadioCommandTime > RADIO_COMMAND_TIMEOUT)
+    if (m_RadioCommandStatus == CommanderStatus::PENDING && osal_task_get_ms() - m_LastRadioCommandTime > RADIO_COMMAND_TIMEOUT)
     {
         LOG_ERROR("Radio command timed out");
 
@@ -135,7 +135,7 @@ void CommanderOBCModule::processUARTMessage(const datalink_message_t &msg)
 
         m_RadioCommandSeq = nextPredictedSeq;
         m_RadioCommandStatus = CommanderStatus::PENDING;
-        m_LastRadioCommandTime = osal_systime_get_ms();
+        m_LastRadioCommandTime = osal_task_get_ms();
 
         updateState();
 

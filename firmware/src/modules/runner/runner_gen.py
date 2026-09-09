@@ -15,6 +15,42 @@ def check_profile(profile_path):
         sys.exit(1)
 
 
+MAX_RATE_HZ = 1000
+
+
+# Emitted once per generated runner, above the loop functions.
+SCHEDULING_HELPERS = """
+// Millisecond timestamps are uint32_t and wrap roughly every 49.7 days, so deadlines are
+// compared as signed differences rather than as absolute values. Correct as long as no real
+// interval exceeds ~24.8 days.
+static inline bool time_reached(uint32_t now, uint32_t deadline)
+{
+    return (int32_t)(now - deadline) >= 0;
+}
+
+static inline bool time_before_or_equal(uint32_t a, uint32_t b)
+{
+    return (int32_t)(a - b) <= 0;
+}
+
+// Advance a module past the tick it just served. If run() overran far enough that the next
+// deadline has already passed, drop the missed ticks instead of running back-to-back: catching
+// up would pin the pool at 100% CPU and permanently starve every lower-priority pool.
+static inline uint32_t schedule_next(uint32_t due, uint32_t period, uint32_t now)
+{
+    due += period;
+
+    if (time_reached(now, due))
+    {
+        due = now + period;
+    }
+
+    return due;
+}
+
+"""
+
+
 def round_up_pow2(n):
     if n <= 1:
         return 1
@@ -60,6 +96,24 @@ def validate_loop_rates(loop):
         print(f"Loop '{loop['name']}' has {len(loop['modules'])} modules but none declare 'rate'; a rateless loop must contain exactly one module")
         sys.exit(1)
 
+    # The scheduler tick is 1 kHz, so a period is an integer number of milliseconds. A rate above
+    # 1000 Hz would round to a 0 ms period, which leaves the module permanently due and turns the
+    # pool into a busy loop that starves every lower-priority pool.
+    for module in rated:
+        rate = module["rate"]
+
+        if not isinstance(rate, int) or isinstance(rate, bool) or rate <= 0:
+            print(f"Module '{module['name']}' in loop '{loop['name']}' has rate {rate!r}; rate must be a positive integer in Hz")
+            sys.exit(1)
+
+        if rate > MAX_RATE_HZ:
+            print(f"Module '{module['name']}' in loop '{loop['name']}' has rate {rate} Hz, above the {MAX_RATE_HZ} Hz scheduler tick")
+            sys.exit(1)
+
+        if 1000 % rate != 0:
+            actual = 1000 / (1000 // rate)
+            print(f"Warning: module '{module['name']}' in loop '{loop['name']}' requests {rate} Hz, which is not a divisor of the {MAX_RATE_HZ} Hz tick; it will actually run at {actual:.1f} Hz")
+
 
 def gen_source(profile):
     names_cache = {}
@@ -90,8 +144,8 @@ def gen_source(profile):
     def gen_header(profile):
         s = ""
         s += "#include <osal/task.h>\n"
-        s += "#include <osal/systime.h>\n"
         s += "#include <hw_info.h>\n"
+        s += "#include <cstdint>\n"
 
         for loop in profile:
             for module in loop["modules"]:
@@ -103,10 +157,10 @@ def gen_source(profile):
             s += f"// Loop '{loop['name']}'\n"
 
         total_stack = sum(loop_stack_sizes[loop["name"]] for loop in profile)
-        s += f"static alignas(8) uint8_t g_stackBuffer[{total_stack}];\n"
+        s += f"alignas(8) static uint8_t g_stackBuffer[{total_stack}]; // Aligned to 64-bit words\n"
         s += "static size_t g_stackBufferOffset = 0;\n"
 
-        s += "\n"
+        s += SCHEDULING_HELPERS
 
         for loop in profile:
             for module in loop["modules"]:
@@ -147,22 +201,24 @@ def gen_source(profile):
         periods = [int(1000 / module["rate"]) for module in modules]
         n = len(modules)
 
-        s += "\n    uint32_t lastWakeTime = osal_systime_get_ms();\n"
-        s += "    uint32_t nextDue[{n}] = {{ {values} }};\n".format(n=n, values=", ".join(f"lastWakeTime + {p}" for p in periods))
+        s += "\n    const uint32_t startTime = osal_task_get_ms();\n"
+        s += "    uint32_t nextDue[{n}] = {{ {values} }};\n".format(n=n, values=", ".join(f"startTime + {p}" for p in periods))
         s += "    const uint32_t period[{n}] = {{ {values} }};\n".format(n=n, values=", ".join(str(p) for p in periods))
 
         s += "\n    while (osal_task_should_run())\n    {\n"
-        s += "        uint32_t soonest = nextDue[0];\n"
+        s += "        uint32_t soonest = nextDue[0];\n\n"
         s += "        for (size_t i = 1; i < {n}; i++)\n        {{\n".format(n=n)
-        s += "            if (nextDue[i] < soonest) soonest = nextDue[i];\n"
+        s += "            if (time_before_or_equal(nextDue[i], soonest)) soonest = nextDue[i];\n"
         s += "        }\n\n"
-        s += "        uint32_t now = osal_systime_get_ms();\n"
-        s += "        osal_task_delay_until(&lastWakeTime, (soonest > now) ? (soonest - now) : 0);\n\n"
-        s += "        now = osal_systime_get_ms();\n"
+        s += "        osal_task_delay_until(soonest);\n"
 
         for i, module in enumerate(modules):
             module_include = get_module_include_name(module["name"])
-            s += "        if (nextDue[{i}] <= now) {{ {mi}Instance.run(); nextDue[{i}] += period[{i}]; }}\n".format(i=i, mi=module_include)
+            s += "\n        {decl}now = osal_task_get_ms();\n".format(decl="uint32_t " if i == 0 else "")
+            s += "        if (time_reached(now, nextDue[{i}]))\n        {{\n".format(i=i)
+            s += "            {mi}Instance.run();\n".format(mi=module_include)
+            s += "            nextDue[{i}] = schedule_next(nextDue[{i}], period[{i}], osal_task_get_ms());\n".format(i=i)
+            s += "        }\n"
 
         s += "    }\n}\n"
 

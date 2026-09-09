@@ -1,7 +1,7 @@
 #include "StateMachineModule.h"
 #include "SMConfig.h"
 #include "modules/common/ModuleLogger.h"
-#include <osal/systime.h>
+#include <osal/task.h>
 #include <lib/maths/math_utils.h>
 #include <lib/geo/physical_constants.h>
 #include <cmath>
@@ -115,7 +115,7 @@ void StateMachineModule::changeState(state_machine_state new_state)
 {
     m_State = new_state;
 
-    LOG_INFO("State changed to %d (Time = %dms)", m_State, osal_systime_get_ms());
+    LOG_INFO("State changed to %d (Time = %dms)", m_State, osal_task_get_ms());
 
     m_FlightStatePublisher.publish({.state = m_State});
 }
@@ -133,7 +133,7 @@ void StateMachineModule::handle_state_armed()
         {
             if (vec3_mag_compare(&m_CurrentIMUAcc, SM_CFG_START_ACC_THRESHOLD) >= 0)
             {
-                m_VerificationStartTime = osal_systime_get_ms();
+                m_VerificationStartTime = osal_task_get_ms();
                 m_VerifyingStandingAlt = true;
 
                 LOG_INFO("Acceleration threshold exceeded. Starting standing altitude verification.");
@@ -158,7 +158,7 @@ void StateMachineModule::handle_state_armed()
                 }
                 else
                 {
-                    if (osal_systime_get_ms() - m_VerificationStartTime > SM_CFG_START_ALT_VERIFICATION_TIME_MS)
+                    if (osal_task_get_ms() - m_VerificationStartTime > SM_CFG_START_ALT_VERIFICATION_TIME_MS)
                     {
                         m_BaseAltSet = false;
                         m_BaseAlt = 0;
@@ -199,7 +199,7 @@ void StateMachineModule::handle_state_free_flight()
 
         if (alt <= m_Apogee || alt - m_Apogee <= SM_CFG_APOGEE_MAX_DELTA)
         {
-            if (osal_systime_get_ms() - m_VerificationStartTime > SM_CFG_LAST_ALT_APOGEE_TIME_MS)
+            if (osal_task_get_ms() - m_VerificationStartTime > SM_CFG_LAST_ALT_APOGEE_TIME_MS)
             {
                 m_VerificationStartTime = 0;
 
@@ -209,7 +209,7 @@ void StateMachineModule::handle_state_free_flight()
         else
         {
             m_Apogee = alt;
-            m_VerificationStartTime = osal_systime_get_ms();
+            m_VerificationStartTime = osal_task_get_ms();
         }
     }
 }
@@ -224,11 +224,11 @@ void StateMachineModule::handle_state_free_fall()
         if (delta > SM_CFG_LAND_MAX_DELTA)
         {
             m_LandingAlt = alt;
-            m_VerificationStartTime = osal_systime_get_ms();
+            m_VerificationStartTime = osal_task_get_ms();
         }
         else
         {
-            if (osal_systime_get_ms() - m_VerificationStartTime > SM_CFG_LAST_ALT_LAND_VERIFICATION_TIME_MS)
+            if (osal_task_get_ms() - m_VerificationStartTime > SM_CFG_LAST_ALT_LAND_VERIFICATION_TIME_MS)
             {
                 m_VerificationStartTime = 0;
                 

@@ -1,5 +1,5 @@
 #include "time_utils.h"
-#include <osal/systime.h>
+#include <osal/task.h>
 
 void time_utils_delay_us_osal(uint32_t delayUs)
 {

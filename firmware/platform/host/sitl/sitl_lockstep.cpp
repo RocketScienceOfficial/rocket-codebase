@@ -1,6 +1,5 @@
 #include "sitl.h"
 #include "osal/task.h"
-#include "osal/systime.h"
 #include "hal/time_driver.h"
 #include <atomic>
 #include <chrono>
@@ -99,7 +98,7 @@ bool osal_task_should_run(void)
     return g_is_running.load();
 }
 
-uint32_t osal_systime_get_ms(void)
+uint32_t osal_task_get_ms(void)
 {
     return hal_time_get_ms_since_boot();
 }
@@ -109,14 +108,21 @@ void osal_task_delay_ms(uint32_t ms)
     std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
 
-bool osal_task_delay_until(uint32_t *last_wake_time, uint32_t period_ms)
+bool osal_task_delay_until(uint32_t deadline_ms)
 {
     std::unique_lock<std::mutex> lock(g_mutex);
 
     auto tid = std::this_thread::get_id();
-    uint32_t target_time = *last_wake_time + period_ms;
 
-    g_threads[tid].target_wake_time = target_time;
+    // Already due: return without entering the barrier so the caller can run the work it owes.
+    // Virtual time only advances once every worker is parked below, so a caller that never gets
+    // past this branch stalls the whole simulation.
+    if ((int32_t)(g_current_tick.load(std::memory_order_relaxed) - deadline_ms) >= 0)
+    {
+        return false;
+    }
+
+    g_threads[tid].target_wake_time = deadline_ms;
     g_threads[tid].is_sleeping = true;
 
     g_active_workers--;
@@ -126,9 +132,7 @@ bool osal_task_delay_until(uint32_t *last_wake_time, uint32_t period_ms)
         g_cv_god.notify_one();
     }
 
-    g_cv_workers.wait(lock, [&]{ return g_current_tick >= g_threads[tid].target_wake_time || !osal_task_should_run(); });
-
-    *last_wake_time += period_ms;
+    g_cv_workers.wait(lock, [&]{ return (int32_t)(g_current_tick.load(std::memory_order_relaxed) - g_threads[tid].target_wake_time) >= 0 || !osal_task_should_run(); });
 
     return true;
 }
