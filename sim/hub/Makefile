@@ -10,4 +10,4 @@ src/sim/.datalink_stamp: $(wildcard $(DATALINK_DIR)/schemas/*.xml) $(wildcard $(
 datalink: src/sim/.datalink_stamp
 
 run: src/sim/.datalink_stamp
-	python -m sim.main --config $(CONFIG)
+	python -m sim.main --config $(CONFIG) $(if $(BOARD),--board $(BOARD),)

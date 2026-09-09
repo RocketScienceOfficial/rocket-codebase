@@ -143,7 +143,7 @@ make obc_sitl_run
 # Terminal B: run the simulation hub against a flight scenario
 cd sim/hub
 pip install -e .            # one-time setup
-make run CONFIG=or_taipan
+make run CONFIG=or_taipan BOARD=obc
 ```
 
 The hub connects, arms the vehicle, streams synthesized sensor data through the firmware, and on completion plots the on-board EKF estimate against ground truth. Available configs live in `sim/hub/src/sim/configs/`; see [Simulations](#simulations) below. The `obc_sitl_freerun` target (or the `SITL_FREERUN=ON` CMake option) builds the same binary in free-run mode, running as fast as possible instead of pacing to real time.
@@ -310,10 +310,12 @@ pip install -e .
 After that you can run the hub with the following command:
 
 ```bash
-make run CONFIG=<config_name>
+make run CONFIG=<config_name> BOARD=<board_name>
 ```
 
 Configs are found in the `sim/hub/src/sim/configs/` directory and they specify which components to run and how to connect them together. They are in the format `cfg_<config_name>.py`, so if you want to run the config `cfg_fm2024.py`, you should use `CONFIG=fm2024` in the command above.
+
+Configs that generate synthetic sensor data also take `BOARD=<board_name>`, selecting sensor characteristics from the shared registry in `sim/hub/src/sim/env/registry.py`. Replay-based configs (e.g. `fm2024`) get their sensor data from a recorded log instead, so they don't take a board.
 
 ### MATLAB Model
 `sim/matlab_model/` contains the Simulink model of the rocket, which is used for system-level simulations and testing of control algorithms.

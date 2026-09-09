@@ -25,7 +25,8 @@ radio_sock = TCPSocket(name="radio", ip="127.0.0.1", port=12346, is_server=False
 
 # =========== ENVIRONMENT SETUP ============
 parser = argparse.ArgumentParser(description="Python Rocket Simulation")
-parser.add_argument("--config", type=str, required=True, help="Path to the configuration file")
+parser.add_argument("--config", type=str, required=True, help="Configuration name (without the 'cfg_' prefix, e.g. 'fm2024')")
+parser.add_argument("--board", type=str, default=None, help="Board/sensor profile name (required for synthetic configs, must be omitted for replay configs)")
 args = parser.parse_args()
 
 config_module_name = f"sim.configs.cfg_{args.config}"
@@ -36,7 +37,7 @@ try:
 except (ModuleNotFoundError, AttributeError):
     raise ValueError(f"Unknown configuration: {args.config}")
 
-env = get_environment(SIM_TICK_DT)
+env = get_environment(SIM_TICK_DT, board=args.board)
 # ============================================
 
 

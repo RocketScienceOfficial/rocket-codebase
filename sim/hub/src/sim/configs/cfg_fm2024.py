@@ -1,7 +1,10 @@
 from sim.env.environments import *
 
 
-def get_environment(dt: float):
+def get_environment(dt: float, board: str | None = None):
+    if board is not None:
+        raise ValueError("cfg_fm2024 is a replay scenario and does not use a board")
+
     return SequentialReplayEnvironment(
         resample_dt=dt,
         file_path="./data/FM2024.csv",
