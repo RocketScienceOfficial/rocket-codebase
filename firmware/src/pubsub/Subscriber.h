@@ -70,7 +70,8 @@ namespace PubSub
                 }
                 else
                 {
-                    if (write_seq - m_ReadSequence > depth)
+                    // TODO: This is a bit of a hack. One idea is to introduce another atomic variable to track when write has started, not ended.
+                    if (write_seq - m_ReadSequence >= depth)
                     {
                         TooSlowHook::onTooSlow(Topic::topic_name, m_ReadSequence, write_seq);
 
@@ -81,7 +82,9 @@ namespace PubSub
                 m_Data = s.slots[FAST_MODULO(m_ReadSequence, depth)];
                 RetryHook::afterCopy();
 
-            } while (s.write_sequence.load(std::memory_order_acquire) - m_ReadSequence > depth);
+            } while (s.write_sequence.load(std::memory_order_acquire) - m_ReadSequence >= depth);
+            // NOTE: In both cases we must do >= comparison here, because the write_sequence can advance to the next slot after we copy but before we check the difference.
+            // If that happens, we must retry. This results in effective depth-1 total slots available to the subscriber, but it is necessary to avoid torn reads.
 
             m_ReadSequence++;
 

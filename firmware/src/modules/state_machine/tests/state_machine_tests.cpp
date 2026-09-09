@@ -61,9 +61,7 @@ TEST(StateMachineModule, FullLifecycleAndEdgeCases)
 
     auto drainHeight = [&]()
     {
-        while (heightSub.poll())
-        {
-        }
+        heightSub.pollLatest();
     };
 
     auto arm = [&](bool value) -> bool

@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
+#include <atomic>
 #include <cstdint>
+#include <thread>
 
 #include <pubsub/Publisher.h>
 #include <pubsub/Subscriber.h>
@@ -233,4 +235,159 @@ TEST(MessageBus, poll_resyncs_to_oldest_valid_slot_after_being_lapped)
     // Confirms the subscriber didn't just recover once but is back to reading forward normally.
     ASSERT_TRUE(sub.poll());
     EXPECT_EQ(sub.get().seq, 3);
+}
+
+namespace
+{
+    struct BoundaryLatestMsg
+    {
+        int seq;
+    };
+    PUBSUB_REGISTER_TOPIC_SIZE(BoundaryLatestMsg, test_boundary_latest, 4)
+
+    // Publishes exactly depth-1 messages from inside copyData, right after the slot copy. That
+    // leaves write_sequence exactly `depth` ahead of the sequence just read, which is the point
+    // where the writer's *next* slot is the one the reader has just copied out of. The data is
+    // not overwritten yet, but write_sequence does not move until a publish completes, so the
+    // reader cannot tell an idle writer apart from one that is halfway through that slot.
+    struct LapToExactBoundaryHook
+    {
+        inline static PubSub::Publisher<test_boundary_latest_topic> *pub = nullptr;
+
+        static void afterCopy()
+        {
+            if (pub == nullptr)
+            {
+                return;
+            }
+
+            for (int i = 2; i <= 4; i++)
+            {
+                pub->publish({i});
+            }
+            pub = nullptr;
+        }
+    };
+}
+
+TEST(MessageBus, poll_latest_retries_when_writer_lands_exactly_depth_ahead)
+{
+    PubSub::Publisher<test_boundary_latest_topic> pub;
+    PubSub::Subscriber<test_boundary_latest_topic, LapToExactBoundaryHook> sub;
+
+    pub.publish({1});
+    LapToExactBoundaryHook::pub = &pub;
+
+    ASSERT_TRUE(sub.pollLatest());
+
+    // Not 1: the copy of seq 1 came out of the slot the writer is about to reuse, so it must be
+    // retried rather than returned. A `> depth` re-check would accept it.
+    EXPECT_EQ(sub.get().seq, 4);
+}
+
+namespace
+{
+    struct BoundarySlowMsg
+    {
+        int seq;
+    };
+    PUBSUB_REGISTER_TOPIC_SIZE(BoundarySlowMsg, test_boundary_slow, 4)
+
+    struct CountingTooSlowHook
+    {
+        inline static int calls = 0;
+
+        static void onTooSlow(const char *, uint32_t, uint32_t) { calls++; }
+    };
+}
+
+TEST(MessageBus, poll_treats_writer_exactly_depth_ahead_as_a_lap)
+{
+    PubSub::Publisher<test_boundary_slow_topic> pub;
+    PubSub::Subscriber<test_boundary_slow_topic, PubSub::NoOpRetryHook, CountingTooSlowHook> sub;
+
+    CountingTooSlowHook::calls = 0;
+
+    for (int i = 0; i < 4; i++) // exactly depth publishes: the reader sits depth behind
+    {
+        pub.publish({i});
+    }
+
+    ASSERT_TRUE(sub.poll());
+
+    // Seq 0 is still intact in its slot at this instant, but it is the writer's next target and
+    // an in-flight write is invisible, so the usable backlog is depth-1 rather than depth. This
+    // is the cost of a single sequence counter; it must be paired with the same comparison in
+    // the post-copy re-check, or a reader parked here retries forever against an idle writer.
+    EXPECT_EQ(CountingTooSlowHook::calls, 1);
+    EXPECT_EQ(sub.get().seq, 1); // write_seq(4) - depth(4) + 1
+}
+
+namespace
+{
+    // Every word carries the same tag, so any blend of two publishes is detectable.
+    struct TearProbe
+    {
+        uint32_t word[16];
+    };
+    PUBSUB_REGISTER_TOPIC_SIZE(TearProbe, test_concurrent_tear, 2)
+}
+
+TEST(MessageBusConcurrency, concurrent_publisher_never_yields_a_torn_message)
+{
+    // The single-threaded hooks above can only lap the reader between whole publishes. This one
+    // runs a real writer alongside the reader so the copy can overlap a slot write in flight,
+    // which is the only way the torn read actually happens. Reverting either comparison in
+    // Subscriber.h to `>` produces on the order of a thousand torn reads here.
+    PubSub::Publisher<test_concurrent_tear_topic> pub;
+    PubSub::Subscriber<test_concurrent_tear_topic> sub;
+
+    constexpr uint32_t PUBLISH_COUNT = 400000;
+
+    std::atomic<bool> writerDone{false};
+
+    std::thread writer([&]
+    {
+        for (uint32_t seq = 1; seq <= PUBLISH_COUNT; seq++)
+        {
+            TearProbe probe;
+
+            for (uint32_t &word : probe.word)
+            {
+                word = seq;
+            }
+
+            pub.publish(probe);
+        }
+
+        writerDone.store(true, std::memory_order_release);
+    });
+
+    unsigned long reads = 0;
+    unsigned long torn = 0;
+
+    while (!writerDone.load(std::memory_order_acquire))
+    {
+        if (!sub.pollLatest())
+        {
+            continue;
+        }
+
+        const TearProbe &probe = sub.get();
+        reads++;
+
+        for (uint32_t word : probe.word)
+        {
+            if (word != probe.word[0])
+            {
+                torn++;
+                break;
+            }
+        }
+    }
+
+    writer.join();
+
+    EXPECT_EQ(torn, 0ul);
+    EXPECT_GT(reads, 1000ul); // guards against the reader never observing anything at all
 }

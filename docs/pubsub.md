@@ -66,6 +66,11 @@ Static limits (from [PubSubMeta.h](../firmware/src/pubsub/internal/PubSubMeta.h)
 | `MAX_MESSAGE_COUNT` | 16 | maximum ring depth |
 | `DEFAULT_MESSAGE_COUNT` | 2 | ring depth when unspecified |
 
+> **A ring of depth N holds N-1 usable messages, not N.** One slot is always reserved as the writer's next
+> target and cannot be safely read. At the default depth of 2 that leaves an ordered `poll()` consumer a
+> backlog of exactly one message before it is declared too slow. [§5](#5-overrun-and-torn-read-handling)
+> explains why, and when it is worth raising a topic's depth.
+
 Ring depths are constrained to powers of two (enforced by `static_assert`) so the slot index is a fast bitwise
 AND (`FAST_MODULO`, [fast_math.h](../firmware/src/lib/maths/fast_math.h)) rather than a division. There's no
 shared buffer or arena to size — each topic's storage (`T slots[depth]`) is its own `static inline` array,
@@ -131,6 +136,11 @@ The payload is written before the sequence is advanced with release ordering, so
 new sequence (with acquire ordering) is guaranteed to see the fully written slot. The load of the current
 sequence only needs `relaxed` ordering — with a single enforced producer, nothing else ever writes it.
 
+Note the consequence of that ordering, because everything in [§5](#5-overrun-and-torn-read-handling) follows
+from it: `write_sequence` counts publishes that have **completed**, not publishes that have **started**. While
+a publish is in flight the counter still reads its old value, so a consumer cannot distinguish an idle
+producer from one that is halfway through overwriting a slot.
+
 **Subscribing** ([Subscriber.h](../firmware/src/pubsub/Subscriber.h)) compares `m_ReadSequence` against the
 topic's `write_sequence`:
 
@@ -147,24 +157,60 @@ acquire/release pair on `write_sequence` provides. No mutexes are involved anywh
 
 ## 5. Overrun and torn-read handling
 
-Because the publisher never blocks, a subscriber that falls behind by more than the ring depth will have its
-oldest unread slots overwritten. This is detected, not ignored, by two injectable hook types on
+Because the publisher never blocks, a subscriber that falls behind will have its oldest unread slots
+overwritten. This is detected, not ignored, by two injectable hook types on
 `Subscriber<Topic, RetryHook, TooSlowHook>` (both take safe defaults in normal use):
 
-- In an ordered `poll()`, if `write_sequence - m_ReadSequence` exceeds the ring depth, `TooSlowHook::onTooSlow`
-  runs (the default, `DefaultTooSlowHook`, raises `SYS_ASSERT_MSG`) and the read cursor is skipped forward to
-  the oldest slot still present (`write_seq - depth + 1`). The publisher is never affected.
+- In an ordered `poll()`, if `write_sequence - m_ReadSequence` **reaches** the ring depth,
+  `TooSlowHook::onTooSlow` runs and the read cursor is skipped forward to the oldest safely readable slot
+  (`write_seq - depth + 1`). The publisher is never affected.
 - After copying a slot, `RetryHook::afterCopy` runs (a no-op by default), and the loop re-checks
-  `write_sequence` against `m_ReadSequence`; if the producer lapped the buffer during the copy, it retries.
-  This seqlock-style check guarantees a consumer never returns a torn message that was half-overwritten
-  mid-read.
+  `write_sequence` against `m_ReadSequence`. If the distance has reached the ring depth, the copy is discarded
+  and the read is retried.
+
+### Why the comparison is `>=` and not `>`
+
+Both checks use `>= depth`, not `> depth`, and the two must agree. This is the non-obvious part of the design,
+so it is worth stating plainly.
+
+The slot holding sequence `r` is `r % depth`, which is the same slot as sequence `r + depth`. So at the moment
+`write_sequence - m_ReadSequence == depth`, the reader's slot is precisely the writer's **next** target. The
+data in it is still intact at that instant, which makes `> depth` look sufficient. It isn't, because of the
+publish ordering in [§4](#4-ring-buffer-and-sequence-numbers): the counter is advanced only *after* the payload
+copy, so throughout the entire slot write `write_sequence` still reads the old value. "Writer has not started"
+and "writer is halfway through my slot" are the same observation. A reader that proceeds at that distance can
+copy a struct made of bytes from two different publishes, and the post-copy re-check will not notice, because
+the counter has not moved yet.
+
+This is not theoretical. With `> depth` on a depth-2 topic, a two-thread stress run returns messages like
+`100008 100008 ... 100006 100006`, half from each of two publishes that share a slot. The two comparisons are
+also coupled: relaxing only the pre-check while leaving the re-check at `>=` makes a reader parked at that
+distance retry forever against an idle writer.
+
+The cost of the fix is one slot. **A depth-N ring holds N-1 usable messages**, since the Nth is always the
+writer's next target. That is why the default depth of 2 gives an ordered consumer a backlog of exactly one.
+
+Recovering that slot is possible but needs a second counter recording when a publish *starts*, so an in-flight
+write becomes visible and `> depth` becomes correct again. That costs one extra atomic store plus a release
+fence per publish, and is tracked as a TODO in [Subscriber.h](../firmware/src/pubsub/Subscriber.h)
+rather than done.
+
+### Notes
+
+`DefaultTooSlowHook` raises `SYS_ASSERT_MSG`, which compiles out under `NDEBUG`. In a Release build a lapped
+subscriber therefore resyncs **silently**: the data loss is real but leaves no trace, so do not rely on the
+assert to tell you a consumer is too slow in flight.
 
 Both hooks exist for testing ([message_bus_tests.cpp](../firmware/src/pubsub/tests/message_bus_tests.cpp)) —
 they let a test simulate a slow subscriber or inject a write between the copy and the retry check without
-tripping a real assertion.
+tripping a real assertion. The boundary itself is covered by two deterministic tests that place the writer
+exactly `depth` ahead, plus a two-thread stress test that catches the actual tear (a synchronous hook can only
+lap the reader between whole publishes, never mid-copy, so it cannot reproduce it on its own).
 
-The practical guidance is to size a topic's ring depth for its slowest consumer's jitter, or to use
-`pollLatest()` when only the freshest value matters.
+The practical guidance is to size a topic's ring depth for its slowest consumer's jitter **plus one**, or to
+use `pollLatest()` when only the freshest value matters. Most topics here are `pollLatest()` or have a consumer
+faster than the producer, so the default depth of 2 is fine; the ones worth checking are those read with an
+ordered `poll()` at the same rate the producer publishes, from a different execution pool.
 
 ---
 
