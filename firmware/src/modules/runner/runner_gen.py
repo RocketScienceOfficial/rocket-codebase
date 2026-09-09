@@ -99,8 +99,11 @@ def gen_source(profile):
 
         s += "\n"
 
+        for loop in profile:
+            s += f"// Loop '{loop['name']}'\n"
+
         total_stack = sum(loop_stack_sizes[loop["name"]] for loop in profile)
-        s += f"static uint8_t g_stackBuffer[{total_stack}];\n"
+        s += f"static alignas(8) uint8_t g_stackBuffer[{total_stack}];\n"
         s += "static size_t g_stackBufferOffset = 0;\n"
 
         s += "\n"
