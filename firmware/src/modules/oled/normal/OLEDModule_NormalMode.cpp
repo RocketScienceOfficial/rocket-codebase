@@ -1,3 +1,5 @@
+#define U8X8_WITH_USER_PTR
+
 #include "../OLEDModule.h"
 #include <hal/time_driver.h>
 #include <string.h>
