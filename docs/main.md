@@ -103,6 +103,7 @@ cd firmware/
 |---|---|
 | `make obc` | Build OBC flight firmware (.uf2 for Pico drag-drop flashing) |
 | `make obc_sitl` | Build OBC software-in-the-loop simulation binary |
+| `make obc_sitl_freerun` | Build OBC software-in-the-loop simulation binary (free-running) |
 | `make radio_module` | Build Radio Module flight firmware |
 | `make radio_module_sitl` | Build Radio Module SITL binary |
 | `make gcs` | Build GCS firmware (requires ESP-IDF environment active) |

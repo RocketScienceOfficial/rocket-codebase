@@ -119,6 +119,7 @@ bool osal_task_delay_until(uint32_t deadline_ms)
     // past this branch stalls the whole simulation.
     if ((int32_t)(g_current_tick.load(std::memory_order_relaxed) - deadline_ms) >= 0)
     {
+        // WARNING: We can only enter this branch if caller thread called sitl_init_godmode(), but uses rate (and thus osal_task_delay_until())
         return false;
     }
 

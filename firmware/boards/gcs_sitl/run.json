@@ -3,14 +3,14 @@
         "name": "wq_serial",
         "priority": "high",
         "modules": [
-            { "name": "sim_serial", "stack_size": 2048, "args": ["CFG_SIM_GCS_SERIAL_PORT"] }
+            { "name": "sim_serial", "stack_size": 2048, "rate": 100, "args": ["CFG_SIM_GCS_SERIAL_PORT"] }
         ]
     },
     {
         "name": "wq_lora",
         "priority": "high",
         "modules": [
-            { "name": "sim_lora", "stack_size": 2048, "args": ["CFG_SIM_GCS_LORA_PORT"] }
+            { "name": "sim_lora", "stack_size": 2048, "rate": 100, "args": ["CFG_SIM_GCS_LORA_PORT"] }
         ]
     },
     {
