@@ -60,8 +60,6 @@ start_time = time.time()
 received_data = []
 true_data = []
 
-env.forward(PhysicsEngineInput(fin_states=np.array([0, 0, 0, 0]), airbrake_angle=0.0))
-
 while not env.finished():
     recv_data = physx_sock.receive()
 
