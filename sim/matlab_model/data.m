@@ -1,48 +1,76 @@
+% Conventions: FRD/NED, CCW
+
+
 Startup_Delay = 2.0;    % Time [s]
 
 
-Physics_Gravity = -9.81;    % Acceleration [m/s^2]
-Physics_TurbulenceFactor = 0.1;   % Coefficient [dimensionless]
-Physics_SensorsNoiseFactor = 0.5;  % Coefficient [dimensionless]
+Physics_Gravity = 9.81;    % Acceleration [m/s^2]
+Physics_TurbulenceFactor = 0;%0.7;   % Coefficient [dimensionless]
 
 
-PID_Kp = 400;    % Coefficient [dimensionless]
-PID_Ki = 0;     % Coefficient [dimensionless]
-PID_Kd = 50;     % Coefficient [dimensionless]
-PID_DCoeff = 50;     % Coefficient [dimensionless]
-PID_DeadZone = 0.0;    % Angle [deg]
-PID_ServoStep = 0.5;    % Angle [deg]
-PID_ServoMaxRate = 400;  % Angular velocity [deg/s]
-PID_ServoDelay = 0.01;  % Time [s]
-PID_SampleTime = 0.01;  % Time [s]
+PID_Rates_SampleTime = 0.002;  % Time [s]
+PID_Rates_Kp_R = 100;    % Coefficient [dimensionless]
+PID_Rates_Ki_R = 0;     % Coefficient [dimensionless]
+PID_Rates_Kd_R = 0;     % Coefficient [dimensionless]
+PID_Rates_DCoeff_R = 100;     % Coefficient [dimensionless]
+PID_Rates_Kp_PY = 400;    % Coefficient [dimensionless]
+PID_Rates_Ki_PY = 0;     % Coefficient [dimensionless]
+PID_Rates_Kd_PY = 0;     % Coefficient [dimensionless]
+PID_Rates_DCoeff_PY = 100;     % Coefficient [dimensionless]
+
+PID_Attitude_SampleTime = 0.01;  % Time [s]
+PID_Attitude_MaxOutput = 720;     % Angle velocity [deg/s]
+PID_Attitude_Kp_R = 2;    % Coefficient [dimensionless]
+PID_Attitude_Ki_R = 0;     % Coefficient [dimensionless]
+PID_Attitude_Kd_R = 0;     % Coefficient [dimensionless]
+PID_Attitude_DCoeff_R = 100;     % Coefficient [dimensionless]
+PID_Attitude_Kp_PY = 2;    % Coefficient [dimensionless]
+PID_Attitude_Ki_PY = 0;     % Coefficient [dimensionless]
+PID_Attitude_Kd_PY = 0;     % Coefficient [dimensionless]
+PID_Attitude_DCoeff_PY = 100;     % Coefficient [dimensionless]
+
+PID_Guidance_SampleTime = 0.1;  % Time [s]
+PID_Guidance_N = 3.5;   % Coefficient [dimensionless]
+PID_Guidance_MaxAcc = abs(5 * Physics_Gravity);    % Acceleration [m/s^2]
+PID_Guidance_K = 1/0.5;    % Coefficient [dimensionless]
+
+Actuator_Delay = 0.01;  % Time [s]
+Actuator_ServoStep = 0.25;    % Angle [deg]
+Actuator_MaxAngle = 8;    % Angle [deg]
+Actuator_ServoMaxRate = 270;  % Angular velocity [deg/s]
+Actuator_Tau = 0.05;   % Coefficient [dimensionless]
+Actuator_DeadZone = 0.5; % Angle [deg]
 
 
-Rocket_DesiredRotation = 90;   % Angle [deg]
 Rocket_CrossSectionArea = 0.01558;   % Area [m^2]
 Rocket_DragCoefficient = 0.461;   % Coefficient [dimensionless]
 Rocket_ThrustLookupTable = [   % Time [s] | Force [N]
     0.0 0
-    0.3 540
-    3.0 380    
-    3.5 0
+    0.3 700
+    6.4 550
+    6.8 100
+    8.7 0
 ];
 Rocket_MassLookupTable = [   % Time [s] | Mass [kg]
-    0.0 10.300
-    3.0 9.580
+    0.0 11.715
+    6.4 9.724
+    14.0 9.419
 ];
 Rocket_InertiaTensorLookupTable = [   % Time [s] | Moment of Inertia X and Y [kg*m^2] | Moment of Inertia Z [kg*m^2]
-    0.0 4.260 0.027
-    3.0 4.100 0.026
+    0.0 3.593 0.027
+    6.4 3.291 0.026
+    14.0 3.226 0.025
 ];
 Rocket_CenterOfGravityLookupTable = [    % Time [s] | Length [m]
-    0.0 0.83
-    3.0 0.86
+    % With respect to bottom of the rocket, FRD
+    0.0 -0.86
+    6.4 -0.91
+    14.0 -0.92
 ];
 
 
 Fin_OffsetFromCenter = 0.113;   % Length [m]
-Fin_ZPos = 1.47;   % Length [m]
-Fin_MaxAngle = 8;    % Angle [deg]
+Fin_ZPos = -1.47;   % Length [m]
 Fin_CrossSectionArea = 0.0007;   % Area [m^2]
 Fin_SurfaceArea = 0.0050;   % Area [m^2]
 Fin_CoefficientsLookupTable = [      % Angle [deg] | Cl [dimensionless] | Cd [dimensionless]     Source: http://airfoiltools.com/polar/details?polar=xf-n0012-il-200000
@@ -288,3 +316,8 @@ Airbrake_CoefficientsTable = [      % Angle [deg] | Cd [dimensionless]
     89.000   1.8994
     90.000   1.9000  
 ];
+
+
+% Enable MCP Toolkit
+addpath(fullfile(getenv('USERPROFILE'), '.matlab', 'agentic-toolkits', 'simulink'))
+satk_initialize

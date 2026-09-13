@@ -110,15 +110,9 @@ class SimulinkPhysicsEngine(PhysicsEngineInterface):
         self.server = TCPSocket(name="simulink", ip="localhost", port=12360, is_server=True, blocking=True)
         self.is_finished = False
 
-    def _enu_to_ned_v3(self, vec: np.ndarray) -> np.ndarray:
-        return np.array([vec[1], vec[0], -vec[2]])
-
-    def _enu_to_ned_q(self, q: np.ndarray) -> np.ndarray:
-        return np.array([q[0], q[2], q[1], -q[3]])
-
     def integrate(self, input: PhysicsEngineInput) -> PhysicsEngineOutput:
         if self.model == "acs":
-            self.server.send_raw(struct.pack("<dd", *input.fin_states[:2]))
+            self.server.send_raw(struct.pack("<dddd", *input.fin_states))
         elif self.model == "airbrake":
             self.server.send_raw(struct.pack("<d", input.airbrake_angle))
         else:
@@ -134,11 +128,11 @@ class SimulinkPhysicsEngine(PhysicsEngineInterface):
             self.time += self.dt
 
             return PhysicsEngineOutput(
-                acc=self._enu_to_ned_v3(np.array(struct.unpack("<3d", data[0:24]))),
-                vel=self._enu_to_ned_v3(np.array(struct.unpack("<3d", data[24:48]))),
-                pos=self._enu_to_ned_v3(np.array(struct.unpack("<3d", data[48:72]))),
-                w=self._enu_to_ned_v3(np.array(struct.unpack("<3d", data[72:96]))),
-                q=self._enu_to_ned_q(np.array(struct.unpack("<4d", data[96:128])))
+                acc=np.array(struct.unpack("<3d", data[0:24])),
+                vel=np.array(struct.unpack("<3d", data[24:48])),
+                pos=np.array(struct.unpack("<3d", data[48:72])),
+                w=np.array(struct.unpack("<3d", data[72:96])),
+                q=np.array(struct.unpack("<4d", data[96:128]))
             )
 
     def finished(self) -> bool:
