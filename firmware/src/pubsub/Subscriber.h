@@ -50,6 +50,8 @@ namespace PubSub
 
         bool copyData(bool latest)
         {
+            // TODO: Add blocking queues, based on events, so modules do not have to poll, but are rather woken up when new data is available.
+            
             auto &s = Topic::storage;
             static constexpr size_t depth = s.depth;
 

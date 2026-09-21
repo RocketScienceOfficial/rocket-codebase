@@ -11,6 +11,9 @@ namespace PubSub
     class Subscriber;
 }
 
+// TODO: Add topic instances/solve problem where we spawn the same module multiple times (and thus multiple publishers of the same topic);
+// Maybe use templates in modules OR const variables in topic storage + publisher and subscriber.
+// You should also add some aggregator for high levels modules so they wouldn't depend on instance numbers.
 #define PUBSUB_REGISTER_TOPIC_SIZE(T, name, depth)            \
     struct name##_topic                                       \
     {                                                         \

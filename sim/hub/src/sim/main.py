@@ -91,7 +91,12 @@ radio_sock.close()
 
 
 # ================== PLOTTING ==================
+
+# TODO: Headless mode
+
 print("> Plotting data...")
+
+# TODO: Assert state transitions, etc...
 
 main_plot.plot(received_data, true_data, SIM_TICK_DT)
 axes_plots.plot(received_data, true_data, SIM_TICK_DT)

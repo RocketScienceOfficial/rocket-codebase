@@ -282,6 +282,7 @@ def gen_cmake(profile):
 
     for loop in profile:
         for module in loop["modules"]:
+            # TODO: This will fail if we spawn multiple instances of the same module. Decouple modules and instances.
             s += "add_subdirectory(../{module} ${{CMAKE_CURRENT_BINARY_DIR}}/../{module})\n".format(module=module["name"])
 
     s += "\n"
