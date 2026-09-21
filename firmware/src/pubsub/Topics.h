@@ -150,11 +150,6 @@ namespace PubSub
             state_machine_state state;
         };
 
-        struct StateMachineHeight
-        {
-            float height;
-        };
-
         struct DatabaseReady
         {
             bool ready;
@@ -242,7 +237,6 @@ namespace PubSub
         PUBSUB_REGISTER_TOPIC(Messages::AirbrakeState, airbrake_state)
 
         PUBSUB_REGISTER_TOPIC(Messages::StateMachineState, sm_state)
-        PUBSUB_REGISTER_TOPIC(Messages::StateMachineHeight, sm_height)
 
         PUBSUB_REGISTER_TOPIC(Messages::DatabaseReady, database_ready)
 

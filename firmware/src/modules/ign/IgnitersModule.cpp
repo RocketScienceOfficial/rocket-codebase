@@ -52,12 +52,13 @@ void IgnitersModule::run()
         }
         if (!m_Igniters[1].fired)
         {
+            // Convert to ENU convention for easier reasoning (down is negative)
             const float vel_z = -m_EKFSubscriber.get().velocity.z;
             const float pos_z = -m_EKFSubscriber.get().position.z;
 
             bool fire = false;
 
-            if (vel_z >= MALFUNCTION_SPEED)
+            if (vel_z <= -MALFUNCTION_SPEED)
             {
                 LOG_INFO("Malfunction detected, firing backup igniter");
                 fire = true;
@@ -102,7 +103,6 @@ void IgnitersModule::gatherData()
     }
 
     m_SMSubscriber.poll();
-    m_SMHeightSubscriber.poll();
     m_EKFSubscriber.poll();
 }
 
@@ -122,6 +122,15 @@ void IgnitersModule::ignTestFire()
     const auto &cmd = m_RPC_IGN.getRequestData();
 
     LOG_INFO("Received igniter test fire command for channel %d", cmd.channel);
+
+    if (m_SMSubscriber.get().state != DATALINK_SM_STATE_STANDING)
+    {
+        LOG_WARN("Cannot test fire igniter, state machine is not in STANDING state");
+
+        m_RPC_IGN.sendResponse(false);
+
+        return;
+    }
 
     if (m_CurrentTestingIgniter == nullptr && cmd.channel >= 1 && cmd.channel <= PubSub::Helpers::IGN_CHANNELS_COUNT)
     {
@@ -217,7 +226,7 @@ void IgnitersModule::ignUpdateContinuity()
         {
             contFlags = IgnChannelContinuityFlags::IGN_PRESENT;
         }
-        else if (v < (vref * IGN_FUSE_NOT_WORKING_IGN_NOT_PRESENT_FACTOR + IGN_FUSE_CHECK_EPS))
+        else if (v < vref * (IGN_FUSE_NOT_WORKING_IGN_NOT_PRESENT_FACTOR + IGN_FUSE_CHECK_EPS))
         {
             contFlags = 0;
         }

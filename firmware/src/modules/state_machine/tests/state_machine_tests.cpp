@@ -11,7 +11,7 @@
 
 using namespace PubSub::Topics;
 
-// StateMachineModule owns sm_state/sm_height/command_arm-response (Publisher's constructor enforces
+// StateMachineModule owns sm_state/command_arm-response (Publisher's constructor enforces
 // single ownership per topic), so only one instance may exist in this test binary -- hence one long
 // scenario instead of separate TEST cases.
 
@@ -24,7 +24,6 @@ TEST(StateMachineModule, FullLifecycleAndEdgeCases)
     PubSub::Publisher<sensors_imu_1_topic> imuPub;
     PubSub::Publisher<sensors_baro_1_topic> baroPub;
     PubSub::Subscriber<sm_state_topic> stateSub;
-    PubSub::Subscriber<sm_height_topic> heightSub;
     PubSub::RPCRequest<PUBSUB_RPC_ID(command_arm)> armRpc;
 
     const vec3_t LIFTOFF_SPIKE_ACC = {0.0f, 0.0f, -(3.5f * (float)EARTH_GRAVITY)}; // > SM_CFG_START_ACC_THRESHOLD (2.5g)
@@ -57,11 +56,6 @@ TEST(StateMachineModule, FullLifecycleAndEdgeCases)
         {
             sitl_time_tick();
         }
-    };
-
-    auto drainHeight = [&]()
-    {
-        heightSub.pollLatest();
     };
 
     auto arm = [&](bool value) -> bool
@@ -99,9 +93,9 @@ TEST(StateMachineModule, FullLifecycleAndEdgeCases)
         EXPECT_TRUE(arm(true)) << "arm request while STANDING must be accepted";
         expectStateChange(DATALINK_SM_STATE_ARMED, "successful arm must publish ARMED");
 
-        drainHeight();
-        pushBaro(5.0f); // first-ever baro sample, just to exercise the sm_height publish check below
-        EXPECT_TRUE(heightSub.poll()) << "sm_height should be published every run() cycle";
+        // Seeds exp_smoothing: the Phase E/F baselines depend on this history, without it Phase F's
+        // settle value lands exactly on the baseline and never crosses SM_CFG_START_ALT_THRESHOLD.
+        pushBaro(5.0f);
     }
 
     {

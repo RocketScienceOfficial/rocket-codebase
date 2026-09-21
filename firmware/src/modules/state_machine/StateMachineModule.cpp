@@ -95,8 +95,6 @@ void StateMachineModule::updateData()
 
 void StateMachineModule::postUpdate()
 {
-    m_FlightStateHeightPublisher.publish({m_CurrentBaroHeight - m_BaseAlt});
-
     m_BaroHeightChanged = false;
     m_IMUAccChanged = false;
 }

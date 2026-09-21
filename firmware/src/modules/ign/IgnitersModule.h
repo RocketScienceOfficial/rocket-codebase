@@ -23,7 +23,6 @@ private:
     PubSub::Subscriber<PubSub::Topics::ign_adc_channels_topic> m_ADCSubscriber;
     PubSub::Subscriber<PubSub::Topics::sensors_battery_topic> m_BatSubscriber;
     PubSub::Subscriber<PubSub::Topics::sm_state_topic> m_SMSubscriber;
-    PubSub::Subscriber<PubSub::Topics::sm_height_topic> m_SMHeightSubscriber;
     PubSub::Subscriber<PubSub::Topics::ekf_state_topic> m_EKFSubscriber;
     PubSub::Publisher<PubSub::Topics::ign_continuity_topic> m_IgnDetPublisher;
     PubSub::Publisher<PubSub::Topics::ign_fired_topic> m_IgnFiredPublisher;

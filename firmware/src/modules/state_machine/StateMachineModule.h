@@ -16,7 +16,6 @@ private:
     PubSub::Subscriber<PubSub::Topics::sensors_imu_1_topic> m_IMUDataSubscriber;
     PubSub::Subscriber<PubSub::Topics::sensors_baro_1_topic> m_BaroDataSubscriber;
     PubSub::Publisher<PubSub::Topics::sm_state_topic> m_FlightStatePublisher;
-    PubSub::Publisher<PubSub::Topics::sm_height_topic> m_FlightStateHeightPublisher;
     PubSub::RPCHandler<PUBSUB_RPC_ID(command_arm)> m_RPC_ARM;
 
     // State
