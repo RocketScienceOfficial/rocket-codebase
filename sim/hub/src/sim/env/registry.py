@@ -28,6 +28,7 @@ class SensorSet:
 DEFAULT_SITE = Site(lat=50.337497, lon=19.525838, alt=30)
 
 
+# TODO: Add gps degraded, different variations
 SENSOR_FACTORIES = {
     "bmi088": lambda: SyntheticIMUModel(rate=500, noise_acc=GaussianNoiseModel(mean=0, std_dev=0.22), noise_gyro=GaussianNoiseModel(mean=0, std_dev=0.17), acc_range_g=12.0, gyro_range_deg=500.0),
     "imu_degraded": lambda: SyntheticIMUModel(rate=500, noise_acc=GaussianNoiseModel(mean=0, std_dev=0.3), noise_gyro=GaussianNoiseModel(mean=0, std_dev=0.17), acc_range_g=6.0, gyro_range_deg=500.0),
