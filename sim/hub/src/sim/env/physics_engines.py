@@ -100,6 +100,8 @@ class SimpleIntegratorPhysicsEngine(PhysicsEngineInterface):
 
 
 class SimulinkPhysicsEngine(PhysicsEngineInterface):
+
+    # TODO: Automatically open matlab using python package and run the simulink model
     def __init__(self, dt: float, model: str):
         super().__init__(dt)
 
