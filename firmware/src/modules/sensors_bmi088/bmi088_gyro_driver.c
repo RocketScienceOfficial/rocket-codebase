@@ -29,7 +29,7 @@ bool bmi088_gyro_validate(const bmi088_gyro_device_t *device)
 {
     SYS_ASSERT(device != NULL);
 
-    return bus_utils_read_reg(&device->device, BMI088_GYRO_CHIP_ID) == BMI088_GYRO_CHIP_ID;
+    return bus_utils_read_reg(&device->device, BMI088_GYRO_REG_CHIP_ID) == BMI088_GYRO_CHIP_ID;
 }
 
 void bmi088_gyro_set_bandwidth(const bmi088_gyro_device_t *device, bmi088_gyro_bandwidth_t bw)

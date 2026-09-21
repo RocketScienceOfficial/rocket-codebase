@@ -24,6 +24,7 @@ private:
     bmi088_acc_device_t m_AccDevice{};
     bmi088_gyro_device_t m_GyroDevice{};
     uint64_t m_LastReadTimeUs = 0;
+    bool m_FirstRun = true;
 
     PubSub::Messages::SensorsIMU m_CurrentFrame{};
 };

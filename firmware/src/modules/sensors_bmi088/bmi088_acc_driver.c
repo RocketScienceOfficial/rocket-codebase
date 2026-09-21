@@ -19,6 +19,8 @@ static void bmi088_acc_read_regs(const bmi088_acc_device_t *device, uint8_t addr
 {
     uint8_t tmp_buffer[16];
 
+    SYS_CHECK(count <= sizeof(tmp_buffer) - 1, return);
+
     bus_utils_read_regs(&device->device, address, tmp_buffer, count + 1);
 
     memcpy(buffer, tmp_buffer + 1, count);
@@ -61,6 +63,7 @@ void bmi088_acc_init_spi(bmi088_acc_device_t *device, hal_spi_bus_t spi, hal_gpi
 
     bus_utils_init_spi_device(&device->device, spi, cs, BMI088_ACC_READ_MASK, BMI088_ACC_READ_MASK, BMI088_ACC_WRITE_MASK);
 
+    bmi088_acc_read_reg(device, BMI088_ACC_REG_CHIP_ID); // Read chip ID to ensure SPI is working (this value is invalid and will be ignored)
     bmi088_acc_init_base(device);
 }
 

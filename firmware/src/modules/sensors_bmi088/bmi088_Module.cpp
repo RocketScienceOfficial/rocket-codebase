@@ -24,6 +24,12 @@ void bmi088_Module::run()
     m_CurrentFrame.dt = (currentTimeUs - m_LastReadTimeUs) * 1e-6f;
     m_LastReadTimeUs = currentTimeUs;
 
+    if (m_FirstRun)
+    {
+        m_FirstRun = false;
+        return; // Skip first run to avoid large dt
+    }
+
     bmi088_acc_read(&m_AccDevice, &m_CurrentFrame.acc);
     bmi088_gyro_read(&m_GyroDevice, &m_CurrentFrame.gyro);
 
