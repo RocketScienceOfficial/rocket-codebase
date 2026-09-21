@@ -126,7 +126,7 @@ DatabaseFrame DatabaseModule::getFrame(uint16_t dt_us)
         .posNED = m_EKFSubscriber.get().position,
         .qNED = m_EKFSubscriber.get().orientation,
         .smState = (uint8_t)m_CurrentFlightState,
-        .batteryVoltage100 = (uint8_t)(m_BatterySubscriber.get().batVolts * 100),
+        .batteryVoltage100 = (uint16_t)(m_BatterySubscriber.get().batVolts * 100),
         .ignFlags = ignFlags,
     };
     return frame;
