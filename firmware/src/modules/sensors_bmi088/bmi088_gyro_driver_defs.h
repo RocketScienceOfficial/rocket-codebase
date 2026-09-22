@@ -1,9 +1,7 @@
 #ifndef _BMI088_GYRO_DRIVER_DEFS_H
 #define _BMI088_GYRO_DRIVER_DEFS_H
 
-/* --- Device Identification & I2C --- */
-#define BMI088_GYRO_GND_I2C_ADDRESS 0x68
-#define BMI088_GYRO_VDD_I2C_ADDRESS 0x69
+/* --- Device Identification --- */
 #define BMI088_GYRO_CHIP_ID 0x0F
 #define BMI088_GYRO_READ_MASK 0x80
 #define BMI088_GYRO_WRITE_MASK 0x7F

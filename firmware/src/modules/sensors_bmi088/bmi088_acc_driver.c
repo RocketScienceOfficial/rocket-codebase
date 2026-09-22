@@ -67,19 +67,6 @@ void bmi088_acc_init_spi(bmi088_acc_device_t *device, hal_spi_bus_t spi, hal_gpi
     bmi088_acc_init_base(device);
 }
 
-void bmi088_acc_init_i2c(bmi088_acc_device_t *device, hal_i2c_bus_t i2c, bool sdo1Grounded)
-{
-    SYS_ASSERT(device != NULL);
-
-    device->rangeFactor = 0.0f;
-
-    uint8_t address = sdo1Grounded ? BMI088_ACC_GND_I2C_ADDRESS : BMI088_ACC_VDD_I2C_ADDRESS;
-
-    bus_utils_init_i2c_device(&device->device, i2c, address, BMI088_ACC_READ_MASK, BMI088_ACC_READ_MASK, BMI088_ACC_WRITE_MASK);
-
-    bmi088_acc_init_base(device);
-}
-
 bool bmi088_acc_validate(const bmi088_acc_device_t *device)
 {
     SYS_ASSERT(device != NULL);

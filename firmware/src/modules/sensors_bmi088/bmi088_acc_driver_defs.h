@@ -1,9 +1,7 @@
 #ifndef _BMI088_ACC_DRIVER_DEFS_H
 #define _BMI088_ACC_DRIVER_DEFS_H
 
-/* --- Device Identification & I2C --- */
-#define BMI088_ACC_GND_I2C_ADDRESS 0x18
-#define BMI088_ACC_VDD_I2C_ADDRESS 0x19
+/* --- Device Identification --- */
 #define BMI088_ACC_CHIP_ID 0x1E
 #define BMI088_ACC_READ_MASK 0x80
 #define BMI088_ACC_WRITE_MASK 0x7F

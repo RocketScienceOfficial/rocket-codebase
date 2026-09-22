@@ -14,17 +14,6 @@ void bmi088_gyro_init_spi(bmi088_gyro_device_t *device, hal_spi_bus_t spi, hal_g
     bus_utils_init_spi_device(&device->device, spi, cs, BMI088_GYRO_READ_MASK, BMI088_GYRO_READ_MASK, BMI088_GYRO_WRITE_MASK);
 }
 
-void bmi088_gyro_init_i2c(bmi088_gyro_device_t *device, hal_i2c_bus_t i2c, bool sdo1Grounded)
-{
-    SYS_ASSERT(device != NULL);
-
-    device->rangeFactor = 0.0f;
-
-    uint8_t address = sdo1Grounded ? BMI088_GYRO_GND_I2C_ADDRESS : BMI088_GYRO_VDD_I2C_ADDRESS;
-
-    bus_utils_init_i2c_device(&device->device, i2c, address, BMI088_GYRO_READ_MASK, BMI088_GYRO_READ_MASK, BMI088_GYRO_WRITE_MASK);
-}
-
 bool bmi088_gyro_validate(const bmi088_gyro_device_t *device)
 {
     SYS_ASSERT(device != NULL);

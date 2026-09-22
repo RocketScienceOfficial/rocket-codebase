@@ -62,15 +62,6 @@ typedef enum
 void bmi088_gyro_init_spi(bmi088_gyro_device_t *device, hal_spi_bus_t spi, hal_gpio_pin_t cs);
 
 /**
- * @brief Initialize BMI088 gyroscope
- *
- * @param device Gyroscope device
- * @param i2c I2C
- * @param sdo1Grounded Is SDO1 pulled to GND
- */
-void bmi088_gyro_init_i2c(bmi088_gyro_device_t *device, hal_i2c_bus_t i2c, bool sdo1Grounded);
-
-/**
  * @brief Validate BMI088 gyroscope
  * 
  * @param device Gyroscope device
