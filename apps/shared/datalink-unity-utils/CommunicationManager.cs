@@ -42,7 +42,7 @@ namespace DataLink
                 }
             }
 
-            if (_readQueue.TryDequeue(out var msg))
+            foreach (var msg in _readQueue)
             {
                 OnRead?.Invoke(this, new CommunicationManagerOnReadEventArgs { Message = msg });
             }
