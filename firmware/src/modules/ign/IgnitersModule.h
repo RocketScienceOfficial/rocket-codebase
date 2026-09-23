@@ -1,12 +1,12 @@
 #pragma once
 
+#include "IgnConfig.h"
 #include <pubsub/Topics.h>
 #include <pubsub/Subscriber.h>
 #include <pubsub/Publisher.h>
 #include <pubsub/RPCHandler.h>
 #include <hal/gpio_driver.h>
 
-#define IGN_COUNT 4
 
 static_assert(PubSub::Helpers::IGN_CHANNELS_COUNT == IGN_COUNT, "IGN_CHANNELS_COUNT must be equal to IGN_COUNT");
 
@@ -40,15 +40,17 @@ private:
 
     IgniterPinData m_Igniters[IGN_COUNT];
 
-    bool m_ADCUpdate = false;
+    uint32_t m_LastContinuityUpdateTime = 0;
+    bool m_StatusUpdate = false;
     bool m_ApogeeReached = false;
     IgniterPinData *m_CurrentTestingIgniter = nullptr;
 
     void gatherData();
+    void updateFiredStatus();
+    void updateContinuity();
     void initIgniterPin(IgniterPinData &data);
-    void ignTestFire();
-    void ignFire(IgniterPinData &data);
-    void ignUpdate(IgniterPinData &data);
-    void ignFinish(IgniterPinData &data);
-    void ignUpdateContinuity();
+    void testIgniter();
+    void fireIgniter(IgniterPinData &data);
+    void updateIgniter(IgniterPinData &data);
+    void finishFire(IgniterPinData &data);
 };

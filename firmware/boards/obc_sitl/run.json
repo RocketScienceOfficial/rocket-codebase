@@ -26,7 +26,7 @@
         "modules": [
             { "name": "ekf", "stack_size": 4096, "rate": 500, "args": [] },
             { "name": "state_machine", "stack_size": 1024, "rate": 500, "args": [] },
-            { "name": "ign", "stack_size": 1024, "rate": 500, "args": ["0", "0", "0", "0"] },
+            { "name": "ign", "stack_size": 1024, "rate": 500, "args": ["1", "2", "3", "4"] },
             { "name": "airbrake", "stack_size": 1024, "rate": 500, "args": [] }
         ]
     },

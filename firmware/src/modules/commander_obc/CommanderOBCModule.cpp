@@ -46,6 +46,7 @@ void CommanderOBCModule::run()
 
 void CommanderOBCModule::handleRPCs()
 {
+    // TODO: Handle timeout properly, those rpcs will get stuck forever
     if (m_RadioCommandStatus == CommanderStatus::PENDING && osal_task_get_ms() - m_LastRadioCommandTime > RADIO_COMMAND_TIMEOUT)
     {
         LOG_ERROR("Radio command timed out");
@@ -88,7 +89,10 @@ void CommanderOBCModule::processSerialMessage(const datalink_message_t &msg)
 
         SYS_ASSERT(status == DATALINK_OK);
 
-        m_RPC_IGN.call({.channel = req.ignNum}, SERIAL_SRC_ID);
+        if (!m_RPC_IGN.call({.channel = req.ignNum}, SERIAL_SRC_ID))
+        {
+            LOG_WARN("Failed to initiate igniter test fire command");
+        }
 
         break;
     }
@@ -125,7 +129,7 @@ void CommanderOBCModule::processUARTMessage(const datalink_message_t &msg)
             LOG_DEBUG("Received telemetry response with invalid cmd_seq %d (current %d)", tlmData.cmd_seq, m_RadioCommandSeq);
             return;
         }
-        if (m_RadioCommandStatus == CommanderStatus::PENDING)
+        if (m_RadioCommandStatus == CommanderStatus::PENDING) // Our busy gate
         {
             LOG_DEBUG("Received telemetry response while pending - ignoring command");
             return;
@@ -235,7 +239,7 @@ void CommanderOBCModule::setRadioRPCStatus(bool success)
 {
     if (m_RadioCommandStatus != CommanderStatus::PENDING)
     {
-        LOG_ERROR("Attempted to set radio RPC status while not pending");
+        LOG_WARN("Attempted to set radio RPC status while not pending");
 
         return;
     }

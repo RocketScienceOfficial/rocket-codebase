@@ -3,18 +3,13 @@
 #include <osal/task.h>
 #include <hal/gpio_driver.h>
 
-#define IGN_UP_TIME_MS 10
-#define MAIN_PARACHUTE_HEIGHT 200
-#define MALFUNCTION_SPEED 20
-
-#define IGN_FUSE_WORKING_IGN_PRESENT_FACTOR 0
-#define IGN_FUSE_WORKING_IGN_NOT_PRESENT_FACTOR 0.0189607f
-#define IGN_FUSE_NOT_WORKING_IGN_PRESENT_FACTOR 0.0297897f
-#define IGN_FUSE_NOT_WORKING_IGN_NOT_PRESENT_FACTOR 0.0383104f
-#define IGN_FUSE_CHECK_EPS 0.005f
-
 IgnitersModule::IgnitersModule(hal_gpio_pin_t ign1, hal_gpio_pin_t ign2, hal_gpio_pin_t ign3, hal_gpio_pin_t ign4)
 {
+    for (uint8_t i = 0; i < IGN_COUNT; i++)
+    {
+        m_Igniters[i] = {};
+    }
+
     m_Igniters[0].pin = ign1;
     m_Igniters[1].pin = ign2;
     m_Igniters[2].pin = ign3;
@@ -23,22 +18,15 @@ IgnitersModule::IgnitersModule(hal_gpio_pin_t ign1, hal_gpio_pin_t ign2, hal_gpi
 
 void IgnitersModule::init()
 {
-    initIgniterPin(m_Igniters[0]);
-    initIgniterPin(m_Igniters[1]);
-    initIgniterPin(m_Igniters[2]);
-    initIgniterPin(m_Igniters[3]);
+    for (uint8_t i = 0; i < IGN_COUNT; i++)
+    {
+        initIgniterPin(m_Igniters[i]);
+    }
 }
 
 void IgnitersModule::run()
 {
     gatherData();
-
-    if (m_ADCUpdate)
-    {
-        m_ADCUpdate = false;
-
-        ignUpdateContinuity();
-    }
 
     if (m_SMSubscriber.get().state == DATALINK_SM_STATE_FREE_FALL)
     {
@@ -46,7 +34,7 @@ void IgnitersModule::run()
         {
             LOG_INFO("Apogee reached, firing pilot igniter");
 
-            ignFire(m_Igniters[0]);
+            fireIgniter(m_Igniters[0]);
 
             m_ApogeeReached = true;
         }
@@ -58,6 +46,7 @@ void IgnitersModule::run()
 
             bool fire = false;
 
+            // Those cases are expected to call if they happen during apogee
             if (vel_z <= -MALFUNCTION_SPEED)
             {
                 LOG_INFO("Malfunction detected, firing backup igniter");
@@ -74,132 +63,66 @@ void IgnitersModule::run()
                 LOG_INFO("Height: %.2f m", pos_z);
                 LOG_INFO("Velocity: %.2f m/s", vel_z);
 
-                ignFire(m_Igniters[1]);
+                fireIgniter(m_Igniters[1]);
             }
         }
     }
 
     if (m_RPC_IGN.requestAvailable())
     {
-        ignTestFire();
+        testIgniter();
     }
 
-    ignUpdate(m_Igniters[0]);
-    ignUpdate(m_Igniters[1]);
-    ignUpdate(m_Igniters[2]);
-    ignUpdate(m_Igniters[3]);
+    updateIgniter(m_Igniters[0]);
+    updateIgniter(m_Igniters[1]);
+    updateIgniter(m_Igniters[2]);
+    updateIgniter(m_Igniters[3]);
+
+    // After all possible ways to fire
+    if (m_StatusUpdate)
+    {
+        m_StatusUpdate = false;
+
+        updateFiredStatus();
+    }
+
+    updateContinuity();
 }
 
 void IgnitersModule::gatherData()
 {
-    if (m_ADCSubscriber.poll())
-    {
-        m_ADCUpdate = true;
-    }
-
-    if (m_BatSubscriber.poll())
-    {
-        m_ADCUpdate = true;
-    }
-
     m_SMSubscriber.poll();
     m_EKFSubscriber.poll();
+    m_BatSubscriber.poll();
 }
 
-void IgnitersModule::initIgniterPin(IgniterPinData &data)
+void IgnitersModule::updateFiredStatus()
 {
-    data.fired = false;
-    data.finished = false;
-
-    hal_gpio_init_pin(data.pin, HAL_GPIO_OUTPUT);
-    hal_gpio_set_pin_state(data.pin, HAL_GPIO_LOW);
-
-    LOG_INFO("Igniter pin %d initialized", data.pin);
-}
-
-void IgnitersModule::ignTestFire()
-{
-    const auto &cmd = m_RPC_IGN.getRequestData();
-
-    LOG_INFO("Received igniter test fire command for channel %d", cmd.channel);
-
-    if (m_SMSubscriber.get().state != DATALINK_SM_STATE_STANDING)
+    for (uint8_t i = 0; i < IGN_COUNT; i++)
     {
-        LOG_WARN("Cannot test fire igniter, state machine is not in STANDING state");
+        m_CurrentIgnFiredPubData.fired[i] = m_Igniters[i].fired;
+    }
 
-        m_RPC_IGN.sendResponse(false);
+    m_IgnFiredPublisher.publish(m_CurrentIgnFiredPubData);
+}
+
+void IgnitersModule::updateContinuity()
+{
+    using namespace PubSub::Helpers;
+
+    if (!m_ADCSubscriber.poll())
+    {
+        if (osal_task_get_ms() - m_LastContinuityUpdateTime >= IGN_CONTINUITY_DEAD_TIME)
+        {
+            LOG_WARN("ADC data not available for continuity check, resetting continuity data");
+
+            m_LastContinuityUpdateTime = osal_task_get_ms();
+            m_CurrentIgnContinuityPubData = {0};
+            m_IgnDetPublisher.publish(m_CurrentIgnContinuityPubData);
+        }
 
         return;
     }
-
-    if (m_CurrentTestingIgniter == nullptr && cmd.channel >= 1 && cmd.channel <= PubSub::Helpers::IGN_CHANNELS_COUNT)
-    {
-        m_CurrentTestingIgniter = &m_Igniters[cmd.channel - 1];
-
-        ignFire(*m_CurrentTestingIgniter);
-    }
-    else
-    {
-        LOG_WARN("Invalid igniter test fire command received or another test is currently running");
-
-        m_RPC_IGN.sendResponse(false);
-    }
-}
-
-void IgnitersModule::ignFire(IgniterPinData &data)
-{
-    if (!data.fired && !data.finished)
-    {
-        hal_gpio_set_pin_state(data.pin, HAL_GPIO_HIGH);
-
-        data.fired = true;
-        data.fireTime = osal_task_get_ms();
-
-        for (uint8_t i = 0; i < IGN_COUNT; i++)
-        {
-            m_CurrentIgnFiredPubData.fired[i] = m_Igniters[i].fired;
-        }
-
-        LOG_INFO("Fired igniter on pin %d", data.pin);
-
-        m_IgnFiredPublisher.publish(m_CurrentIgnFiredPubData);
-    }
-}
-
-void IgnitersModule::ignUpdate(IgniterPinData &data)
-{
-    if (data.fired && !data.finished)
-    {
-        if (osal_task_get_ms() - data.fireTime >= IGN_UP_TIME_MS)
-        {
-            ignFinish(data);
-        }
-    }
-}
-
-void IgnitersModule::ignFinish(IgniterPinData &data)
-{
-    hal_gpio_set_pin_state(data.pin, HAL_GPIO_LOW);
-
-    if (m_CurrentTestingIgniter && m_CurrentTestingIgniter->pin == data.pin)
-    {
-        m_CurrentTestingIgniter = nullptr;
-
-        data.fired = false;
-
-        m_RPC_IGN.sendResponse(true);
-    }
-    else
-    {
-        data.finished = true;
-    }
-
-    LOG_INFO("Finished igniter on pin %d", data.pin);
-}
-
-void IgnitersModule::ignUpdateContinuity()
-{
-    using namespace PubSub::Helpers;
 
     for (uint8_t i = 0; i < IGN_COUNT; i++)
     {
@@ -232,11 +155,110 @@ void IgnitersModule::ignUpdateContinuity()
         }
         else
         {
-            contFlags = 0;
+            contFlags = 0; // This should not never happen, but we explicitly set it to 0 just in case
         }
 
         m_CurrentIgnContinuityPubData.detectorsFlags[i] = contFlags;
     }
 
+    m_LastContinuityUpdateTime = osal_task_get_ms();
     m_IgnDetPublisher.publish(m_CurrentIgnContinuityPubData);
+}
+
+void IgnitersModule::initIgniterPin(IgniterPinData &data)
+{
+    data.fired = false;
+    data.finished = false;
+
+    hal_gpio_init_pin(data.pin, HAL_GPIO_OUTPUT);
+    hal_gpio_set_pin_state(data.pin, HAL_GPIO_LOW);
+
+    LOG_INFO("Igniter pin %d initialized", data.pin);
+}
+
+void IgnitersModule::testIgniter()
+{
+    const auto &cmd = m_RPC_IGN.getRequestData();
+
+    LOG_INFO("Received igniter test fire command for channel %d", cmd.channel);
+
+    if (m_SMSubscriber.get().state != DATALINK_SM_STATE_STANDING)
+    {
+        LOG_WARN("Cannot test fire igniter, state machine is not in STANDING state");
+
+        m_RPC_IGN.sendResponse(false);
+
+        return;
+    }
+
+    if (m_CurrentTestingIgniter == nullptr && cmd.channel >= 1 && cmd.channel <= PubSub::Helpers::IGN_CHANNELS_COUNT)
+    {
+        IgniterPinData &igniter = m_Igniters[cmd.channel - 1];
+
+        if (igniter.fired || igniter.finished)
+        {
+            LOG_WARN("Cannot test fire igniter, it has already been fired or finished");
+
+            m_RPC_IGN.sendResponse(false);
+
+            return;
+        }
+
+        m_CurrentTestingIgniter = &igniter;
+
+        fireIgniter(igniter);
+    }
+    else
+    {
+        LOG_WARN("Invalid igniter test fire command received or another test is currently running");
+
+        m_RPC_IGN.sendResponse(false);
+    }
+}
+
+void IgnitersModule::fireIgniter(IgniterPinData &data)
+{
+    if (!data.fired && !data.finished)
+    {
+        hal_gpio_set_pin_state(data.pin, HAL_GPIO_HIGH);
+
+        data.fired = true;
+        data.fireTime = osal_task_get_ms();
+
+        LOG_INFO("Fired igniter on pin %d", data.pin);
+
+        m_StatusUpdate = true;
+    }
+}
+
+void IgnitersModule::updateIgniter(IgniterPinData &data)
+{
+    if (data.fired && !data.finished)
+    {
+        if (osal_task_get_ms() - data.fireTime >= IGN_UP_TIME_MS)
+        {
+            finishFire(data);
+        }
+    }
+}
+
+void IgnitersModule::finishFire(IgniterPinData &data)
+{
+    hal_gpio_set_pin_state(data.pin, HAL_GPIO_LOW);
+
+    if (m_CurrentTestingIgniter && m_CurrentTestingIgniter == &data)
+    {
+        m_CurrentTestingIgniter = nullptr;
+        m_StatusUpdate = true; // Request a status update
+
+        data.fired = false;
+
+        m_RPC_IGN.sendResponse(true);
+    }
+    else
+    {
+        data.finished = true;
+    }
+
+    LOG_INFO("Finished igniter on pin %d", data.pin);
 }
